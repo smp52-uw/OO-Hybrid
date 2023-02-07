@@ -17,27 +17,27 @@ opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseri
 [opt.wave.L] = extendToLifetime(opt.wave.L,data.wave.time,uc.lifetime);
 
 if wave.method == 1 %divide by B methodology
-    
-    wsr = load(wave.wsr);
-    wsr = wsr.(wave.wsr);
-    opt.wave.Tp_ws = unique(wsr.T); %Tp wec sim array
-    Hs = unique(wsr.H); %all Hs
-    [~,Hs_ind] = min(abs(Hs - wave.wsHs)); %Hs closest to target Hs
-    opt.wave.Hs_ws = Hs(Hs_ind); %Hs wec sim
-    %preallocate
-    opt.wave.cwr_b_ws = zeros(length(opt.wave.Tp_ws),1);
-    %caculate capture width ratio for wec sim values
-    for i = 1:length(opt.wave.Tp_ws) %across all tp
-        J = (1/(64*pi))*atmo.rho_w*atmo.g^2* ...
-            opt.wave.Hs_ws^2*opt.wave.Tp_ws(i); %wavepower
-        opt.wave.cwr_b_ws(i) = wsr.mat(Hs_ind,i)/(J*wsr.B^2); %cwr/b
-    end
-    %find rated cwr/b
-    opt.wave.cwr_b_ra = interp1(opt.wave.Tp_ws, ...
-        opt.wave.cwr_b_ws,wave.Tp_ra,'spline'); 
-    %compute timeseries
-    opt.wave.cwr_b_ts = interp1(opt.wave.Tp_ws, ...
-        opt.wave.cwr_b_ws,Tp,'spline'); %timeseries of cwr/b
+    disp('Error - Divide by B method chosen')
+%     wsr = load(wave.wsr);
+%     wsr = wsr.(wave.wsr);
+%     opt.wave.Tp_ws = unique(wsr.T); %Tp wec sim array
+%     Hs = unique(wsr.H); %all Hs
+%     [~,Hs_ind] = min(abs(Hs - wave.wsHs)); %Hs closest to target Hs
+%     opt.wave.Hs_ws = Hs(Hs_ind); %Hs wec sim
+%     %preallocate
+%     opt.wave.cwr_b_ws = zeros(length(opt.wave.Tp_ws),1);
+%     %caculate capture width ratio for wec sim values
+%     for i = 1:length(opt.wave.Tp_ws) %across all tp
+%         J = (1/(64*pi))*atmo.rho_w*atmo.g^2* ...
+%             opt.wave.Hs_ws^2*opt.wave.Tp_ws(i); %wavepower
+%         opt.wave.cwr_b_ws(i) = wsr.mat(Hs_ind,i)/(J*wsr.B^2); %cwr/b
+%     end
+%     %find rated cwr/b
+%     opt.wave.cwr_b_ra = interp1(opt.wave.Tp_ws, ...
+%         opt.wave.cwr_b_ws,wave.Tp_ra,'spline'); 
+%     %compute timeseries
+%     opt.wave.cwr_b_ts = interp1(opt.wave.Tp_ws, ...
+%         opt.wave.cwr_b_ws,Tp,'spline'); %timeseries of cwr/b
     
 elseif wave.method == 2 %3d interpolation methodology
     

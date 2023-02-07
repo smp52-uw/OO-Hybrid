@@ -68,7 +68,7 @@ else %just one simulation
     optStruct.batt = batt;
     optStruct.econ = econ;
     optStruct.uc = uc(c);
-    optStruct.pm = pm;
+    %optStruct.pm = pm;
     optStruct.c = c;
     optStruct.loc = loc;
     optStruct.turb = turb;

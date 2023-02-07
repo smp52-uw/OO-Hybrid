@@ -3,7 +3,8 @@
 econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
-
+%TEMPORARILY ADJUSTING MAX SPACE 5 AS A SAFETY NET - WHILE CODE DOESN'T
+%TELESCOPE
 opt.bf.j = 5;
 opt.bf.k = 5;
 opt.bf.l = 5;
@@ -18,7 +19,7 @@ opt.sens = 0;
 opt.tdsens = 0;
 opt.senssm = 0;
 opt.highresobj = 0;
-%pm = 4; %power module, 1:Wi 2:In 3:Wa 4:Di
+pm = 4; %power module, 1:Wi 2:In 3:Wa 4:Di
 c = 2;  %use case 1:ST 2:LT
 loc = 'argBasin'; %location
 %batch = false;
@@ -43,7 +44,7 @@ if isequal(batchtype,'ssm')
     opt.tdsens = 0;
     opt.senssm = 1;
     opt.highresobj = 0;
-    %pm = batchpm;
+    pm = batchpm;
     c = batchc;
     loc = batchloc;
     %batch = true;
@@ -62,7 +63,7 @@ elseif isequal(batchtype,'alllocuses')
     opt.tdsens = 0;
     opt.senssm = 0;
     opt.highresobj = 0;
-    %pm = batchpm;
+    pm = batchpm;
     c = [];
     loc = [];
     %batch = true;
@@ -79,7 +80,7 @@ elseif isequal(batchtype,'hros')
     opt.tdsens = 0;
     opt.senssm = 0;
     opt.highresobj = 1;
-    %pm = 3;
+    pm = 3;
     c = batchc;
     loc = batchloc;
     %batch = true;
@@ -98,7 +99,7 @@ elseif isequal(batchtype,'sens')
     opt.tdsens = 0;
     opt.senssm = 0;
     opt.highresobj = 0;
-    %pm = 3;
+    pm = 3;
     c = batchc;
     loc = batchloc;
     %batch = true;
@@ -119,15 +120,15 @@ opt.locations = {'argBasin';'cosEndurance_wa'; ...
 %opt.powermodules = {'wind';'inso';'wave';'dies'};
 opt.usecases = {'short term';'long term'};
 opt.wavescens = {'Conservative';'Optimistic Cost';'Optimistic Durability'};
-% if pm == 1
-%     opt.scens = {'optimistic durability','conservative'};
-% elseif pm == 2
-%     opt.scens = {'automated','human'};
-% elseif pm == 3
-%     opt.scens = opt.wavescens;
-% elseif pm == 4
-%     opt.scens = {'default'};
-% end
+if pm == 1
+    opt.scens = {'optimistic durability','conservative'};
+elseif pm == 2
+    opt.scens = {'automated','human'};
+elseif pm == 3
+    opt.scens = opt.wavescens;
+elseif pm == 4
+    opt.scens = {'default'};
+end
 
 %ECONOMIC
 %polynomial fits
@@ -325,15 +326,14 @@ atmo.soil = 35;             %[%/year]
 %short term instrumentation
 %uc(1).draw = 200;               %[W] - load now defined in optRun
 uc(1).lifetime = 5;             %[y]
-uc(1).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar
+uc(1).case = 1;                 %load case: 1=HCUUV, 2=HFUUV, 
 uc(1).SI = 6;                   %[months] service interval
 uc(1).uptime = .99;             %[%] uptime
 % uc(1).turb.lambda = 4;          %turbine interventions
 % uc(1).dies.lambda = 1;          %diesel interventions
 %long term instrumentation
-%uc(2).draw = 200;               %[W] - secondary node
+uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 5;             %[y]
-uc(2).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar
 uc(2).SI = 12*uc(2).lifetime;   %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 % uc(2).turb.lambda = 4;          %turbine interventions

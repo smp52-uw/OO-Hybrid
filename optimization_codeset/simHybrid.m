@@ -1,7 +1,7 @@
 function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
     vesselcost,genrepair,turbrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
-    triptime,runtime,nvi,batt_L,batt_lft,nfr,noc,dp,S,Pdies,Pinso,Pwind,Pwave,Ptot,width,cw,D,L,eff_t,pvci] =  ...
+    triptime,runtime,nvi,batt_L,batt_lft,nfr,noc,nbr,dp,S,Pdies,Pinso,Pwind,Pwave,Ptot,width,cw,D,L,eff_t,pvci] =  ...
     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
@@ -13,6 +13,9 @@ display('made it into SimHybrid')
 cw_mod = wave.cw_mod;
 %set burn rate
 lph = polyval(opt.p_dev.d_burn,kW_dies); %[l/h], burn rate
+if kW_dies == 0  %Set burn rate = 0 for no diesel generator (in case the polyfit doesn't cross (0,0))
+    lph = 0; 
+end
 %extract data
 time = data.met.time;
 T = length(time);
@@ -30,19 +33,17 @@ if atmo.dyn_h %use log law to adjust wind speed based on rotor height
     end
 end
 wavepower = opt.wave.wavepower_ts; %wavepower timeseries
-if wave.method == 1 %divide by B methodology       
-    cwr_b = wave.cw_mod.*opt.wave.cwr_b_ts; %[m^-1] eta timeseries (cwr/b)    
-    %find width through rated power conditions
-    width = sqrt(1000*kW_wave*(1+wave.house)/(wave.eta_ct* ...
-        cw_mod*opt.wave.cwr_b_ra* ...
-        opt.wave.wavepower_ra)); %[m] physical width of wec
-    cw = cwr_b.*width^2; %[m] capture width timeseries
+if wave.method == 1 %divide by B methodology - OUTDATED I THINK      
+    disp('ERROR- method set to old divide by B method')
 elseif wave.method == 2 %3d interpolation methodology
     %extract data
     Hs = opt.wave.Hs; %Hs timeseries
     Tp = opt.wave.Tp; %Tp timeseries
     %find width through rated power conditions
     width = interp1(opt.wave.B_func(2,:),opt.wave.B_func(1,:),kW_wave); %[m], B
+    if kW_wave == 0 %Set width = 0 for no wave gen (in case the polyfit doesn't cross (0,0))
+        width = 0;
+    end
     cw = width.*opt.wave.F(Tp,Hs,width*ones(length(Tp),1)); %[m] cw ts
 end
 
@@ -102,8 +103,8 @@ while cont
     Pwind = zeros(1,length(time));
     Prenew = zeros(1,length(time));
     D = zeros(1,length(time)); %power dumped timeseries
-    L = ones(1,length(time))*uc.draw; %power put to sensing timeseries
-    batt_L = zeros(1,T); %battery L (degradation) timeseries
+    L = uc.draw; %power to load time series
+    batt_L = zeros(1,length(time)); %battery L (degradation) timeseries
     fbi = 1; %fresh battery index
     eff_t = zeros(1,length(swso)); %[~] efficiency
     surv = 1;
@@ -151,35 +152,41 @@ while cont
         %soil_eff = (1-soil_eff)*rain(t) + soil_eff; %rainfall clean
         eff_t(t) = eff(t)*soil_eff*inso.eff;
         %find power from panel
-        if swso(t) > inso.rated*1000 %rated irradiance
-            Pinso(t) = eff_t(t)/inso.eff*kW_inso*1000; %[W]
-        else %sub rated irradiance
-            Pinso(t) = eff_t(t)/ ...
-                inso.eff*kW_inso*1000*(swso(t)/(inso.rated*1000)); %[W]
+        if kW_inso ~= 0 %removing the possibility of divide by zero error
+            if swso(t) > inso.rated*1000 %rated irradiance
+                Pinso(t) = eff_t(t)/inso.eff*kW_inso*1000; %[W]
+            else %sub rated irradiance
+                Pinso(t) = eff_t(t)/ ...
+                    inso.eff*kW_inso*1000*(swso(t)/(inso.rated*1000)); %[W]
+            end
         end
         %find power from wind turbine
-        if wind(t) < turb.uci %below cut out
-            Pwind(t) = 0; %[W]
-        elseif turb.uci < wind(t) && wind(t) <= turb.ura %below rated
-            Pwind(t) = kW_wind*1000*wind(t)^3/turb.ura^3; %[W]
-        elseif turb.ura < wind(t) && wind(t) <= turb.uco %above rated
-            Pwind(t) = kW_wind*1000; %[W]
-        else %above cut out
-            Pwind(t) = 0; %[W]
+        if kW_wind ~= 0 
+            if wind(t) < turb.uci %below cut out
+                Pwind(t) = 0; %[W]
+            elseif turb.uci < wind(t) && wind(t) <= turb.ura %below rated
+                Pwind(t) = kW_wind*1000*wind(t)^3/turb.ura^3; %[W]
+            elseif turb.ura < wind(t) && wind(t) <= turb.uco %above rated
+                Pwind(t) = kW_wind*1000; %[W]
+            else %above cut out
+                Pwind(t) = 0; %[W]
+            end
         end
-
         Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t); %total renewable power
 
         %Calculate state of charge
         if ~charging %generator off
-            S(t+1) = dt*(Prenew(t)-uc.draw) + S(t) - sd;
+            S(t+1) = dt*(Prenew(t)-uc.draw(t)) + S(t) - sd;
             %if S(t+1) < dies.genon*Smax*1000 %turn generator on
-            if S(t+1) < uc.draw*dt %if not enough power to run for the next hour
+            if S(t+1) < uc.draw(t)*dt && kW_dies ~= 0 %if not enough power to run for the next hour
                 charging = true; %turn diesel generator on for the next hour
+            elseif S(t+1) >= (Smax*1000 - cf)
+                D(t) = S(t+1) - (Smax*1000 - cf); %[Wh]
+                S(t+1) = Smax*1000 - cf;
             end
         else %generator on
             Pdies(t) = kW_dies*1000;
-            S(t+1) = dt*(Pdies(t)+Prenew(t) - uc.draw) + S(t) - sd; %[Wh]
+            S(t+1) = dt*(Pdies(t)+Prenew(t) - uc.draw(t)) + S(t) - sd; %[Wh]
             if S(t+1) >= (Smax*1000 - cf)
                 D(t) = S(t+1) - (Smax*1000 - cf); %[Wh]
                 S(t+1) = Smax*1000 - cf;
@@ -304,21 +311,41 @@ Strcost_inso = econ.inso.structural*kW_inso*econ.inso.marinization ...
 %costs - wind
 kWcost_wind = 2*polyval(opt.p_dev.t,kW_wind)*econ.wind.marinization ...
     *econ.wind.tcm; %turbine
-Icost_wind = 2*(econ.wind.installed - 0.5*kWcost_wind/ ...
-    (kW_wind*econ.wind.marinization*econ.wind.tcm))*kW_wind; %installation
-if Icost_wind < 0, Icost_wind = 0; end
+if kW_wind == 0, kWcost_wind = 0; end
+if kW_wind ~=0 %can't calculate Icost with zero kWcost_wind
+    Icost_wind = 2*(econ.wind.installed - 0.5*kWcost_wind/ ...
+        (kW_wind*econ.wind.marinization*econ.wind.tcm))*kW_wind; %installation
+    if Icost_wind < 0 || kW_wind == 0, Icost_wind = 0; end
+else
+    Icost_wind = 0;
+end
 %costs - wave
 kWcost_wave = 2*econ.wave.costmult*polyval(opt.p_dev.t,kW_wave); %wec
-Icost_wave = 2*(econ.wind.installed - (0.5*kWcost_wave)/ ...
-    (kW_wave*econ.wave.costmult))*kW_wave; %installation
-if Icost_wave < 0, Icost_wave = 0; end
+if kW_wave == 0, kWcost_wave = 0; end
+if kW_wave ~= 0 %no Icost if kW_wave = 0
+    Icost_wave = 2*(econ.wind.installed - (0.5*kWcost_wave)/ ...
+        (kW_wave*econ.wave.costmult))*kW_wave; %installation
+    if Icost_wave < 0, Icost_wave = 0; end
+else
+    Icost_wave = 0;
+end
 
 %dies- costs
-kWcost_dies = polyval(opt.p_dev.d_cost,kW_dies)*2*econ.dies.gcm + ...
-    econ.dies.autostart; %generator (with spares provisioning: 2)
-genencl = polyval(opt.p_dev.d_size,kW_dies)^3* ...
-    (econ.dies.enclcost/econ.dies.enclcap); %generator enclosure
-fuel = runtime_tot*lph*econ.dies.fcost; %cost of consumed fuel
+if kW_dies == 0 
+    kWcost_dies = 0;
+    genencl = 0;
+    fuel = 0;
+    mass_dies = 0;
+else
+    kWcost_dies = polyval(opt.p_dev.d_cost,kW_dies)*2*econ.dies.gcm + ...
+        econ.dies.autostart; %generator (with spares provisioning: 2)
+    if kW_dies == 0, kWcost_dies = 0; end
+    genencl = polyval(opt.p_dev.d_size,kW_dies)^3* ...
+        (econ.dies.enclcost/econ.dies.enclcap); %generator enclosure
+    fuel = runtime_tot*lph*econ.dies.fcost; %cost of consumed fuel
+    mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of generator
+end
+
 if bc == 1 %lead acid
     if Smax < opt.p_dev.kWhmax %less than linear region
         Scost = polyval(opt.p_dev.b,Smax);
@@ -331,7 +358,7 @@ elseif bc == 2 %lithium phosphate
 end
 battencl = econ.batt.enclmult*Scost; %battery enclosure cost
 Pmtrl = (1/1000)*econ.platform.wf*econ.platform.steel* ...
-    (polyval(opt.p_dev.d_mass,kW_dies)+inso.wf*kW_inso/inso.rated+kW_wind*turb.wf); %platform material
+    (mass_dies+inso.wf*kW_inso/inso.rated+kW_wind*turb.wf); %platform material
 
 %% Will need new way to calculate dp
 dp = polyval(opt.p_dev.d_size,max(ID(1:end-1))); %Max ID 1:end-1 will give max of the rated generation
@@ -361,12 +388,23 @@ else %long term instrumentation and infrastructure
     C_v = econ.vessel.osvcost;
 end
 vesselcost = C_v*(nvi*(2*triptime + t_os)); %vessel cost
-turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
-if turbrepair < 0, turbrepair = 0; end
-wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
-if wecrepair < 0, wecrepair = 0; end %if nvi = 0, wec repair must be 0
-genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
-battreplace = Scost*nbr; %number of battery replacements
+%Maintenance Costs
+if kW_wave == 0 %Brian sets no battery or solar replacement if no wave???
+    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
+    if turbrepair < 0, turbrepair = 0; end
+    wecrepair = 0; %wec repair cost
+    genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
+    battreplace = 0; %no battery replacements for no wave case
+else
+    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
+    if turbrepair < 0, turbrepair = 0; end
+    wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
+    if wecrepair < 0, wecrepair = 0; end %if nvi = 0, wec repair must be 0
+    genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
+    battreplace = Scost*nvi; %number of battery replacements
+end
+
+%Total Cost Calculations
 CapEx = Pmooring + Pinst + Pmtrl + battencl + Scost + ...
     genencl + kWcost_dies + Icost_inso + Mcost_inso + Ecost_inso + ...
     Strcost_inso + Icost_wind + kWcost_wind + Icost_wave + kWcost_wave;
