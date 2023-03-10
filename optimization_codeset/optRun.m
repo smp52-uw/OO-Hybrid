@@ -10,17 +10,15 @@ opt.p_dev.d_burn = calcDeviceVal('dieselburn',[],econ.diesburn_n);
 [opt.p_dev.b,~,opt.p_dev.kWhmax] = calcDeviceVal('agm',[],econ.batt_n);
 
 %HYBRID Prep Function Calls
-[data,econ] = prepInso(data,inso,econ,uc);
-data = prepWind(data,uc);
-%data = prepDies(data,econ,uc);
-opt = prepWave(data,opt,wave,atmo,uc);
+% [data,econ] = prepInso(data,inso,econ,uc);
+% data = prepWind(data,uc);
+% data = prepDies(data,econ,uc);
+% opt = prepWave(data,opt,wave,atmo,uc);
+[data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso);
 %Hybrid load case call
-[uc.loaddata, loadseries] = GenerateLoadCases_v3(data)
+[uc.loaddata, loadseries] = GenerateLoadCases_v3(data);
 uc.draw = loadseries.L(uc.loadcase,:);
 %HYBRID Opt Function call
-%debug time array length
-datetime(data.met.time(1),'ConvertFrom','datenum')
-datetime(data.met.time(end),'ConvertFrom','datenum')
 [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,wave);
 % if pm == 1 %WIND
 %     data = prepWind(data,uc);

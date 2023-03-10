@@ -13,7 +13,8 @@ function [load_case,load_series] = GenerateLoadCases_v3(data)
 
 %simulation parameters
 dt = minutes(60);   %load case time resolution
-data_time = datetime(data.met.time,'ConvertFrom','datenum');
+%data_time = datetime(data.met.time,'ConvertFrom','datenum');
+data_time = data.met.time; %PrepHybrid does the conversion from datenum
 T = length(data_time);
 %T = years(5);
 
@@ -46,6 +47,10 @@ load_case(4).name = 'High-frequency Radar';
 load_case(4).L_constant = 155.1;  %constant load [W]
 load_case(4).L_intermittent = 0; %intermittent load [W]
 
+%case 5: 200W
+load_case(5).name = 'Trent OO';
+load_case(5).L_constant = 200;  %constant load [W]
+load_case(5).L_intermittent = 0; %intermittent load [W]
 %% Initialization
 t = [0:dt:dt*(T-1)]';  %initialize time series
 

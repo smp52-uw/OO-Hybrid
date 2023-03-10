@@ -15,7 +15,7 @@ dt = minutes(10);   %load case time resolution
 T = days(30);
 
 %case 1: high-capacity UUV
-load_case(1).name = 'High-capacity UUV';
+load_case(1).name = {'High-capacity', 'UUV'};
 load_case(1).L_constant = 5;  %constant load [W]
 load_case(1).L_intermittent = (384+90)/0.75; %intermittent load [W]
 %384 W average onboard charger load + 90 W hotel load / 75% wireless transfer efficiency
@@ -23,7 +23,7 @@ load_case(1).interval = days(7);   %intermittent load repetition rate
 load_case(1).duration = hours(16.67);  %intermittent load duration
 
 %case 2:high-frequency recharge UUV
-load_case(2).name = 'High-frequency Recharge UUV';
+load_case(2).name = {'High-Frequency', 'Recharge UUV'};
 load_case(2).L_constant = 5;  %constant load [W]
 load_case(2).L_intermittent = (192+90)/0.75; %intermittent load [W]
 %192 W average onboard charger load + 90 W hotel load / 75% wireless transfer efficiency
@@ -31,7 +31,7 @@ load_case(2).interval = days(1);   %intermittent load repetition rate
 load_case(2).duration = hours(5.21);  %intermittent load duration
 
 %case 3: AMP + high-capacity UUV
-load_case(3).name = 'Next-gen Oceanographic + UUV';
+load_case(3).name = {'Oceanographic','+ UUV'};
 load_case(3).L_constant = 322;  %constant load [W]  %actual load will be controlled using Duration algorithm with recharge cycle
 %Maximum power status - controllable based on system command
 load_case(3).L_intermittent = load_case(1).L_intermittent; %intermittent load [W]   %add in high-capacity UUV
@@ -39,7 +39,7 @@ load_case(3).interval = load_case(1).interval;      %intermittent load repetitio
 load_case(3).duration = load_case(1).duration;      %intermittent load duration
 
 %case 4: high-frequency radar
-load_case(4).name = 'High-frequency Radar';
+load_case(4).name = {'High-Frequency', 'Radar'};
 load_case(4).L_constant = 155.1;  %constant load [W]
 load_case(4).L_intermittent = 0; %intermittent load [W]
 
@@ -96,22 +96,25 @@ end
 
 figure(1)
 tiledlayout(length(load_case),1)
-
+%title('Load [W]')
 for i = 1:length(load_case)
     nexttile
     plot(days(t),L(i,:),'-')
-    hold on
-    yline(mean(L(i,:)),'--','linewidth',2)
+%     hold on
+%     yline(mean(L(i,:)),'--','linewidth',2)
 
-    title(load_case(i).name,'fontweight','b')
-    ylabel('L [W]','fontweight','bold')
+    %title(load_case(i).name,'fontweight','b')
+    yl = ylabel(load_case(i).name,'fontweight','bold')
+    yl.Position(1) = -2
+    %ylabel('L [W]','fontweight','bold')
     grid on
     if i == length(load_case)
         xlabel('Time [days]','fontweight','bold')
     end
 
     if i == 1
-        legend('L(t)','L_{avg}','location','northwest')
+        title('Load [W]','fontweight','b')
+        %legend('L(t)','L_{avg}','location','northwest')
     end
 
 end

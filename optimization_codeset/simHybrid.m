@@ -1,7 +1,7 @@
 function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
     vesselcost,genrepair,turbrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
-    triptime,runtime,nvi,batt_L,batt_lft,nfr,noc,nbr,dp,S,Pdies,Pinso,Pwind,Pwave,Ptot,width,cw,D,L,eff_t,pvci] =  ...
+    triptime,runtime,nvi,batt_L,batt_lft,nfr,noc,nbr,dp,S,Pdies,Pinso,Pwind,Pwave,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
@@ -11,15 +11,17 @@ display('made it into SimHybrid')
 
 %set capture width modifier
 cw_mod = wave.cw_mod;
+%Number of vessel intervention
+nvi = (uc.lifetime*12)/uc.SI;
 %set burn rate
 lph = polyval(opt.p_dev.d_burn,kW_dies); %[l/h], burn rate
 if kW_dies == 0  %Set burn rate = 0 for no diesel generator (in case the polyfit doesn't cross (0,0))
     lph = 0; 
 end
 %extract data
-time = data.met.time;
+time = datenum(data.met.time);
 T = length(time);
-dt = 24*(data.met.time(2) - data.met.time(1)); %time in hours
+dt = 24*(time(2) - time(1)); %time in hours
 dist = data.dist; %[m] distance to shore
 depth = data.depth; %[m] water depth
 swso = data.swso;
@@ -104,6 +106,7 @@ while cont
     Prenew = zeros(1,length(time));
     D = zeros(1,length(time)); %power dumped timeseries
     L = uc.draw; %power to load time series
+    F = zeros(1,length(time)); %failure series
     batt_L = zeros(1,length(time)); %battery L (degradation) timeseries
     fbi = 1; %fresh battery index
     eff_t = zeros(1,length(swso)); %[~] efficiency
@@ -173,7 +176,7 @@ while cont
             end
         end
         Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t); %total renewable power
-
+        %Prenew(t) = Pinso(t); %test Configuration - only solar
         %Calculate state of charge
         if ~charging %generator off
             S(t+1) = dt*(Prenew(t)-uc.draw(t)) + S(t) - sd;
@@ -192,9 +195,10 @@ while cont
                 S(t+1) = Smax*1000 - cf;
                 charging = false;
             end
-            int_time = T/(econ.vessel.int*uc.lifetime); %dividing hours by number of intervention giving number of hours between each intervention?
-            runtime = zeros(1,econ.vessel.int*uc.lifetime);
-            dies_vol = zeros(1,econ.vessel.int*uc.lifetime);
+            %nvi = uc.lifetime*(uc.SI/12);
+            int_time = T/nvi; %dividing hours by number of intervention giving number of hours between each intervention?
+            runtime = zeros(1,nvi);
+            dies_vol = zeros(1,nvi);
             int_id = ceil(t/int_time); %calculated what intervention number we are on
             runtime(int_id) = runtime(1,int_id) + dt; %[h] when diesel gen is on
             dies_vol(int_id) = dies_vol(1,int_id) + lph*dt; %[L] burn rate multiplied by hours running should give total consumption
@@ -209,6 +213,7 @@ while cont
         if S(t+1) <= Smax*batt.dmax*1000 %bottomed out
             S(t+1) = dt*Ptot(t) + S(t) - sd;
             L(t) = 0; %load drops to zero
+            F(t) = 1; %failure tracker
         end
     end
     
@@ -291,7 +296,7 @@ end
 noc = ceil(runtime_tot/dies.oilint-1); %number of oil changes
 
 %Changing to a constant of vessel/life * lifetime
-nvi = econ.vessel.int*uc.lifetime;
+%nvi = uc.lifetime*(uc.SI/12);
 if nvi < nbr
     disp('Warning Battery will die')
 elseif nvi < nfr
@@ -302,11 +307,11 @@ end
 
 %% Cost Calculation
 %costs - solar
-Mcost_inso = econ.inso.module*kW_inso*econ.inso.marinization*econ.inso.pcm; %module
-Icost_inso = econ.inso.installation*kW_inso*econ.inso.pcm; %installation
-Ecost_inso = econ.inso.electrical*kW_inso*econ.inso.marinization ...
+Mcost_inso = 2*econ.inso.module*kW_inso*econ.inso.marinization*econ.inso.pcm; %module
+Icost_inso = 2*econ.inso.installation*kW_inso*econ.inso.pcm; %installation
+Ecost_inso = 2*econ.inso.electrical*kW_inso*econ.inso.marinization ...
     *econ.inso.pcm; %electrical infrastructure
-Strcost_inso = econ.inso.structural*kW_inso*econ.inso.marinization ...
+Strcost_inso = 2*econ.inso.structural*kW_inso*econ.inso.marinization ...
     *econ.inso.pcm; %structural infrastructure
 %costs - wind
 kWcost_wind = 2*polyval(opt.p_dev.t,kW_wind)*econ.wind.marinization ...
@@ -315,7 +320,7 @@ if kW_wind == 0, kWcost_wind = 0; end
 if kW_wind ~=0 %can't calculate Icost with zero kWcost_wind
     Icost_wind = 2*(econ.wind.installed - 0.5*kWcost_wind/ ...
         (kW_wind*econ.wind.marinization*econ.wind.tcm))*kW_wind; %installation
-    if Icost_wind < 0 || kW_wind == 0, Icost_wind = 0; end
+    if Icost_wind < 0, Icost_wind = 0; end
 else
     Icost_wind = 0;
 end
@@ -339,8 +344,7 @@ if kW_dies == 0
 else
     kWcost_dies = polyval(opt.p_dev.d_cost,kW_dies)*2*econ.dies.gcm + ...
         econ.dies.autostart; %generator (with spares provisioning: 2)
-    if kW_dies == 0, kWcost_dies = 0; end
-    genencl = polyval(opt.p_dev.d_size,kW_dies)^3* ...
+    genencl = 2*polyval(opt.p_dev.d_size,kW_dies)^3* ...
         (econ.dies.enclcost/econ.dies.enclcap); %generator enclosure
     fuel = runtime_tot*lph*econ.dies.fcost; %cost of consumed fuel
     mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of generator
@@ -354,11 +358,11 @@ if bc == 1 %lead acid
             (Smax/opt.p_dev.kWhmax);
     end
 elseif bc == 2 %lithium phosphate
-    Scost = batt.cost*Smax;
+    Scost = 2*batt.cost*Smax; %2x so there is a spare on sure
 end
-battencl = econ.batt.enclmult*Scost; %battery enclosure cost
-Pmtrl = (1/1000)*econ.platform.wf*econ.platform.steel* ...
-    (mass_dies+inso.wf*kW_inso/inso.rated+kW_wind*turb.wf); %platform material
+battencl = 2*econ.batt.enclmult*Scost; %battery enclosure cost
+Pmtrl = 2*(1/1000)*econ.platform.wf*econ.platform.steel* ...
+    (mass_dies+inso.wf*kW_inso/(inso.rated*inso.eff)+kW_wind*turb.wf); %platform material
 
 %% Will need new way to calculate dp
 dp = polyval(opt.p_dev.d_size,max(ID(1:end-1))); %Max ID 1:end-1 will give max of the rated generation
@@ -374,35 +378,24 @@ t_i = interp1(econ.platform.d_i,econ.platform.t_i,depth, ...
 Pinst = econ.vessel.speccost*(t_i/24); %platform instllation
 
 %% Will need new mooring model
-Pmooring = interp2(econ.platform.diameter, ...
+Pmooring = 2*interp2(econ.platform.diameter, ...
     econ.platform.depth, ...
     econ.platform.cost,dp,depth,'linear'); %mooring cost
 
-if uc.SI < 12 %short term instrumentation
-    triptime = 0; %attributed to instrumentation
-    t_os = econ.vessel.t_ms/24; %[d]
-    C_v = econ.vessel.speccost;
-else %long term instrumentation and infrastructure
-    triptime = dist*kts2mps(econ.vessel.speed)^(-1)*(1/86400); %[d]
-    t_os = econ.vessel.t_mosv/24; %[d]
-    C_v = econ.vessel.osvcost;
-end
-vesselcost = C_v*(nvi*(2*triptime + t_os)); %vessel cost
+
+%triptime = dist*kts2mps(econ.vessel.speed)^(-1)*(1/86400); %[d]
+triptime = 0; %cost of trip attributed to instrumentation
+C_v = econ.vessel.speccost; %assuming that all trips require the spec vessel since everything is being replaced
+
+vesselcost = C_v*(nvi*(2*triptime + t_i)); %vessel cost
 %Maintenance Costs
-if kW_wave == 0 %Brian sets no battery or solar replacement if no wave???
-    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
-    if turbrepair < 0, turbrepair = 0; end
-    wecrepair = 0; %wec repair cost
-    genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
-    battreplace = 0; %no battery replacements for no wave case
-else
-    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
-    if turbrepair < 0, turbrepair = 0; end
-    wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
-    if wecrepair < 0, wecrepair = 0; end %if nvi = 0, wec repair must be 0
-    genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
-    battreplace = Scost*nvi; %number of battery replacements
-end
+turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
+if turbrepair < 0, turbrepair = 0; end
+wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
+if wecrepair < 0, wecrepair = 0; end %if nvi = 0, wec repair must be 0
+genrepair = 1/2*(0.5)*(kWcost_dies+genencl)*(nvi); %generator repair cost
+battreplace = Scost*nvi; %number of battery replacements
+mooringrepair = 0; %eventually need a mooring refurb cost
 
 %Total Cost Calculations
 CapEx = Pmooring + Pinst + Pmtrl + battencl + Scost + ...

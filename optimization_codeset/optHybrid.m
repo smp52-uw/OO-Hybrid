@@ -7,10 +7,12 @@ function [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,w
 %set Smax mesh 
 opt.Smax_1 = 1;
 opt.Smax_n = opt.bf.N; %[kWh]
+%opt.Smax_n = 220; %for test
+
 %set kW mesh - Dies
 opt.dies.kW_1 = 0; %min size zero for hybrid sim
 opt.dies.kW_m = dies.kWmax; %max size
-%opt.dies.kW_m = 0.1; %zero diesel power for test
+%opt.dies.kW_m = 0.01; %zero diesel power for test
 
 %set kW mesh - Inso
 opt.inso.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.5)
@@ -23,9 +25,11 @@ else
         error('update econ.platform.boundary_di')
     end
 end
+
 %set kW mesh - wind
 opt.wind.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.1)
 opt.wind.kW_m = opt.bf.M; %[kW] (up to 8 kW for wind)
+
 %set kW mesh - wave
 opt.wave.kW_1 = 0.0; %lower limit for wecsim is 0.2143 (used to be 0.215 - set to zero for hybrid)
 if ~opt.highresobj
@@ -98,6 +102,7 @@ while ~check_s
         atmo,batt,econ,uc,bc,dies,inso,wave,turb);
 %     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
     if ~check_s
+        disp('Adjusting maximum values for coarse mesh')
         opt.Smax_n = 2*opt.Smax_n; 
         opt.wind.kW_m = 2*opt.wind.kW_m;
         opt.wave.kW_m = 2*opt.wave.kW_m;
@@ -245,17 +250,17 @@ while tol == false && tel_i <=opt.tel_max
     output.min.kWwa{tel_i} = Kwa(I_min(tel_i));
     output.min.Smax{tel_i} = S(I_min(tel_i));
     if tel_i > 1
-        if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1))) <= opt.ctol
+        if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1)))/X(tel_i,I_min(tel_i)) <= opt.ctol
             tol = true;
-            if abs(output.min.kWd{tel_i} - output.min.kWd{tel_i-1}) > opt.kwtol
+            if abs(output.min.kWd{tel_i} - output.min.kWd{tel_i-1})/output.min.kWd{tel_i} > opt.kwtol
                 tol = false;
-            elseif abs(output.min.kWi{tel_i} - output.min.kWi{tel_i-1}) > opt.kwtol
+            elseif abs(output.min.kWi{tel_i} - output.min.kWi{tel_i-1})/output.min.kWi{tel_i} > opt.kwtol
                 tol = false;
-            elseif abs(output.min.kWwi{tel_i} - output.min.kWwi{tel_i-1}) > opt.kwtol
+            elseif abs(output.min.kWwi{tel_i} - output.min.kWwi{tel_i-1})/output.min.kWwi{tel_i} > opt.kwtol
                 tol = false;
-            elseif abs(output.min.kWwa{tel_i} - output.min.kWwa{tel_i-1}) > opt.kwtol
+            elseif abs(output.min.kWwa{tel_i} - output.min.kWwa{tel_i-1})/output.min.kWwa{tel_i} > opt.kwtol
                 tol = false;
-            elseif abs(output.min.Smax{tel_i} - output.min.Smax{tel_i-1}) > opt.kwtol
+            elseif abs(output.min.Smax{tel_i} - output.min.Smax{tel_i-1})/output.min.Smax{tel_i} > opt.kwtol
                 tol = false;
             end
             if tol == true    
@@ -278,7 +283,7 @@ end
     output.min.nvi,output.min.batt_L,output.min.batt_lft, ...
     output.min.nfr,output.min.noc, output.min.nbr...
     output.min.dp,output.min.S,output.min.Pdies, output.min.Pinso, output.min.Pwind, output.min.Pwave,...
-    output.min.Ptot, output.min.width,output.min.cw,output.min.D,output.min.L, output.min.eff_t, output.min.pvci] ...
+    output.min.Ptot, output.min.width,output.min.cw,output.min.D,output.min.L, output.min.F, output.min.eff_t, output.min.pvci] ...
     = simHybrid(output.min.kWd{end},output.min.kWi{end}, output.min.kWwi{end}, output.min.kWwa{end}, output.min.Smax{end}, ...
     opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
 

@@ -43,7 +43,7 @@ for t = orig_l+1:length(data.swso)
     data.swso(t) = data.swso(orig_l - rem(t,8760));
     time(t) = time(t-1) + 1/24;
 end
-
+data.met.time_test = time;
 %winter cleaning
 if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
     %winter cleaning (if applicable)

@@ -10,8 +10,8 @@ opt.bf.l = 5;
 opt.bf.m = 5;
 opt.bf.n = 5;
 opt.tel_max = 2; %maximum number of telescoping iterations
-opt.ctol = 1000; %Tolerance on minimum cost [$]
-opt.kwtol = 10; %Tolerance on kW or kWh of minimum system
+opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
+opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
 opt.allscenuses = 0;
 opt.alllocuses = 0;
 opt.sens = 0;
@@ -175,7 +175,7 @@ econ.platform.boundary_mf = 3; %multi line factor
 %End of temporary fix section
 clear cost depth diameter
 econ.platform.wf = 5;               %weight factor (of light ship)
-econ.platform.steel = 730;          %[$/metric ton], steelbenchmarker
+econ.platform.steel = 2000;          %[$/metric ton], steelbenchmarker
 econ.platform.t_i = [6 12];         %[h] added h for inst
 econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 %econ.platform.moorcost = 5.23;      %[$/(m-m)] cost of mooring (no AR)
@@ -191,12 +191,12 @@ econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 %     (4*pi^2)/(9.81*econ.platform.Tp_ex^2);
 % econ.platform.Cd = 1.2;             %coefficient of drag
 %vessel
-econ.vessel.osvcost = 15000*1.15;        %[$/day] 2020->2022
-econ.vessel.speed = 10;             %[kts]
-econ.vessel.t_mosv = 6;             %[h] time on site for maint (osv)
+%econ.vessel.osvcost = 15000*1.15;  %[$/day] 2020->2022
+%econ.vessel.speed = 10;             %[kts]
+%econ.vessel.t_mosv = 6;             %[h] time on site for maint (osv)
 econ.vessel.speccost = 50000*1.15;       %[$/day] 2020->2022
-econ.vessel.t_ms = 2;               %[h] time on site for maint (spec)
-econ.vessel.int = 1;                %[vessel interventions/year]
+%econ.vessel.t_ms = 6;               %[h] time on site  (spec) - obselete
+%econ.vessel.int = 1;                %[vessel int/year] -obselete
 %battery 
 % econ.batt.encl.sf = .5;             %scaling factor
 % econ.batt.encl.cost = 5000;         %[$], WAMP
@@ -238,7 +238,7 @@ turb.ura = 11;              %[m/s] awea
 turb.uco = 30;              %[m/s] guess
 turb.eta = 0.35;            %[~] guess
 turb.clearance = 4;         %[m] surface to bottom of swept area clearance
-turb.wf = 70;               %[kg/kW]
+turb.wf = 15;               %[kg/kW]
 %turb.nu = 0.26;
 % turb.spar_t = 0.04;         %[m] spar thickness
 % turb.spar_ar = 6;           %aspect ratio 
@@ -248,7 +248,7 @@ inso.rated = 1;             %[kW/m^2] from Brian
 inso.eff = 0.18;            %[~] from Devin (may trail off when off of MPP)
 inso.deg = 0.5;             %[%/year]
 %inso.pvci = 24;             %[months] cleaning interval
-inso.wf = 60;               %[kg/m^2] weight factor
+inso.wf = 30;               %[kg/m^2] weight factor
 inso.debug = false;          %toggle debugging kW/kWh combo for shooter
 inso.shootdebug = false;    %toggle debugging pvci shooter
 inso.shoottol = 5;          %months
@@ -324,17 +324,17 @@ atmo.soil = 35;             %[%/year]
 %USE CASES
 %short term instrumentation
 %uc(1).draw = 200;               %[W] - load now defined in optRun
-uc(1).lifetime = 5;             %[y]
-uc(1).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar
-uc(1).SI = 6;                   %[months] service interval
+uc(1).lifetime = 6;             %[y]
+uc(1).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(1).SI = 12;                   %[months] service interval
 uc(1).uptime = .99;             %[%] uptime
 % uc(1).turb.lambda = 4;          %turbine interventions
 % uc(1).dies.lambda = 1;          %diesel interventions
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
-uc(2).lifetime = 5;             %[y]
-uc(2).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar
-uc(2).SI = 12*uc(2).lifetime;   %[months] service interval
+uc(2).lifetime = 6;             %[y]
+uc(2).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 % uc(2).turb.lambda = 4;          %turbine interventions
 % uc(2).dies.lambda = 1;          %diesel interventions
