@@ -32,11 +32,16 @@ set(gcf, 'Position', [20, 20, 1300, 700])
 %STORAGE TIME SERIES
 ax(1) = subplot(8,1,1);
 plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
-    output.min.S(1:end-1)/1000,'Color',[255,69,0]/256, ... 
-    'DisplayName','Battery Storage','LineWidth',2)
+    output.min.S1(1:end-1)/1000,'Color',[255,69,0]/256, ... 
+    'DisplayName','Battery Storage 1','LineWidth',2)
+hold on
+plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
+    output.min.S2(1:end-1)/1000,'Color',[245,238,54]/256, ... 
+    'DisplayName','Battery Storage 2','LineWidth',2)
 legend('show')
 ylabel('[kWh]')
 ylim([0 inf])
+yticks([0 max(output.min.S1(1:end-1)/1000)])
 xticks([])
 set(gca,'FontSize',10)
 set(gca,'LineWidth',2)
@@ -46,7 +51,7 @@ grid on
 ax(2) = subplot(8,1,2);
 plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
     output.min.Pdies/1000,'Color',[161,65,225]/256, ... 
-    'DisplayName','Dies Power','LineWidth',2)
+    'DisplayName','Diesel Power','LineWidth',2)
 legend('show')
 ylabel('[kW]')
 xticks([])
@@ -58,7 +63,7 @@ grid on
 ax(3) = subplot(8,1,3);
 plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
     output.min.Pinso/1000,'Color',[225,177,65]/256, ... 
-    'DisplayName','Inso Power','LineWidth',2)
+    'DisplayName','Solar Power','LineWidth',2)
 legend('show')
 ylabel('[kW]')
 xticks([])
@@ -109,7 +114,8 @@ plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
     'DisplayName','Load','LineWidth',2)
 legend('show')
 ylabel('[kW]')
-ylim([0 inf])
+%ylim([0 inf])
+yticks([0 1])
 xticks([])
 set(gca,'FontSize',10)
 set(gca,'LineWidth',2)
@@ -120,12 +126,14 @@ grid on
 ax(8) = subplot(8,1,8);
 plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
     output.min.F,'.','Color',[0,0,0], ... 
-    'DisplayName','Fail','LineWidth',2)
+    'DisplayName','Failures','LineWidth',2)
 legend('show')
 ylabel('[logical]')
 ylim([0,2])
+yticks([0 1])
 xlabel('Time')
 set(gca,'FontSize',10)
+set(gca,'LineWidth',2)
 grid on
 % %EFFICIENCY TIME SERIES
 % ax(4) = subplot(4,1,4);

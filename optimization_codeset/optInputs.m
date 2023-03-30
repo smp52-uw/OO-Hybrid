@@ -1,4 +1,4 @@
-%simulation settings
+%simulation settingsEoL
 %interactive job
 econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU
@@ -12,6 +12,7 @@ opt.bf.n = 5;
 opt.tel_max = 2; %maximum number of telescoping iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
+opt.alg = 'tel'; %'tel' is Telescope optimization, 'per' is persistence band optimization
 opt.allscenuses = 0;
 opt.alllocuses = 0;
 opt.sens = 0;
@@ -106,11 +107,11 @@ end
 
 %check to see if HPC
 if feature('numcores') < 36
-    opt.bf.j = 3;
-    opt.bf.k = 3;
-    opt.bf.l = 3;
-    opt.bf.n = 3;
-    opt.bf.m = 3;
+    opt.bf.j = 4;
+    opt.bf.k = 4;
+    opt.bf.l = 4;
+    opt.bf.n = 4;
+    opt.bf.m = 4;
 end
 
 %strings

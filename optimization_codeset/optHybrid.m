@@ -100,14 +100,15 @@ check_s = 0;
 while ~check_s
     [~,check_s] = simHybrid(opt.dies.kW_m/2,opt.inso.kW_m/2,opt.wind.kW_m/2,opt.wave.kW_m/2, opt.Smax_n/2,opt,data, ... 
         atmo,batt,econ,uc,bc,dies,inso,wave,turb);
-%     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
-    if ~check_s
+%     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)\
+    %checks = surv -> if surv<uc.uptime
+    if check_s < uc.uptime
         disp('Adjusting maximum values for coarse mesh')
         opt.Smax_n = 2*opt.Smax_n; 
         opt.wind.kW_m = 2*opt.wind.kW_m;
         opt.wave.kW_m = 2*opt.wave.kW_m;
         if opt.wave.kW_m > wave.kW_max %no larger than max wec-sim value
-            opt.wave.kW_m = wave.wave.kW_max;
+            opt.wave.kW_m = wave.kW_max;
         end
     end
 end
@@ -198,45 +199,58 @@ tel_i = 1; %starting telescope index
 tol = false; %logical variable for if telescoping tolerance has been met
 while tol == false && tel_i <=opt.tel_max
     %initialize inputs/outputs and set up for parallelization
-    if tel_i == 1 %can't send output to function before output is defined
-        [opt] = telescope_opt(opt,tel_i,[]); %get arrays of kW and S for this grid
+    if opt.alg == 'tel'
+        j = opt.bf.j;
+        k = opt.bf.k;
+        l = opt.bf.l;
+        m = opt.bf.m;
+        n = opt.bf.n;
+        if tel_i == 1 %can't send output to function before output is defined
+            [opt] = telescope_opt(opt,tel_i,[]); %get arrays of kW and S for this grid
+        else
+            [opt] = telescope_opt(opt,tel_i,output); %get arrays of kW and S for this grid
+        end
+        [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
+        Kd = reshape(Kd,[j*k*l*m*n 1]);
+        Ki = reshape(Ki,[j*k*l*m*n 1]);
+        Kwi = reshape(Kwi,[j*k*l*m*n 1]);
+        Kwa = reshape(Kwa,[j*k*l*m*n 1]);
+        S = reshape(S,[j*k*l*m*n 1]);
+        sim_run = ones(length(S),1);
+        C_temp = zeros(j*k*l*m*n,1);
+        S_temp = zeros(j*k*l*m*n,1);
+        X = zeros(j*k*l*m*n,1);
     else
-        [opt] = telescope_opt(opt,tel_i,output); %get arrays of kW and S for this grid
+        if tel_i == 1 %can't send output to function before output is defined
+            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp, X, sim_run] = persistence_opt(opt,tel_i,[],[]); %get arrays of kW and S for this grid
+        else
+            S_in = S_temp; %surv from previous iteration
+            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp, X, sim_run] = persistence_opt(opt,tel_i,output,S_in); %get arrays of kW and S for this grid
+        end
+        j = opt.bf.j;
+        k = opt.bf.k;
+        l = opt.bf.l;
+        m = opt.bf.m;
+        n = opt.bf.n;
     end
-    j = opt.bf.j;
-    k = opt.bf.k;
-    l = opt.bf.l;
-    m = opt.bf.m;
-    n = opt.bf.n;
-    [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
-    Kd = reshape(Kd,[j*k*l*m*n 1]);
-    Ki = reshape(Ki,[j*k*l*m*n 1]);
-    Kwi = reshape(Kwi,[j*k*l*m*n 1]);
-    Kwa = reshape(Kwa,[j*k*l*m*n 1]);
-    S = reshape(S,[j*k*l*m*n 1]);
-    C_temp = zeros(j*k*l*m*n,1);
-    S_temp = zeros(j*k*l*m*n,1);
-    X = zeros(j*k*l*m*n,1);
 
     %parallel computing via parfor
     tGrid = tic;
     fmin_temp = opt.fmin; %making a temp variable to make the parfor loop happier
-    disp(['Telescope Iteration: ',num2str(tel_i)])
+    disp(['Optimization Iteration: ',num2str(tel_i)])
     disp(['Populating grid values: j=' num2str(j) ', k=' num2str(k) ', l=' num2str(l) ', m=' num2str(m) ', n=' num2str(n)])
     parfor (i = 1:j*k*l*m*n,opt.bf.maxworkers)
-        %if physically impossible, set S_temp and C_temp to failed values
-        if fmin_temp && S(i) < 0 || min([Kd(i),Ki(i),Kwi(i),Kwa(i)]) < 0
-            S_temp(i) = 0;
-            C_temp(i) = inf;
-        else %Call Hybrid Sim function
+        if sim_run(i) == 1 %only run points where the sim_run variable is true (used for persistence opt)
+            %Call Hybrid Sim function
             [C_temp(i),S_temp(i)] = ...
                 simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i),S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
         end
-        if S_temp(i) == 0 %update obj val X
+        if S_temp(i) < uc.uptime %update obj val X - if sim_run skipped this i then the surv will fail and cost = inf
             X(tel_i,i) = inf;
         else
             X(tel_i,i) = C_temp(i);
         end
+
     end
     %REMOVED TRANSPOSE BC HIGH ORDER MATRIX CAN'T USE TRANSPOSE - MIGHT MESS UP
     %INDEXING
@@ -249,6 +263,8 @@ while tol == false && tel_i <=opt.tel_max
     output.min.kWwi{tel_i} = Kwi(I_min(tel_i));
     output.min.kWwa{tel_i} = Kwa(I_min(tel_i));
     output.min.Smax{tel_i} = S(I_min(tel_i));
+    %for persistence optimization - need full surv data
+    output.surv_opt = S_temp;
     if tel_i > 1
         if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1)))/X(tel_i,I_min(tel_i)) <= opt.ctol
             tol = true;
@@ -280,15 +296,17 @@ end
     output.min.turbrepair, output.min.wecrepair,...
     output.min.battreplace,output.min.battencl,output.min.genencl, ...
     output.min.fuel,output.min.triptime,output.min.runtime, ... 
-    output.min.nvi,output.min.batt_L,output.min.batt_lft, ...
-    output.min.nfr,output.min.noc, output.min.nbr...
-    output.min.dp,output.min.S,output.min.Pdies, output.min.Pinso, output.min.Pwind, output.min.Pwave,...
+    output.min.nvi,output.min.batt_L1,output.min.batt_L2, output.min.batt_lft1, output.min.batt_lft2, ...
+    output.min.nfr,output.min.noc, output.min.nbr,...
+    output.min.dp,output.min.S1, output.min.S2, output.min.Pdies, output.min.Pinso, output.min.Pwind, output.min.Pwave,...
     output.min.Ptot, output.min.width,output.min.cw,output.min.D,output.min.L, output.min.F, output.min.eff_t, output.min.pvci] ...
     = simHybrid(output.min.kWd{end},output.min.kWi{end}, output.min.kWwi{end}, output.min.kWwa{end}, output.min.Smax{end}, ...
     opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
-
-output.min.batt_dyn_lc = batt.lc_nom*(output.min.Smax{end}/ ...
-    (output.min.Smax{end} - (min(output.min.S)/1000)))^batt.beta;
+%nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies
+output.min.batt_dyn_lc1 = batt.lc_nom*(output.min.Smax{end}/ ...
+    (output.min.Smax{end} - (min(output.min.S1)/1000)))^batt.beta;
+output.min.batt_dyn_lc2 = batt.lc_nom*(output.min.Smax{end}/ ...
+    (output.min.Smax{end} - (min(output.min.S2)/1000)))^batt.beta;
 output.min.CFd = mean(output.min.Pdies)/(1000*output.min.kWd{end});
 output.min.CFi = mean(output.min.Pinso)/(1000*output.min.kWi{end});
 output.min.CFwi = mean(output.min.Pwind)/(1000*output.min.kWwi{end});

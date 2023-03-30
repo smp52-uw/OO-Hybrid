@@ -75,7 +75,9 @@ results.CFd = output.min.CFd;
 results.CFi = output.min.CFi;
 results.CFwi = output.min.CFwi;
 results.CFwa = output.min.CFwa;
-results.batt_L_max = max(output.min.batt_L);
+%results.batt_L_max = max(output.min.batt_L);
+results.batt_L1_max = max(output.min.batt_L1);
+results.batt_L2_max = max(output.min.batt_L2);
 results.nfr = output.min.nfr;
 results.noc = output.min.noc;
 results
