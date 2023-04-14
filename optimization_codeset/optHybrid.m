@@ -113,79 +113,6 @@ while ~check_s
     end
 end
 
-% %% Run Simulation - BRUTE FORCE
-% %initialize inputs/outputs and set up for parallelization
-% %IS THERE ANY REASON WE WOULD HAVE A NON-SYMMETRIC GRID? - like 10 squares
-% %in dies and 20 in solar or something
-% j = opt.bf.j;
-% k = opt.bf.k;
-% l = opt.bf.l;
-% m = opt.bf.m;
-% n = opt.bf.n;
-% opt.dies.kW = linspace(opt.dies.kW_1,opt.dies.kW_m,j);              %[kW]
-% opt.inso.kW = linspace(opt.inso.kW_1,opt.inso.kW_m,k);              %[kW]
-% opt.wind.kW = linspace(opt.wind.kW_1,opt.wind.kW_m,l);              %[kW]
-% opt.wave.kW = linspace(opt.wave.kW_1,opt.wave.kW_m,m);              %[kW]
-% opt.Smax = linspace(opt.Smax_1,opt.Smax_n,n);    %[kWh]
-% %display('Before grid')
-% %display(strcat(string(length(opt.dies.kW)),string(length(opt.inso.kW)),string(length(opt.wind.kW)),string(length(opt.wave.kW))))
-% %[K,S] = meshgrid(opt.kW,opt.Smax);
-% [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW,opt.inso.kW,opt.wind.kW, opt.wave.kW, opt.Smax);
-% Kd = reshape(Kd,[j*k*l*m*n 1]);
-% Ki = reshape(Ki,[j*k*l*m*n 1]);
-% Kwi = reshape(Kwi,[j*k*l*m*n 1]);
-% Kwa = reshape(Kwa,[j*k*l*m*n 1]);
-% S = reshape(S,[j*k*l*m*n 1]);
-% C_temp = zeros(j*k*l*m*n,1);
-% S_temp = zeros(j*k*l*m*n,1);
-% X = zeros(j*k*l*m*n,1);
-% %set number of cores
-% if isempty(gcp('nocreate')) %no parallel pool running
-%     cores = feature('numcores'); %find number of cofes
-%     if cores > 4 %only start if using HPC
-%         parpool(cores);
-%     end
-% end
-% %parallel computing via parfor
-% tGrid = tic;
-% fmin_temp = opt.fmin; %making a temp variable to make the parfor loop happier
-% disp(['Populating grid values: j=' num2str(j) ', k=' num2str(k) ', l=' num2str(l) ', m=' num2str(m) ', n=' num2str(n)])
-% % disp('after grid')
-% % display(strcat(string(length(Kd)),string(length(Ki)),string(length(Kwi)),string(length(Kwa)),string(length(S))))
-% parfor (i = 1:j*k*l*m*n,opt.bf.maxworkers)
-%     display(strcat('for loop index:',string(i)))
-%     %if fmin is suggesting a negative input (physically impossible), set
-%     %S_temp and C_temp to failed values
-%     if fmin_temp && S(i) < 0 || min([Kd(i),Ki(i),Kwi(i),Kwa(i)]) < 0
-%         S_temp(i) = 0;
-%         C_temp(i) = inf;
-%     else
-%         [C_temp(i),S_temp(i)] = ...
-%             simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i),S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
-%         %simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
-%     end
-%     if S_temp(i) == 0 %update obj val X
-%         X(i) = inf;
-%     else
-%         X(i) = C_temp(i);
-%     end
-% end
-% %REMOVED TRANSPOSE BC HIGH ORDER MATRIX CAN'T USE TRANSPOSE - MIGHT MESS UP
-% %INDEXING
-% %output.cost = reshape(C_temp,[j k l m n]); %return cost to matrix and structure
-% %output.surv = reshape(S_temp,[j k l m n]); %return surv to matrix and structure
-% %X = reshape(X,[j k l m n]); %return objval X to matrix
-% output.tGrid = toc(tGrid);
-% 
-% disp('Brute forcing global minimum...')
-% %[I(1),I(2),I(3),I(4),I(5)] = find(X == min(X(:)),1,'first');
-% %hybrid approach
-% I_min = find(X==min(X)); %find index of minimum cost - doesn't work if there's multiple minimums
-% output.min.kWd = Kd(I_min);
-% output.min.kWi = Ki(I_min);
-% output.min.kWwi = Kwi(I_min);
-% output.min.kWwa = Kwa(I_min);
-% output.min.Smax = S(I_min);
 
 %% Run Simulation - Telescope
 %set number of cores
@@ -263,8 +190,6 @@ while tol == false && tel_i <=opt.tel_max
     output.min.kWwi{tel_i} = Kwi(I_min(tel_i));
     output.min.kWwa{tel_i} = Kwa(I_min(tel_i));
     output.min.Smax{tel_i} = S(I_min(tel_i));
-    %for persistence optimization - need full surv data
-    output.surv_opt = S_temp;
     if tel_i > 1
         if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1)))/X(tel_i,I_min(tel_i)) <= opt.ctol
             tol = true;
@@ -280,11 +205,12 @@ while tol == false && tel_i <=opt.tel_max
                 tol = false;
             end
             if tol == true    
-                disp('Telescoping Tolerance Met')
+                disp('Optimization Tolerance Met')
             end
         end
     end
-    tel_i = tel_i +1; %update telescoping iteration
+
+    tel_i = tel_i +1; %update optimization iteration
 end
 %% GET OUTPUT VALUES
 [output.min.cost,output.min.surv,output.min.CapEx,output.min.OpEx,...

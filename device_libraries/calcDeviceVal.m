@@ -46,6 +46,20 @@ elseif isequal(type,'lfp')
         linmult = xq/xmax;
         xq = xmax;
     end
+elseif isequal(type,'lfp_size')
+    batteryLibrary_lfp
+    x = zeros(1,length(batteryLib));
+    y = zeros(1,length(batteryLib));
+    %unpack into arrays
+    for i = 1:length(batteryLib)
+        x(i) = batteryLib(i).kWh;
+        y(i) = batteryLib(i).d;
+    end
+    xmax = max(x);
+    if xq > xmax & n > 1
+        linmult = xq/xmax;
+        xq = xmax;
+    end
 elseif isequal(type,'dieselcost')
     dieselLibrary
     x = zeros(1,length(diesLib));
@@ -81,6 +95,15 @@ elseif isequal(type,'dieselburn')
     for i = 1:length(diesLib)
         x(i) = diesLib(i).kW;
         y(i) = diesLib(i).c;
+    end
+elseif isequal(type,'dieselvol')
+    dieselLibrary
+    x = zeros(1,length(diesLib));
+    y = zeros(1,length(diesLib));
+    %unpack into arrays
+    for i = 1:length(diesLib)
+        x(i) = diesLib(i).kW;
+        y(i) = diesLib(i).V;
     end
 end
 

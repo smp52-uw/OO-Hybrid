@@ -1,4 +1,4 @@
-%simulation settingsEoL
+%simulation settings
 %interactive job
 econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU
@@ -107,11 +107,11 @@ end
 
 %check to see if HPC
 if feature('numcores') < 36
-    opt.bf.j = 4;
-    opt.bf.k = 4;
-    opt.bf.l = 4;
-    opt.bf.n = 4;
-    opt.bf.m = 4;
+    opt.bf.j = 3;
+    opt.bf.k = 3;
+    opt.bf.l = 3;
+    opt.bf.n = 3;
+    opt.bf.m = 3;
 end
 
 %strings
@@ -133,11 +133,13 @@ opt.wavescens = {'Conservative';'Optimistic Cost';'Optimistic Durability'};
 %ECONOMIC
 %polynomial fits
 econ.batt_n = 1;                    %[~]
+econ.battsize_n = 1;                %[~]
 econ.wind_n = 1;                    %[~]
 econ.diescost_n = 1;                %[~]
 econ.diesmass_n = 1;                %[~]   
 econ.diessize_n = 1;                %[~]   
 econ.diesburn_n = 1;                %[~]   
+econ.diesvol_n = 1;                %[~]  
 %platform 
 % load('mdd_output.mat') - old (paper 1) mooring model
 % econ.platform.mdd.cost = cost;          %mooring cost lookup matrix
@@ -258,7 +260,7 @@ inso.cleanstrat = 4;        %panel cleaning strategy 1:NC, 2:CT, 3:CTW
 inso.cleanlim = 20;         %[mo] maximum limit for cleaning
 %inso.nu = 1.01;             %[m/kW]
 %wave energy parameters
-wave.method = 2;            %1: divide by B, 2: 3d interpolation
+wave.method = 2;            %1: divide by B, 2: 3d interpolation, 3: Trevor PM
 wave.B_func_n = 1000;       %number of points in B(Gr) function
 wave.Hs_ra = 4;             %[m], rated wave height
 wave.Tp_ra = 9;            %[s], rated peak period

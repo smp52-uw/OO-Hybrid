@@ -16,5 +16,7 @@ T_avg = mean(T);
 
 d_cal = k_cal.*exp(k_soc_cal*(SoC_avg-SoC_ref)) .* t ...
     .* exp(k_t * (T_avg-T_ref) .* (273 + T_ref)./(273 + T_avg));
+
+
 L = Nonlinear_degradation( d_cal ); %I think this is needed to get the fast degredation at the beginning of life
 end

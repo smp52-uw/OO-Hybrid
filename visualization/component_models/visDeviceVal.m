@@ -32,6 +32,18 @@ elseif isequal(type,'agm') || isequal(type,'lfp')
     end
     %ylab = '[$/kWh]';
     ylab = '[$]';
+elseif isequal(type,'lfp_size')
+    xf = 0:0.01:xmax; %kWh
+    xlab = 'Storage Capacity [kWh]';
+    batteryLibrary_lfp
+    x = zeros(1,length(batteryLib));
+    y = zeros(1,length(batteryLib));
+    %unpack into arrays
+    for i = 1:length(batteryLib)
+        x(i) = batteryLib(i).kWh;
+        y(i) = batteryLib(i).d;
+    end
+    ylab = '[m]';
 elseif isequal(type,'dieselcost')
     xf = 0:0.01:xmax; %kW
     xlab = 'Rated Power [kW]';
@@ -80,6 +92,18 @@ elseif isequal(type,'dieselburn')
         y(i) = diesLib(i).c;
     end
     ylab = '[l/h]';
+elseif isequal(type,'dieselvol')
+    xf = 0:0.01:xmax; %kW
+    xlab = 'Rated Power [kW]';    
+    dieselLibrary
+    x = zeros(1,length(diesLib));
+    y = zeros(1,length(diesLib));
+    %unpack into arrays
+    for i = 1:length(diesLib)
+        x(i) = diesLib(i).kW;
+        y(i) = diesLib(i).V;
+    end
+    ylab = '[m^3]';
 end
 
 yf = zeros(length(xf),length(n));

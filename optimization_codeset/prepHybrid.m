@@ -201,7 +201,71 @@ elseif wave.method == 2 %3d interpolation methodology
         opt.wave.B_func(2,i) = (opt.wave.B_func(1,i)*wave.eta_ct* ...
             opt.wave.F(wave.Tp_ra,wave.Hs_ra,opt.wave.B_func(1,i))* ...
             opt.wave.wavepower_ra)/((1+wave.house)*(1000));
+    end  
+
+elseif wave.method == 3 %Trevor Power Matrices
+    
+    %load wec sim results into structure
+%     wsr_1 = load('struct1m_opt');
+%     wsr_1 = wsr_1.('struct1m_opt');
+    wsr_2 = load('2m_5kW_WEC_Power_Frame.mat');
+    wsr_2.pframe = wsr_2.('WEC_pframe');
+    wsr_2.H = wsr_2.pframe(:,1); %Wave Height
+    wsr_2.T = wsr_2.pframe(:,2); %Wave Period
+    wsr_2.I = wsr_2.pframe(:,3:end); %current
+    wsr_2.P = 48.*wsr_2.I.*-1; %Power = V*I = 48 bus voltage *I
+    wsr_2.b = 2; %width
+    wsr_3 = load('3m_10kW_WEC_Power_Frame.mat');
+    wsr_3 = wsr_3.('WEC_pframe');
+    wsr_4 = load('4m_20kW_WEC_Power_Frame.mat');
+    wsr_4 = wsr_4.('WEC_pframe');
+    wsr_5 = load('5m_40kW_WEC_Power_Frame.mat');
+    wsr_5 = wsr_5.('WEC_pframe');
+%     wsr_6 = load('struct6m_opt');
+%     wsr_6 = wsr_6.('struct6m_opt');
+    s(4) = struct();
+    %s(1).wsr = wsr_1;
+    s(1).wsr = wsr_2;
+    s(2).wsr = wsr_3;
+    s(3).wsr = wsr_4;
+    s(4).wsr = wsr_5;
+    %s(6).wsr = wsr_6;
+    %preallocate scatter arrays
+    H_scat = [];
+    T_scat = [];
+    B_scat = [];
+    CWR_scat = [];
+    for b = 1:length(s)
+        n = length(s(b).wsr.H);
+        if ~isequal(n,length(s(b).wsr.T))
+            error('Tp and Hs vectors are not equal in length.')
+        end
+        H = s(b).wsr.H;
+        T = s(b).wsr.T;
+        B = wsr.b*ones(n,1);       
+        J = (1/(64*pi))*atmo.rho_w*atmo.g^2.*H.^2.*T; %find wave power
+        %P = reshape(s(b).wsr.mat',n,1); %find wec power (use mat not P)
+        P = s(b).wsr.P;
+        CWR = P./(J.*B); %find cwr
+        %populate scatter arrays
+        T_scat = [T_scat ; T];
+        H_scat = [H_scat ; H];    
+        B_scat = [B_scat ; B];
+        CWR_scat = [CWR_scat ; CWR];
+    end
+    %create scattered interpolant
+    opt.wave.F =  scatteredInterpolant(T_scat,H_scat,B_scat,CWR_scat);
+    %create width-rated power function
+    opt.wave.B_func = zeros(2,wave.B_func_n); %preallocation function
+    opt.wave.B_func(1,:) = linspace(min(B_scat),max(B_scat), ...
+        wave.B_func_n); %B [m]
+    for i = 1:wave.B_func_n
+        %find Gr for each B value
+        opt.wave.B_func(2,i) = (opt.wave.B_func(1,i)*wave.eta_ct* ...
+            opt.wave.F(wave.Tp_ra,wave.Hs_ra,opt.wave.B_func(1,i))* ...
+            opt.wave.wavepower_ra)/((1+wave.house)*(1000));
     end
     
 end
+
 end
