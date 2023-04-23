@@ -17,10 +17,13 @@ opt.dies.kW_m = dies.kWmax; %max size
 %set kW mesh - Inso
 opt.inso.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.5)
 if econ.platform.boundary == 2
-    opt.inso.kW_m = 9.0477; %corresponds to 8m
+    %opt.inso.kW_m = 9.0477; %corresponds to 8m
+    opt.inso.kW_m = 8; %corresponds to 8m
 else
     if econ.platform.boundary_di == 12
-        opt.inso.kW_m = 20.3575; %corresponds to 12m
+        disp('error do not use larger size')
+        %opt.inso.kW_m = 20.3575; %corresponds to 12m
+        opt.inso.kW_m = 8; %corresponds to 8m
     else
         error('update econ.platform.boundary_di')
     end
@@ -169,6 +172,7 @@ while tol == false && tel_i <=opt.tel_max
     parfor (i = 1:j*k*l*m*n,opt.bf.maxworkers)
         if sim_run(i) == 1 %only run points where the sim_run variable is true (used for persistence opt)
             %Call Hybrid Sim function
+            %disp(i)
             [C_temp(i),S_temp(i)] = ...
                 simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i),S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
         end
@@ -180,11 +184,23 @@ while tol == false && tel_i <=opt.tel_max
 
     end
     %REMOVED TRANSPOSE BC HIGH ORDER MATRIX CAN'T USE TRANSPOSE - MIGHT MESS UP
+    output.cost{tel_i} = C_temp;
+    output.surv{tel_i} = S_temp;
     %INDEXING
     output.tGrid = toc(tGrid);
     disp('Brute forcing current minimum...')
     %hybrid approach
-    I_min(tel_i) = find(X(tel_i,:)==min(X(tel_i,:))); %find index of minimum cost - doesn't work if there's multiple minimums
+    %I_min(tel_i) = find(X(tel_i,:)==min(X(tel_i,:))); %find index of minimum cost - doesn't work if there's multiple minimums
+    temp_I = find(X(tel_i,:)==min(X(tel_i,:)));
+    if length(temp_I) == 1
+        I_min(tel_i) = temp_I
+    else
+        for p = 1:length(temp_I)
+            Gr_tot(p) = Kd(temp_I(p)) + Ki(temp_I(p)) + Kwi(temp_I(p)) + Kwa(temp_I(p));
+        end
+        min_Gr = find(Gr_tot == min(Gr_tot));
+        I_min(tel_i) = temp_I(min_Gr);
+    end
     output.min.kWd{tel_i} = Kd(I_min(tel_i));
     output.min.kWi{tel_i} = Ki(I_min(tel_i));
     output.min.kWwi{tel_i} = Kwi(I_min(tel_i));

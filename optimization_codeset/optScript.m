@@ -68,23 +68,13 @@ else %just one simulation
     optStruct.batt = batt;
     optStruct.econ = econ;
     optStruct.uc = uc(c);
-    %optStruct.pm = pm;
     optStruct.c = c;
     optStruct.loc = loc;
     optStruct.turb = turb;
     optStruct.inso = inso;
     optStruct.wave = wave;
     optStruct.dies = dies;
-%   Line 78-86 obselete from individual pm models
-%     if pm == 1
-%         optStruct.turb = turb;
-%     elseif pm == 2
-%         optStruct.inso = inso;
-%     elseif pm == 3
-%         optStruct.wave = wave;
-%     elseif pm == 4
-%         optStruct.dies = dies;
-%     end
+
     disp(['Optimization complete after ' ...
         num2str(round(toc(tTot),2)) ' seconds.'])
 end

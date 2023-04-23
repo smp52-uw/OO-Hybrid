@@ -25,7 +25,7 @@ if isequal(type,'wave')
     for i = 1:length(dvymu)
         pts = find(dvall(:,1) == dvymu(i,1) & ...
             dvall(:,2) == dvymu(i,2));
-        K_avg(i,2) = nanmean(K(pts));
+        K_avg(i,2) = mean(K(pts),'omitnan');
     end
 end
 
@@ -39,7 +39,7 @@ if isequal(type,'wind')
     for i = 1:length(dvymu)
         pts = find(dvall(:,1) == dvymu(i,1) & ...
             dvall(:,2) == dvymu(i,2));
-        K_avg(i,2) = nanmean(K(pts));
+        K_avg(i,2) = mean(K(pts),'omitnan');
     end
 end
 
@@ -52,6 +52,6 @@ if isequal(type,'inso')
     for i = 1:length(dvymu)
         pts = find(dvall(:,1) == dvymu(i,1) & ...
             dvall(:,2) == dvymu(i,2));
-        K_avg(i,2) = nanmean(K(pts));
+        K_avg(i,2) = mean(K(pts),'omitnan');
     end
 end

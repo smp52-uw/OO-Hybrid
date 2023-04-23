@@ -53,7 +53,21 @@ elseif isequal(type,'lfp_size')
     %unpack into arrays
     for i = 1:length(batteryLib)
         x(i) = batteryLib(i).kWh;
-        y(i) = batteryLib(i).d;
+        y(i) = batteryLib(i).dia;
+    end
+    xmax = max(x);
+    if xq > xmax & n > 1
+        linmult = xq/xmax;
+        xq = xmax;
+    end
+elseif isequal(type,'lfp_vol')
+    batteryLibrary_lfp
+    x = zeros(1,length(batteryLib));
+    y = zeros(1,length(batteryLib));
+    %unpack into arrays
+    for i = 1:length(batteryLib)
+        x(i) = batteryLib(i).kWh;
+        y(i) = batteryLib(i).v;
     end
     xmax = max(x);
     if xq > xmax & n > 1

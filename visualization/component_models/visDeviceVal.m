@@ -41,9 +41,21 @@ elseif isequal(type,'lfp_size')
     %unpack into arrays
     for i = 1:length(batteryLib)
         x(i) = batteryLib(i).kWh;
-        y(i) = batteryLib(i).d;
+        y(i) = batteryLib(i).dia;
     end
     ylab = '[m]';
+elseif isequal(type,'lfp_vol')
+    xf = 0:0.01:xmax; %kWh
+    xlab = 'Storage Capacity [kWh]';
+    batteryLibrary_lfp
+    x = zeros(1,length(batteryLib));
+    y = zeros(1,length(batteryLib));
+    %unpack into arrays
+    for i = 1:length(batteryLib)
+        x(i) = batteryLib(i).kWh;
+        y(i) = batteryLib(i).v;
+    end
+    ylab = '[m^3]';
 elseif isequal(type,'dieselcost')
     xf = 0:0.01:xmax; %kW
     xlab = 'Rated Power [kW]';

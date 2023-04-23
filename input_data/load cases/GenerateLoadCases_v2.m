@@ -94,31 +94,44 @@ end
 
 %% Visualize load cases
 
-figure(1)
-tiledlayout(length(load_case),1)
-%title('Load [W]')
-for i = 1:length(load_case)
-    nexttile
-    plot(days(t),L(i,:),'-')
-%     hold on
-%     yline(mean(L(i,:)),'--','linewidth',2)
+% figure(1)
+% tiledlayout(length(load_case),1)
+% %title('Load [W]')
+% for i = 1:length(load_case)
+%     nexttile
+%     plot(days(t),L(i,:),'-')
+% %     hold on
+% %     yline(mean(L(i,:)),'--','linewidth',2)
+% 
+%     %title(load_case(i).name,'fontweight','b')
+%     yl = ylabel(load_case(i).name,'fontweight','bold')
+%     yl.Position(1) = -2
+%     %ylabel('L [W]','fontweight','bold')
+%     grid on
+%     if i == length(load_case)
+%         xlabel('Time [days]','fontweight','bold')
+%     end
+% 
+%     if i == 1
+%         title('Load [W]','fontweight','b')
+%         %legend('L(t)','L_{avg}','location','northwest')
+%     end
+% 
+% end
 
-    %title(load_case(i).name,'fontweight','b')
-    yl = ylabel(load_case(i).name,'fontweight','bold')
-    yl.Position(1) = -2
-    %ylabel('L [W]','fontweight','bold')
-    grid on
-    if i == length(load_case)
-        xlabel('Time [days]','fontweight','bold')
-    end
+% figure(1)
+% 
+% plot(days(t),L(3,:),'-','linewidth',2.5)
+% hold on
+% yline(mean(L(3,:)),'--','linewidth',2)
+% 
+% title(load_case(3).name,'fontweight','b')
+% ylabel('L [W]','fontweight','bold')
+% grid on
+% xlabel('Time [days]','fontweight','bold')
 
-    if i == 1
-        title('Load [W]','fontweight','b')
-        %legend('L(t)','L_{avg}','location','northwest')
-    end
-
-end
-
+%legend('L(t)','L_{avg}','location','northwest')
+% 
 %% Save load cases
 
-save(out_file,'load_case','L','L_status','t')
+%save(out_file,'load_case','L','L_status','t')
