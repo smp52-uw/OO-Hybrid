@@ -40,18 +40,18 @@ output.cost = output.cost{end};
 output.min.cost = output.min.cost;
 
 %create grid
-if d == 3
-    kW3 = opt.dies.kW{end};
-    kW4 = opt.inso.kW{end};
-    %[Kd,Ki,Kwi,Kwa,S]
-    [Kdgrid,Kigrid,Kwigrid,Kwagrid,Sgrid]= ndgrid(kW3, kW4,kW1,kW2,Smax);
-    lw = 1.1;
-    fs = 18;
-    Kdlist = reshape(Kdgrid,[j*k*l*m*n 1]);
-    Kilist = reshape(Kigrid,[j*k*l*m*n 1]);
-    Kwilist = reshape(Kwigrid,[j*k*l*m*n 1]);
-    Kwalist = reshape(Kwagrid,[j*k*l*m*n 1]);
-    Slist = reshape(Sgrid,[j*k*l*m*n 1]);
+
+kW3 = opt.dies.kW{end};
+kW4 = opt.inso.kW{end};
+%[Kd,Ki,Kwi,Kwa,S]
+[Kdgrid,Kigrid,Kwigrid,Kwagrid,Sgrid]= ndgrid(kW3, kW4,kW1,kW2,Smax);
+lw = 1.1;
+fs = 18;
+Kdlist = reshape(Kdgrid,[j*k*l*m*n 1]);
+Kilist = reshape(Kigrid,[j*k*l*m*n 1]);
+Kwilist = reshape(Kwigrid,[j*k*l*m*n 1]);
+Kwalist = reshape(Kwagrid,[j*k*l*m*n 1]);
+Slist = reshape(Sgrid,[j*k*l*m*n 1]);
 %remove failure configurations
 a_sat = output.cost; %availability satisfied
 

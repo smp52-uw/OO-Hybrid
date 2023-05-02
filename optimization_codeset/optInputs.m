@@ -4,17 +4,19 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
-opt.bf.j = 5;
-opt.bf.k = 5;
-opt.bf.l = 5;
-opt.bf.m = 5;
-opt.bf.n = 5;
+opt.bf.j = 11;
+opt.bf.k = 11;
+opt.bf.l = 11;
+opt.bf.m = 11;
+opt.bf.n = 11;
 
 %% Optimization Algorithm
 opt.tel_max = 2; %maximum number of telescoping iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'tel'; %'tel' is Telescope optimization, 'per' is persistence band optimization
+opt.alg = 'per'; %'tel' is Telescope optimization, 'per' is persistence band optimization
+opt.pd = 5; %5 = 5D hybrid sim, 2 = 1 gen + batt
+opt.pm = 0; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 
 
 %% Run Inputs
 opt.allscenuses = 0;
@@ -37,11 +39,11 @@ if isequal(batchtype,'ssm')
     econ.wave.scen = batchscen;
     econ.inso.scen = batchscen;
     econ.wind.scen = batchscen;
-    opt.bf.j = 50;
-    opt.bf.k = 50;
-    opt.bf.l = 50;
-    opt.bf.m = 50;
-    opt.bf.n = 50;
+    opt.bf.j = 11;
+    opt.bf.k = 11;
+    opt.bf.l = 11;
+    opt.bf.m = 11;
+    opt.bf.n = 11;
     opt.allscenuses = 0;
     opt.alllocuses = 0;
     opt.sens = 0;
@@ -56,11 +58,11 @@ elseif isequal(batchtype,'alllocuses')
     econ.wave.scen = batchscen; 
     econ.inso.scen = batchscen;
     econ.wind.scen = batchscen;
-    opt.bf.j = 50;
-    opt.bf.k = 50;
-    opt.bf.l = 50;
-    opt.bf.m = 50;
-    opt.bf.n = 50;
+    opt.bf.j = 11;
+    opt.bf.k = 11;
+    opt.bf.l = 11;
+    opt.bf.m = 11;
+    opt.bf.n = 11;
     opt.allscenuses = 0;
     opt.alllocuses = 1;
     opt.sens = 0;
@@ -73,11 +75,11 @@ elseif isequal(batchtype,'alllocuses')
     %batch = true;
 elseif isequal(batchtype,'hros')
     econ.wave.scen = 1; %scenario indicator 1:C,2:OC,3:OD
-    opt.bf.j = 50;
-    opt.bf.k = 50;
-    opt.bf.l = 50;
-    opt.bf.m = 50;
-    opt.bf.n = 50;
+    opt.bf.j = 11;
+    opt.bf.k = 11;
+    opt.bf.l = 11;
+    opt.bf.m = 11;
+    opt.bf.n = 11;
     opt.allscenuses = 0;
     opt.alllocuses = 1;
     opt.sens = 0;
@@ -92,11 +94,11 @@ elseif isequal(batchtype,'sens')
     opt.tuning_array = linspace(0,2.25,10);
     opt.tuned_parameter = 'wiv';
     econ.wave.scen = batchscen; 
-    opt.bf.j = 50;
-    opt.bf.k = 50;
-    opt.bf.l = 50;
-    opt.bf.m = 50;
-    opt.bf.n = 50;
+    opt.bf.j = 11;
+    opt.bf.k = 11;
+    opt.bf.l = 11;
+    opt.bf.m = 11;
+    opt.bf.n = 11;
     opt.allscenuses = 0;
     opt.alllocuses = 0;
     opt.sens = 1;

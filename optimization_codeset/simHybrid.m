@@ -7,8 +7,13 @@ function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_wind,Mcost_inso,E
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
 
 ID = [kW_dies kW_inso kW_wind kW_wave Smax];
-disp('made it into SimHybrid')
-
+%disp('made it into SimHybrid')
+% if kW_wave < 0.2144
+%     surv = 0;
+%     cost = inf;
+%     disp('Option not viable due to WECSIM min')
+%     return
+% end
 %if physically impossible, set S_temp and C_temp to failed values
 if opt.fmin && Smax < 0 || min([kW_dies,kW_inso,kW_wind,kW_wave]) < 0
     surv = 0;
@@ -61,7 +66,10 @@ Pwave = wave.eta_ct*cw.*wavepower - kW_wave*wave.house; %[kW]
 Pwave(Pwave<0) = 0; %no negative power
 Pwave(Pwave>kW_wave) = kW_wave; %no larger than rated power
 Pwave = Pwave*1000; %convert to watts
-
+if kW_wave < 0.2144
+    Pwave = zeros(1,length(time));
+    %disp('Zero wave power due to WECSIM min')
+end
 %set panel degradation
 eff = (1-((inso.deg/100)/8760)*(1:1:length(swso)));
 %rain = repmat(linspace(0.5,0,24*30),[1,ceil(length(swso)/(24*30))]);
@@ -93,7 +101,8 @@ fbi2 = 1; %fresh battery index
 eff_t = zeros(1,length(swso)); %[~] efficiency
 surv = 1;
 charging = false;
-runtime = 0; %[h], amount of time spent running
+runtime = zeros(1,nvi); %[h], amount of time spent running
+dies_vol = zeros(1,nvi);
 buoy1 = 1; %buoy1 = 1 buoy1 in water, =0 buoy 2 in water
 if buoy1 == 1
     S1(1) = Smax*1000; %assume battery begins fully charged
@@ -111,7 +120,7 @@ for t = 1:(length(time))
         batt_L1(t) = 0;
     elseif rem(t,batt.bdi) == 0 %evaluate degradation on interval
         batt_L1(t:t+batt.bdi) = batDegModel(S1(fbi1:t)/(1000*Smax), ...
-            batt.T,3600*(t-fbi1+1),batt.rf_os,ID);
+            batt.T,3600*(t-fbi1),batt.rf_os,ID);
             %3600*t should be 3600*(t-fbi1)
         if batt_L1(t) > batt.EoL %battery is past its life
             disp('error: battery died')
@@ -126,12 +135,12 @@ for t = 1:(length(time))
         %disp('evaluating batt 2 degredation')
         if t < T/nvi %use only calendar aging for the first 2 years with no cycling
            [L_cal, d_cal] = Calendar_degradation(S2(fbi2:t)/(1000*Smax), ...
-                batt.T,3600*(t-fbi2+1));
+                batt.T,3600*(t-fbi2));
             batt_L2(t:t+batt.bdi) = L_cal;
             %Calendar_degradation(SoC, T, t)
         else
             batt_L2(t:t+batt.bdi) = batDegModel(S2(fbi2:t)/(1000*Smax), ...
-                batt.T,3600*(t-fbi2+1),batt.rf_os,ID);
+                batt.T,3600*(t-fbi2),batt.rf_os,ID);
         end
         if batt_L2(t) > batt.EoL %battery is past its life
             disp('error: battery died')
@@ -190,7 +199,7 @@ for t = 1:(length(time))
         end
     end
     Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t); %total renewable power
-    %Prenew(t) = Pinso(t); %test Configuration - only solar
+    %Prenew(t) = 0; %test Configuration - only solar
     %Calculate state of charge
     if ~charging %generator off
         if buoy1 == 1
@@ -223,26 +232,29 @@ for t = 1:(length(time))
             if S1(t+1) >= (Smax*1000 - cf1)
                 D(t) = S1(t+1) - (Smax*1000 - cf1); %[Wh]
                 S1(t+1) = Smax*1000 - cf1;
-                charging = false; %turn off gen when battery is full
+                %charging = false; %turn off gen when battery is full
             end
         else
             S2(t+1) = dt*(Pdies(t)+Prenew(t) - uc.draw(t)) + S2(t) - sd2; %[Wh]
             if S2(t+1) >= (Smax*1000 - cf2)
                 D(t) = S2(t+1) - (Smax*1000 - cf2); %[Wh]
                 S2(t+1) = Smax*1000 - cf2;
-                charging = false; %turn off gen when battery is full
+                %charging = false; %turn off gen when battery is full
             end
         end
+        charging = false; %only run the generator for 1 hour at a time
+
+        %track fuel vol and runtime
         int_time = T/nvi; %dividing hours by number of intervention giving number of hours between each intervention?
-        runtime = zeros(1,nvi);
-        dies_vol = zeros(1,nvi);
         int_id = ceil(t/int_time); %calculated what intervention number we are on
         runtime(1,int_id) = runtime(1,int_id) + dt; %[h] when diesel gen is on
         dies_vol(1,int_id) = dies_vol(1,int_id) + lph*dt; %[L] burn rate multiplied by hours running should give total consumption
-        if runtime(1,int_id) >= 250 || dies_vol(1,int_id) > 800 %Brian set the maximums
+        if runtime(1,int_id) >= 250 || dies_vol(1,int_id) >= 800 %Brian set the maximums (250,800)
+                %runtime(1,int_id)
+                %dies_vol(1,int_id)
                 surv = 0;
                 cost = inf;
-                disp('Option not viable due to fuel volume or runtime')
+                %disp('Option not viable due to fuel volume or runtime')
                 return
         end
     end
@@ -427,8 +439,10 @@ end
 %% Weight Approximation
 mass_solar = inso.wf*kW_inso/(inso.rated*inso.eff); %[kg] - 1 array
 mass_solar_E = 0; %electrical - for 1 buoy
-mass_solar_S = 3.15*kW_inso/(inso.rated*inso.eff); %structural - for 1 buoy
-mass_wind = kW_wind*turb.wf; %[kg] - 1 turbine
+%mass_solar_S = 3.15*kW_inso/(inso.rated*inso.eff); %structural - for 1 buoy
+mass_solar_S = 0;
+%mass_wind = kW_wind*turb.wf; %[kg] - 1 turbine
+mass_wind = kW_wind*80; %updated to include a tower
 
 mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
 if kW_dies == 0
@@ -448,16 +462,16 @@ batt_len = batt_vol^(1/3); %assume cube
 mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
 %old assumption is that 1 encl $ = batt $
 %mass_battencl = mass_batt;
-Pmtrl = econ.platform.wf* ...
-    (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
-    mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
+% Pmtrl = econ.platform.wf* ...
+%     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
+%     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
 %mass_wec = Pmtrl * 0.376; %[kg] based on the percent of the RM3 that isn't float mass
 mass_wec = kW_wave*910.11;
 if kW_wave == 0
     mass_wec = 0;
 end
 buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_dies + ...
-    mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl + Pmtrl;
+    mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl;
 newbatt_m = newbatt * mass_batt; %[g]
 cost = buoy_m*2 + newbatt_m; %[kg] - 2 buoy weight + weight of extra batteries
 
@@ -476,6 +490,7 @@ Icost_wind = nan;
 Scost = mass_batt;
 Pinst = nan;
 Pmooring = nan;
+Pmtrl = nan;
 vesselcost = nan;
 genrepair = nan;
 turbrepair = nan;

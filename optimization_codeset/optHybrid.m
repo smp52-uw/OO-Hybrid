@@ -48,6 +48,7 @@ end
 %set sensitivity modifiers to 1 if absent and to value if existing
 if ~isfield(wave,'cw_mod')
     wave.cw_mod = 1; %capture width modifier
+end
 %set sensitivity modifiers to value if existing
 if isfield(data,'depth_mod')
     data.depth = data.depth_mod; %depth modifier
@@ -140,22 +141,80 @@ while tol == false && tel_i <=opt.tel_max
         else
             [opt] = telescope_opt(opt,tel_i,output); %get arrays of kW and S for this grid
         end
-        [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
-        Kd = reshape(Kd,[j*k*l*m*n 1]);
-        Ki = reshape(Ki,[j*k*l*m*n 1]);
-        Kwi = reshape(Kwi,[j*k*l*m*n 1]);
-        Kwa = reshape(Kwa,[j*k*l*m*n 1]);
-        S = reshape(S,[j*k*l*m*n 1]);
-        sim_run = ones(length(S),1);
-        C_temp = zeros(j*k*l*m*n,1);
-        S_temp = zeros(j*k*l*m*n,1);
-        X = zeros(j*k*l*m*n,1);
+        if opt.pd == 5
+            [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
+            Kd = reshape(Kd,[j*k*l*m*n 1]);
+            Ki = reshape(Ki,[j*k*l*m*n 1]);
+            Kwi = reshape(Kwi,[j*k*l*m*n 1]);
+            Kwa = reshape(Kwa,[j*k*l*m*n 1]);
+            S = reshape(S,[j*k*l*m*n 1]);
+            sim_run = ones(length(S),1);
+            C_temp = zeros(j*k*l*m*n,1);
+            S_temp = zeros(j*k*l*m*n,1);
+            X(tel_i,:) = zeros(j*k*l*m*n,1);
+            
+        elseif opt.pd == 2
+            %1:Wi 2:In 3:Wa 4:Di
+            if opt.pm == 4
+                opt.Gr{tel_i} = opt.dies.kW{tel_i};
+                g = j;
+                k = 1;
+                l = 1;
+                m = 1;
+            elseif opt.pm == 2
+                opt.Gr{tel_i} = opt.inso.kW{tel_i};
+                g = k;
+                j = 1;
+                l = 1;
+                m = 1;
+            elseif opt.pm == 1
+                opt.Gr{tel_i} = opt.wind.kW{tel_i};
+                g = l;
+                k = 1;
+                j = 1;
+                m = 1;
+            elseif opt.pm == 3
+                opt.Gr{tel_i} = opt.wave.kW{tel_i};
+                g = m;
+                k = 1;
+                l = 1;
+                j = 1;
+            end
+            [Gr,S] = ndgrid(opt.Gr{tel_i}, opt.Smax{tel_i});
+            S = reshape(S,[g*n 1]);
+            sim_run = ones(length(S),1);
+            C_temp = zeros(g*n,1);
+            S_temp = zeros(g*n,1);
+            X(tel_i,:) = zeros(g*n,1);
+            if opt.pm == 4
+                Kd = reshape(Gr,[g*n 1]);
+                Ki = zeros(length(S),1);
+                Kwi = zeros(length(S),1);
+                Kwa = zeros(length(S),1);
+            elseif opt.pm == 2
+                Ki = reshape(Gr,[g*n 1]);
+                Kd = zeros(length(S),1);
+                Kwi = zeros(length(S),1);
+                Kwa = zeros(length(S),1);
+            elseif opt.pm == 1
+                Kwi = reshape(Gr,[g*n 1]);
+                Ki = zeros(length(S),1);
+                Kd = zeros(length(S),1);
+                Kwa = zeros(length(S),1);
+            elseif opt.pm == 3
+                Kwa = reshape(Gr,[g*n 1]);
+                Ki = zeros(length(S),1);
+                Kwi = zeros(length(S),1);
+                Kd = zeros(length(S),1);
+            end
+        end
     else
         if tel_i == 1 %can't send output to function before output is defined
-            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp, X, sim_run] = persistence_opt(opt,tel_i,[],[]); %get arrays of kW and S for this grid
+            %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
+            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,[]); %get arrays of kW and S for this grid
         else
-            S_in = S_temp; %surv from previous iteration
-            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp, X, sim_run] = persistence_opt(opt,tel_i,output,S_in); %get arrays of kW and S for this grid
+            %S_in = S_temp; %surv from previous iteration
+            [opt,Kd, Ki, Kwi, Kwa, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,output); %get arrays of kW and S for this grid
         end
         j = opt.bf.j;
         k = opt.bf.k;
@@ -166,15 +225,18 @@ while tol == false && tel_i <=opt.tel_max
 
     %parallel computing via parfor
     tGrid = tic;
-    fmin_temp = opt.fmin; %making a temp variable to make the parfor loop happier
+    %fmin_temp = opt.fmin; %making a temp variable to make the parfor loop happier
     disp(['Optimization Iteration: ',num2str(tel_i)])
     disp(['Populating grid values: j=' num2str(j) ', k=' num2str(k) ', l=' num2str(l) ', m=' num2str(m) ', n=' num2str(n)])
-    parfor (i = 1:j*k*l*m*n,opt.bf.maxworkers)
+    sim_length = length(S);
+    parfor (i = 1:sim_length,opt.bf.maxworkers)
         if sim_run(i) == 1 %only run points where the sim_run variable is true (used for persistence opt)
             %Call Hybrid Sim function
             %disp(i)
             [C_temp(i),S_temp(i)] = ...
                 simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i),S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb);
+        else %X is no longer going to have dummy points for sim_run = 0
+            disp("ERROR IN PERSISTENCE OPT!!!!!")
         end
         if S_temp(i) < uc.uptime %update obj val X - if sim_run skipped this i then the surv will fail and cost = inf
             X(tel_i,i) = inf;
@@ -182,31 +244,49 @@ while tol == false && tel_i <=opt.tel_max
             X(tel_i,i) = C_temp(i);
         end
 
+
     end
     %REMOVED TRANSPOSE BC HIGH ORDER MATRIX CAN'T USE TRANSPOSE - MIGHT MESS UP
     output.cost{tel_i} = C_temp;
     output.surv{tel_i} = S_temp;
+    %saved outputs for persistence run
+    output.surv_opt = S_temp;
+    output.Kd_run = Kd;
+    output.Ki_run = Ki;
+    output.Kwi_run = Kwi;
+    output.Kwa_run = Kwa;
+    output.S_run = S;
     %INDEXING
     output.tGrid = toc(tGrid);
     disp('Brute forcing current minimum...')
     %hybrid approach
     %I_min(tel_i) = find(X(tel_i,:)==min(X(tel_i,:))); %find index of minimum cost - doesn't work if there's multiple minimums
-    temp_I = find(X(tel_i,:)==min(X(tel_i,:)));
+    temp_I = find(X(tel_i,:)==min(X(tel_i,:)))
     if length(temp_I) == 1
-        I_min(tel_i) = temp_I
+        I_min(tel_i) = temp_I;
     else
         for p = 1:length(temp_I)
-            Gr_tot(p) = Kd(temp_I(p)) + Ki(temp_I(p)) + Kwi(temp_I(p)) + Kwa(temp_I(p));
+            C_tot(p) = Kd(temp_I(p)) + Ki(temp_I(p)) + Kwi(temp_I(p)) + Kwa(temp_I(p)) + S(temp_I(p));
+            gen_vec = [Kd(temp_I(p)) Ki(temp_I(p)) Kwi(temp_I(p)) Kwa(temp_I(p))];
+            n_gen(p) = sum(gen_vec > 0);
         end
-        min_Gr = find(Gr_tot == min(Gr_tot));
-        I_min(tel_i) = temp_I(min_Gr);
+        min_n = find(n_gen == min(n_gen));
+        if length(min_n)>1
+            C_min_n = C_tot(min_n);
+            min_C = find(C_tot == min(C_min_n));
+            I_min(tel_i) = temp_I(min_C);
+        else
+            I_min(tel_i) = temp_I(min_n);
+        end
     end
     output.min.kWd{tel_i} = Kd(I_min(tel_i));
     output.min.kWi{tel_i} = Ki(I_min(tel_i));
     output.min.kWwi{tel_i} = Kwi(I_min(tel_i));
     output.min.kWwa{tel_i} = Kwa(I_min(tel_i));
     output.min.Smax{tel_i} = S(I_min(tel_i));
-    if tel_i > 1
+    if tel_i > 1 & opt.alg == 'tel'
+        %This check won't work for persistence right now because X(tel_i-1)
+        %is not saved
         if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1)))/X(tel_i,I_min(tel_i)) <= opt.ctol
             tol = true;
             if abs(output.min.kWd{tel_i} - output.min.kWd{tel_i-1})/output.min.kWd{tel_i} > opt.kwtol
