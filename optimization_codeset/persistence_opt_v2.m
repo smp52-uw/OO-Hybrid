@@ -28,10 +28,10 @@ else
     %get surv data from previous run
     surv = output.surv_opt; 
     %zero out the not interesting cases
+    surv(surv< 0.95) = 0;
+    surv(surv>0.998) = 0;
 %     surv(surv< 0.975) = 0;
 %     surv(surv>0.993) = 0;
-    surv(surv< 0.975) = 0;
-    surv(surv>0.993) = 0;
    
     %previous iteration reshaped grid style arrays
     Kd_old = output.Kd_run;
@@ -72,8 +72,8 @@ else
     S_t = opt.Smax{tel_i};
     
     %make the new grid style arrays for parfor loop
-    [Kd, Ki, Kwi, Kwa, S] = loopyloops(S_t, S_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
-
+    %[Kd, Ki, Kwi, Kwa, S] = loopyloops(S_t, S_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
+    [Kd, Ki, Kwi, Kwa, S] = loopyloops_v2(S_t, S_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
     %sim_run is 1 for all points added to the new grid like arrays
     sim_run = ones(length(S),1);
     
