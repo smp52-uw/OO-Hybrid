@@ -218,7 +218,7 @@ cturb.uci = 0.5;              %[m/s]
 cturb.ura = 2;                %[m/s] 
 cturb.uco = 3;                %[m/s] 
 cturb.eta = 0.4*0.7;          %[~] guess (Brian)
-cturb.wf = 96;               %[kg/kW] RM2
+cturb.wf = 170;               %[kg/kW] RM2
 cturb.clearance = 1.5;        % [m] under the water (from Brian)
 
 %solar parameters

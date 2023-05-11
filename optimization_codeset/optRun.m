@@ -1,5 +1,5 @@
 function [output,opt] = optRun(opt,data,atmo,batt,econ,uc,bc,inso, ...
-    turb,wave,dies)
+    turb,cturb, wave,dies)
 
 %curve-fit device scatters, find polyvals
 opt.p_dev.t = calcDeviceVal('turbine',[],econ.wind_n);
@@ -16,12 +16,12 @@ opt.p_dev.b_size = calcDeviceVal('lfp_vol',[],econ.battsize_n);
 % data = prepWind(data,uc);
 % data = prepDies(data,econ,uc);
 % opt = prepWave(data,opt,wave,atmo,uc);
-[data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso);
+[data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso,cturb);
 %Hybrid load case call
 [uc.loaddata, loadseries] = GenerateLoadCases_v3(data);
 uc.draw = loadseries.L(uc.loadcase,:);
 %HYBRID Opt Function call
-[output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,wave);
+[output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,cturb, wave);
 % if pm == 1 %WIND
 %     data = prepWind(data,uc);
 %     [output,opt] = optWind(opt,data,atmo,batt,econ,uc,bc,turb);
@@ -68,6 +68,7 @@ results.kWd = output.min.kWd;
 results.kWi = output.min.kWi;
 results.kWwi = output.min.kWwi;
 results.kWwa = output.min.kWwa;
+results.kWc = output.min.kWc;
 results.Smax = output.min.Smax;
 results.cost = output.min.cost;
 results.CapEx = output.min.CapEx;
@@ -77,6 +78,7 @@ results.CFd = output.min.CFd;
 results.CFi = output.min.CFi;
 results.CFwi = output.min.CFwi;
 results.CFwa = output.min.CFwa;
+results.CFc = output.min.CFc;
 %results.batt_L_max = max(output.min.batt_L);
 results.batt_L1_max = max(output.min.batt_L1);
 results.batt_L2_max = max(output.min.batt_L2);

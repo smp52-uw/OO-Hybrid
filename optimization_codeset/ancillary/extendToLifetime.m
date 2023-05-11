@@ -31,6 +31,9 @@ end
 orig_l = length(a_in);
 tStart = datevec(t_in(1));
 tEnd = tStart; tEnd(1) = tEnd(1) + y;
+% test1 = datetime(tStart)
+% test2 = datetime(tEnd)
+%t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
 t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
 a_out = [a_in; zeros(etime(tEnd,tStart)/(60*60)-length(a_in),1)];
 for i = orig_l+1:length(a_out)

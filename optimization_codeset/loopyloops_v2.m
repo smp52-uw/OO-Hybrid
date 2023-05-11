@@ -1,7 +1,7 @@
-function [Kd, Ki, Kwi, Kwa, S] = loopyloops_v2(S_t, S_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt)
+function [Kd, Ki, Kwi, Kwa, Kc, S] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt)
 
 %set loop constants
-i = 1; %index of old grid style array
+% i = 1; %index of old grid style array
 % dx = round(mode(diff(Kd_t)),4); %for this to work the dx must be constant
 % ds = round(mode(diff(S_t)),4);
 dx = mode(diff(Kd_t)); %for this to work the dx must be constant
@@ -10,13 +10,14 @@ Kd = [];
 Ki = [];
 Kwi = [];
 Kwa = [];
+Kc = [];
 S = [];
 
 %make permutation matrix
 % syms a b c
 % p_mat = [a b c];
 per_mat = [1 2 3];
-per_mat = permn(per_mat,5)';
+per_mat = permn(per_mat,6)';
 p_mat = per_mat;
 disp('Loopy Loops start ...')
 
@@ -25,6 +26,7 @@ Kd_old(Kd_old == 0) = 0.1;
 Ki_old(Ki_old == 0) = 0.1;
 Kwi_old(Kwi_old == 0) = 0.1;
 Kwa_old(Kwa_old == 0) = 0.1;
+Kc_old(Kc_old == 0) = 0.1;
 S_old(S_old == 0) = 0.1;
 
 %Big_Matrix = zeros[5,(3^5)*length(Kd_old)];
@@ -46,14 +48,18 @@ parfor (i = 1 : length(Kd_old),opt.bf.maxworkers)
     wa_mat = p_mat(4,:);
     wa_mat(wa_mat == 2) = 1+ dx/Kwa_old(i);
     wa_mat(wa_mat == 3) = 1+ -1*dx/Kwa_old(i);
+
+    c_mat = p_mat(5,:);
+    c_mat(c_mat == 2) = 1+ dx/Kc_old(i);
+    c_mat(c_mat == 3) = 1+ -1*dx/Kc_old(i);
     
-    s_mat = p_mat(5,:);
+    s_mat = p_mat(6,:);
     s_mat(s_mat == 2) = 1+ ds/S_old(i);
     s_mat(s_mat == 3) = 1+ -1*ds/S_old(i);
     
-    step_mat = [d_mat;i_mat;wi_mat;wa_mat;s_mat];
+    step_mat = [d_mat;i_mat;wi_mat;wa_mat;c_mat;s_mat];
     
-    D = diag([Kd_old(i) Ki_old(i) Kwi_old(i) Kwa_old(i) S_old(i)]);
+    D = diag([Kd_old(i) Ki_old(i) Kwi_old(i) Kwa_old(i) Kc_old(i) S_old(i)]);
     D_2 = D*step_mat;
     %adjust values that should have been zero
     D_2(D_2 == 0.1-dx) = -1*dx;
@@ -67,7 +73,9 @@ parfor (i = 1 : length(Kd_old),opt.bf.maxworkers)
     edge_i = edge_i + (D_2(2,:) > 8);
     edge_i = edge_i + (D_2(3,:) > 8);
     edge_i = edge_i + (D_2(4,:) > 8);
-    edge_i = edge_i + (D_2(5,:) > 500);
+    edge_i = edge_i + (D_2(5,:) > 8);
+    edge_i = edge_i + (D_2(6,:) > 500);
+    edge_i = edge_i + (D_2(6,:) < 1);
     edge_i = edge_i + (sum(D_2 < 0,1));
     rm_i = find(edge_i >= 1);
     D_2(:,rm_i) = [];
@@ -81,7 +89,8 @@ Kd = new_points(1,:);
 Ki = new_points(2,:);
 Kwi = new_points(3,:);
 Kwa = new_points(4,:);
-S = new_points(5,:);
+Kc = new_points(5,:);
+S = new_points(6,:);
 
 disp('Loopy Loops end ...')
 end

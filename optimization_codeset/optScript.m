@@ -59,8 +59,11 @@ else %just one simulation
     %optInputs %load inputs
     data = load(loc,loc);
     data = data.(loc);
+    %load current data
+    curr = load(cloc);
+    data.curr = curr; %add current data to data structure
     [output,opt] = ...
-        optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,wave,dies);
+        optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,cturb, wave,dies);
     optStruct.output = output;
     optStruct.opt = opt;
     optStruct.data = data;
@@ -71,6 +74,7 @@ else %just one simulation
     optStruct.c = c;
     optStruct.loc = loc;
     optStruct.turb = turb;
+    optStruct.cturb = cturb;
     optStruct.inso = inso;
     optStruct.wave = wave;
     optStruct.dies = dies;

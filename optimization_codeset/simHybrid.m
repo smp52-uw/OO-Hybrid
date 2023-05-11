@@ -1,12 +1,12 @@
-function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
+function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_curr, kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
     vesselcost,genrepair,turbrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
-    triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies,Pinso,Pwind,Pwave,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
-    simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)
+    triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies,Pinso,Pwind,Pwave,Pcurr,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
+    simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,kW_curr, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb)
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
 
-ID = [kW_dies kW_inso kW_wind kW_wave Smax];
+ID = [kW_dies kW_inso kW_wind kW_wave kW_curr Smax];
 %disp('made it into SimHybrid')
 % if kW_wave < 0.2144
 %     surv = 0;
@@ -15,7 +15,7 @@ ID = [kW_dies kW_inso kW_wind kW_wave Smax];
 %     return
 % end
 %if physically impossible, set S_temp and C_temp to failed values
-if opt.fmin && Smax < 0 || min([kW_dies,kW_inso,kW_wind,kW_wave]) < 0
+if opt.fmin && Smax < 0 || min([kW_dies,kW_inso,kW_wind,kW_wave,kW_curr]) < 0
     surv = 0;
     cost = inf;
     return
@@ -70,6 +70,17 @@ if kW_wave < 0.2144
     Pwave = zeros(1,length(time));
     %disp('Zero wave power due to WECSIM min')
 end
+%current power
+t_depth = cturb.clearance + sqrt(1000*2*kW_curr/(cturb.eta*atmo.rho_w*cturb.ura^3)); %current turb height
+cturb_depth = find(min(abs(t_depth - data.curr.depth)));
+c_speed = data.curr.speed6a(:,cturb_depth); 
+% % [Pcurr_m,kW_testc,c_vel] = Current_Power(cturb,atmo);
+%current_Pmatrix = load('current_Pmatrix.mat');
+% Pcurr_m = current_Pmatrix.Pcurr.P;
+% kW_testc = current_Pmatrix.Pcurr.kW_curr;
+% c_vel = current_Pmatrix.Pcurr.c_vel;
+%F_curr = opt.curr.F_curr;
+
 %set panel degradation
 eff = (1-((inso.deg/100)/8760)*(1:1:length(swso)));
 %rain = repmat(linspace(0.5,0,24*30),[1,ceil(length(swso)/(24*30))]);
@@ -90,6 +101,7 @@ Ptot = zeros(1,length(time)); %power produced timeseries
 Pdies = zeros(1,length(time));
 Pinso = zeros(1,length(time));
 Pwind = zeros(1,length(time));
+Pcurr= zeros(1,length(time));
 Prenew = zeros(1,length(time));
 D = zeros(1,length(time)); %power dumped timeseries
 L = uc.draw; %power to load time series
@@ -198,7 +210,22 @@ for t = 1:(length(time))
             Pwind(t) = 0; %[W]
         end
     end
-    Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t); %total renewable power
+    %Pcurr,kW_curr,c_vel
+    if kW_curr ~= 0 
+        %Pcurr(t) = interp2(kW_testc,c_vel,Pcurr_m,kW_curr,c_speed(t));
+        %Pcurr(t) = F_curr(kW_curr,c_speed(t));
+        if c_speed(t) < cturb.uci %below cut out
+            Pcurr(t) = 0; %[W]
+        elseif cturb.uci < c_speed(t) && c_speed(t) <= cturb.ura %below rated
+            Pcurr(t) = kW_curr.*1000.*c_speed(t).^3./cturb.ura.^3; %[W]
+        elseif cturb.ura < c_speed(t) && c_speed(t) <= cturb.uco %above rated
+            Pcurr(t) = kW_curr.*1000; %[W]
+        else %above cut out
+            Pcurr(t) = 0; %[W]
+        end
+    end
+
+    Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t) + Pcurr(t); %total renewable power
     %Prenew(t) = 0; %test Configuration - only solar
     %Calculate state of charge
     if ~charging %generator off
@@ -275,7 +302,8 @@ for t = 1:(length(time))
     if t == T/nvi || t == 2*T/nvi %if maintenance interval
         if buoy1 == 1 %buoy 1 going to shore
             S2(t+1) = (Smax*1000) - cf2; %buoy 2 charged up
-            if (1-abs((S1(t)-Smax)*1000 - cf1)/(Smax*1000)) >= batt.EoL %need new batt1
+            %if (1-abs((S1(t)-Smax)*1000 - cf1)/(Smax*1000)) >= batt.EoL %need new batt1
+            if batt_L1(t) > batt.EoL %need new batt1
                 S1(t+1) = (Smax*1000)*0.5; %stored at half total capacity
                 newbatt = newbatt + 1;
                 fbi1 = t+1; %set new battery interval
@@ -284,7 +312,8 @@ for t = 1:(length(time))
             end
         else %buoy 2 going to shore
             S1(t+1) = (Smax*1000) - cf1; %buoy 1 charged up
-            if (1-abs((S2(t)-Smax)*1000 - cf2)/(Smax*1000)) >= batt.EoL %need new batt2
+            %if (1-abs((S2(t)-Smax)*1000 - cf2)/(Smax*1000)) >= batt.EoL %need new batt2
+            if batt_L2(t) > batt.EoL %need new batt2
                 S2(t+1) = Smax*1000*0.5; %stored at half capacity
                 newbatt = newbatt + 1;
                 fbi2 = t+1;
@@ -442,7 +471,9 @@ mass_solar_E = 0; %electrical - for 1 buoy
 %mass_solar_S = 3.15*kW_inso/(inso.rated*inso.eff); %structural - for 1 buoy
 mass_solar_S = 0;
 %mass_wind = kW_wind*turb.wf; %[kg] - 1 turbine
-mass_wind = kW_wind*80; %updated to include a tower
+mass_wind = kW_wind*turb.wf; %updated to include a tower
+
+mass_curr = kW_curr*cturb.wf; %total guess
 
 mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
 if kW_dies == 0
@@ -466,20 +497,24 @@ mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
 %     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
 %     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
 %mass_wec = Pmtrl * 0.376; %[kg] based on the percent of the RM3 that isn't float mass
-mass_wec = kW_wave*910.11;
+mass_wec = kW_wave*895.78;
 if kW_wave == 0
     mass_wec = 0;
 end
-buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_dies + ...
+buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...
     mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl;
 newbatt_m = newbatt * mass_batt; %[g]
 cost = buoy_m*2 + newbatt_m; %[kg] - 2 buoy weight + weight of extra batteries
-
+% if kW_wave < 0.2144 && kW_wave ~= 0
+%     cost = inf; %make cost infinity for bad wave power cases - since I'm only adjusting cost it shouldn't affect per_opt
+% end
 %% dummy output variables that aren't assigned without economics
 CapEx = nan;
 OpEx = nan;
 kWcost_dies = mass_dies;
 kWcost_wave = mass_wec;
+kWcost_curr = mass_curr;
+%kWcost_curr = nan;
 kWcost_wind = mass_wind;
 Mcost_inso = mass_solar;
 Ecost_inso = mass_solar_E;

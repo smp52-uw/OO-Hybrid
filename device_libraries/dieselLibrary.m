@@ -49,7 +49,8 @@ diesLib(6).c = nan; %[l/h]
 %Polar Power Volvo Penta D1-40 - 8340
 diesLib(7).kW = 20;
 diesLib(7).cost = 22165;
-diesLib(7).d = 0.53; %m (wrong?)
+%diesLib(7).d = 0.53; %m (wrong?)
+diesLib(7).d = 0.74; %m (PDC 8340VP-40 D2-40)
 diesLib(7).V = 0.502*0.740*0.603; %[m3]
 diesLib(7).m = 179.62; %kg
 diesLib(7).c = .29*diesLib(7).kW; %[l/h]
