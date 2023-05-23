@@ -2,7 +2,7 @@ function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_curr, kWcost_wind
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
     vesselcost,genrepair,turbrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
     triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies,Pinso,Pwind,Pwave,Pcurr,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
-    simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,kW_curr, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb)
+    simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,kW_curr, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb) %#codegen
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
 
@@ -22,7 +22,7 @@ if opt.fmin && Smax < 0 || min([kW_dies,kW_inso,kW_wind,kW_wave,kW_curr]) < 0
 end
 
 %set capture width modifier
-cw_mod = wave.cw_mod;
+%cw_mod = wave.cw_mod;
 %Number of vessel intervention
 nvi = (uc.lifetime*12)/uc.SI;
 %set burn rate
@@ -32,10 +32,13 @@ if kW_dies == 0  %Set burn rate = 0 for no diesel generator (in case the polyfit
 end
 %extract data
 time = datenum(data.met.time);
+%time = data.met.time; %THIS IS IN DATETIME
 T = length(time);
 dt = 24*(time(2) - time(1)); %time in hours
-dist = data.dist; %[m] distance to shore
-depth = data.depth; %[m] water depth
+%dt = 1; %time in hours
+
+%dist = data.dist; %[m] distance to shore
+%depth = data.depth; %[m] water depth
 swso = data.swso;
 wind = data.met.wind_spd; %[m/s]
 if atmo.dyn_h %use log law to adjust wind speed based on rotor height
@@ -111,7 +114,7 @@ fbi1 = 1; %fresh battery index
 batt_L2 = zeros(1,length(time)); %battery L (degradation) timeseries
 fbi2 = 1; %fresh battery index
 eff_t = zeros(1,length(swso)); %[~] efficiency
-surv = 1;
+%surv = 1;
 charging = false;
 runtime = zeros(1,nvi); %[h], amount of time spent running
 dies_vol = zeros(1,nvi);

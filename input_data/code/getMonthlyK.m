@@ -1,18 +1,44 @@
 function [K_avg] = getMonthlyK(dataStruct,type)
 
 %%%%%%%%%%% SET VALUES %%%%%%%%%%%%%%
-
-met_pts = 1:length(dataStruct.met.time);
-wave_pts = 1:length(dataStruct.wave.time);
-curr_pts = 1:length(dataStruct.curr.time);
-met_time = dataStruct.met.time(met_pts);
-wave_time = dataStruct.wave.time(wave_pts);
-wind = dataStruct.met.wind_spd(met_pts);
-inso = dataStruct.met.shortwave_irradiance(met_pts);
-hs = dataStruct.wave.significant_wave_height(wave_pts);
-tp = dataStruct.wave.peak_wave_period(wave_pts);
-c_vel = (dataStruct.curr.u.^2 + dataStruct.curr.v.^2).^0.5; %vel mag
-curr_time = dataStruct.curr.time(curr_pts)';
+test1 = isfield(dataStruct,'met');
+test2 = isfield(dataStruct,'swso');
+if test1
+    met_pts = 1:length(dataStruct.met.time);
+    met_time = dataStruct.met.time(met_pts);
+    wind = dataStruct.met.wind_spd(met_pts);
+    if test2
+        inso = dataStruct.swso(met_pts);
+    else
+        inso = dataStruct.met.shortwave_irradiance(met_pts);
+    end
+end
+test = isfield(dataStruct.curr,'time');
+if test
+    curr_pts = 1:length(dataStruct.curr.time);
+    curr_time = dataStruct.curr.time(curr_pts)';
+end
+test = isfield(dataStruct.wave,'significant_wave_height');
+if test
+    wave_pts = 1:length(dataStruct.wave.time);
+    wave_time = dataStruct.wave.time(wave_pts);
+    hs = dataStruct.wave.significant_wave_height(wave_pts);
+    tp = dataStruct.wave.peak_wave_period(wave_pts);
+else
+    wave_pts = 1:length(dataStruct.wave.time);
+    wave_time = dataStruct.wave.time(wave_pts);
+    hs = dataStruct.wave.Hs(wave_pts);
+    tp = dataStruct.wave.Tp(wave_pts);
+end
+test1 = isfield(dataStruct.curr,'u');
+test2 = isfield(dataStruct.curr,'speed6a');
+if test2
+    c_vel = dataStruct.curr.speed6a;
+    
+elseif test1
+    c_vel = (dataStruct.curr.u.^2 + dataStruct.curr.v.^2).^0.5; %vel mag
+    c_vel = c_vel';
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if isequal(type,'wave')
@@ -59,7 +85,6 @@ if isequal(type,'inso')
 end
 
 if isequal(type,'curr')
-    c_vel = c_vel';
     dvall = datevec(curr_time);
     dvymu = unique(dvall(:,1:2),'rows');
     c_sz = size(c_vel)

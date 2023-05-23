@@ -49,6 +49,19 @@ end
 %adjustments for plotting on map
 maptitles{1} = {'Argentine','Basin'};
 
+%Get clean data series
+optInputs
+data = load(loc,loc);
+data = data.(loc);
+%load current data
+curr = load(cloc);
+data.curr = curr; %add current data to data structure
+[data, opt] = prepHybrid(data,opt,uc(1),wave,atmo,inso,cturb)
+Kwave{2} = getMonthlyK(opt,'wave');
+Kwind{2} = getMonthlyK(data,'wind');
+Ksolar{2} = getMonthlyK(data, 'inso');
+Kcurr{2} = getMonthlyK(data, 'curr');
+
 %plot settings
 datacomp = figure;
 set(gcf,'Units','inches')
@@ -114,8 +127,11 @@ plot(datetime(Kwave{1}(:,1),'ConvertFrom','datenum'), ...
     'LineWidth',lw)
 xt = [xt ; datetime(Kwave{1}(:,1),'ConvertFrom','datenum')];
 hold on
+plot(datetime(Kwave{2}(:,1),'ConvertFrom','datenum'), ...
+    Kwave{2}(:,2)/1000,'Color',col(2,:), ...
+    'LineWidth',lw,'LineStyle',':')
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yyyy');
 ylabel({'Wave','Power','Density'},'FontSize',fs,'interpreter','latex');
 ylh = get(ax(2),'ylabel');
 set(ylh,'Rotation',0,'Units','Normalized','Position',[-.175 .75 -1], ...
@@ -126,6 +142,7 @@ text(-.175,.25,'$$\mathrm{\bigg[\frac{kW}{m}\bigg]}$$', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'HorizontalAlignment','center','FontSize',fs);
 ylim([0 inf])
+xlim([datetime(2015,01,01) datetime(2021,01,01)])
 %drawnow
 
 set(gca,'FontSize',fs)
@@ -145,8 +162,11 @@ plot(datetime(Kwind{1}(:,1),'ConvertFrom','datenum'), ...
     'LineWidth',lw)
 xt = [xt ; datetime(Kwind{1}(:,1),'ConvertFrom','datenum')];
 hold on
+plot(datetime(Kwind{2}(:,1),'ConvertFrom','datenum'), ...
+    Kwind{2}(:,2)/1000,'Color',col(3,:), ...
+    'LineWidth',lw,'LineStyle',':')
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yyyy');
 ylabel({'Wind','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Wind','FontSize',fs,'interpreter','latex')
 ylh = get(ax(3),'ylabel');
@@ -158,6 +178,7 @@ text(-.175,.25,'$$\mathrm{\bigg[\frac{kW}{m^2}\bigg]}$$', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'HorizontalAlignment','center','FontSize',fs);
 ylim([0 inf])
+xlim([datetime(2015,01,01) datetime(2021,01,01)])
 set(gca,'FontSize',fs)
 ax(3).TickLabelInterpreter = 'latex';
 
@@ -175,8 +196,11 @@ plot(datetime(Ksolar{1}(:,1),'ConvertFrom','datenum'), ...
     'LineWidth',lw)
 xt = [xt ; datetime(Ksolar{1}(:,1),'ConvertFrom','datenum')];
 hold on
+plot(datetime(Ksolar{2}(:,1),'ConvertFrom','datenum'), ...
+    Ksolar{2}(:,2)/1000,'Color',col(5,:), ...
+    'LineWidth',lw,'LineStyle',':')
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yyyy');
 ylabel({'Solar','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Solar','FontSize',fs,'interpreter','latex')
 ylh = get(ax(4),'ylabel');
@@ -188,6 +212,7 @@ text(-.175,.25,'$$\mathrm{\bigg[\frac{kW}{m^2}\bigg]}$$', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'HorizontalAlignment','center','FontSize',fs);
 ylim([0 inf])
+xlim([datetime(2015,01,01) datetime(2021,01,01)])
 set(gca,'FontSize',fs)
 ax(4).TickLabelInterpreter = 'latex';
 
@@ -212,6 +237,9 @@ for i = depth
         'LineWidth',lw,'DisplayName',[strcat(num2str(allData.(fn{1}).curr.depth(i)),' m depth')])
     %leg_txt = [leg_txt, strcat(num2str(allData.(fn{1}).curr.depth(i)),'m')]
     hold on
+    plot(datetime(Kcurr{2}(:,1),'ConvertFrom','datenum'), ...
+    Kcurr{2}(:,i+1)/1000, 'Color',col(i+2,:),...
+    'LineWidth',lw,'LineStyle',':','DisplayName',[strcat(num2str(allData.(fn{1}).curr.depth(i)),' m depth')])
 end
 % hL = legend('show','Location','northeast','box','off','Units','Inches')
 % set(hL,'Interpreter','latex')
@@ -219,11 +247,11 @@ end
 % set(hL,'Position',[hLPos(1)+0.15 hLPos(2)+0.1 hLPos(3) hLPos(4)+0.025])
 xl = xlabel('Time');
 set(xl,'Interpreter','latex')
-xtickformat('yyyy');
-st = datetime(Kcurr{1}(1,1),'ConvertFrom','datenum');
-ed = datetime(Kcurr{1}(end,1),'ConvertFrom','datenum');
-set(gca, 'XTick', [st:calmonths(2):ed]);
-xtickformat('yyyy');
+xtickformat('MM-yyyy');
+%st = datetime(Kcurr{1}(1,1),'ConvertFrom','datenum');
+%ed = datetime(Kcurr{1}(end,1),'ConvertFrom','datenum');
+%set(gca, 'XTick', [st:calmonths(2):ed]);
+xtickformat('MM-yyyy');
 ylabel({'Current','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Solar','FontSize',fs,'interpreter','latex')
 ylh = get(ax(4),'ylabel');
@@ -235,6 +263,7 @@ text(-.175,.25,'$$\mathrm{\bigg[\frac{kW}{m^2}\bigg]}$$', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'HorizontalAlignment','center','FontSize',fs);
 ylim([0 inf])
+xlim([datetime(2015,01,01) datetime(2021,01,01)])
 set(gca,'FontSize',fs)
 ax(4).TickLabelInterpreter = 'latex';
 

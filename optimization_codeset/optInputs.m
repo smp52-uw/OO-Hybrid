@@ -4,21 +4,23 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
-opt.bf.j = 11;
-opt.bf.k = 11;
-opt.bf.l = 11;
-opt.bf.m = 11;
-opt.bf.n = 11;
-opt.bf.o = 11;
+opt.bf.j = 9;
+opt.bf.k = 9;
+opt.bf.l = 9;
+opt.bf.m = 9;
+opt.bf.n = 9;
+opt.bf.o = 9;
 
 %% Optimization Algorithm
 opt.tel_max = 5; %maximum number of telescoping iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'tel'; %'tel' is Telescope optimization, 'per' is persistence band optimization
-opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt
-opt.pm = 1; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu
+opt.alg = 'per'; %'tel' is Telescope optimization, 'per' is persistence band optimization
+opt.pd = 3; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
+opt.pm = 12; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 
+opt.bf.M = 3; %[kW] max kW in grid
+opt.bf.N = 30; %[kWh] max Smax in grid
 %% Run Inputs
 opt.allscenuses = 0;
 opt.alllocuses = 0;
@@ -114,7 +116,7 @@ elseif isequal(batchtype,'sens')
 end
 
 %check to see if HPC
-if feature('numcores') < 36
+if feature('numcores') < 10
     opt.bf.j = 4;
     opt.bf.k = 4;
     opt.bf.l = 4;
@@ -362,8 +364,6 @@ opt.tdsens_tp{2} = 'tra'; %rated Tp
 
 %optimization parameters
 opt.V = 2;
-opt.bf.M = 8; %[kW] max kW in grid
-opt.bf.N = 500; %[kWh] max Smax in grid
 opt.bf.M_hros = [2 4 5 1 1.75]; %[kW], high res os
 opt.bf.N_hros = [350 500 500 300 350]; %[kWh], high res os
 opt.bf.maxworkers = 36; %maximum cores

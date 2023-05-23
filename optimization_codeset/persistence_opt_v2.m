@@ -93,4 +93,18 @@ else
 
 
 end
+
+if opt.pd == 5
+    if opt.pm == 4 %no dies
+        sim_run(Kd>0) = 0; %dont run simHybrid is Kd is greater than zero
+    elseif opt.pm == 5 %no current
+        sim_run(Kc>0) = 0;
+    end
+elseif opt.pd == 3
+    if opt.pm == 12 %wind+inso
+        sim_run(Kd>0) = 0; %dont run simHybrid is Kd is greater than zero
+        sim_run(Kwa>0) = 0; %dont run simHybrid is Kd is greater than zero
+        sim_run(Kc>0) = 0; %dont run simHybrid is Kd is greater than zero
+    end
+end
 end

@@ -7,18 +7,19 @@ function [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,c
 %set Smax mesh 
 opt.Smax_1 = 1;
 opt.Smax_n = opt.bf.N; %[kWh]
-%opt.Smax_n = 220; %for test
+%opt.Smax_n = 19; %for test
 
 %set kW mesh - Dies
 opt.dies.kW_1 = 0; %min size zero for hybrid sim
-opt.dies.kW_m = dies.kWmax; %max size
-%opt.dies.kW_m = 0.01; %zero diesel power for test
+%opt.dies.kW_m = dies.kWmax; %max size
+opt.dies.kW_m = opt.bf.M; %zero diesel power for test
 
 %set kW mesh - Inso
 opt.inso.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.5)
 if econ.platform.boundary == 2
     %opt.inso.kW_m = 9.0477; %corresponds to 8m
-    opt.inso.kW_m = 8; %corresponds to 8m
+    %opt.inso.kW_m = 8; %corresponds to 8m
+    opt.inso.kW_m = opt.bf.M; %corresponds to 8m
 else
     if econ.platform.boundary_di == 12
         disp('error do not use larger size')
@@ -32,15 +33,17 @@ end
 %set kW mesh - wind
 opt.wind.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.1)
 opt.wind.kW_m = opt.bf.M; %[kW] (up to 8 kW for wind)
-
+%opt.wind.kW_m = 3;
 %set kW mesh - current
 opt.curr.kW_1 = 0.0; %min size zero for hybrid sim (used to be 0.1)
 opt.curr.kW_m = opt.bf.M; %[kW] (up to 8 kW for wind)
+%opt.curr.kW_m = 3;
 
 %set kW mesh - wave
 opt.wave.kW_1 = 0.0; %lower limit for wecsim is 0.2143 (used to be 0.215 - set to zero for hybrid)
 if ~opt.highresobj
     opt.wave.kW_m = opt.bf.M; %[kW]
+    %opt.wave.kW_m = 3; %[kW]
 else
     opt.bf.loc_ind = find(contains(opt.locations,data.loc, ...
         'IgnoreCase',false));
@@ -294,8 +297,9 @@ while tol == false && tel_i <=opt.tel_max
             %disp(i)
             [C_temp(i),S_temp(i)] = ...
                 simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i), Kc(i), S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
-        else %X is no longer going to have dummy points for sim_run = 0
-            disp("ERROR IN PERSISTENCE OPT!!!!!")
+        %else %X only has dummy points for 5D persistence
+            %disp("ERROR IN PERSISTENCE OPT!!!!!")
+            
         end
         if S_temp(i) < uc.uptime %update obj val X - if sim_run skipped this i then the surv will fail and cost = inf
             X(tel_i,i) = inf;

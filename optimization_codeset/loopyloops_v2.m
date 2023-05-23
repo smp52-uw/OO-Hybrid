@@ -6,13 +6,16 @@ function [Kd, Ki, Kwi, Kwa, Kc, S] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa
 % ds = round(mode(diff(S_t)),4);
 dx = mode(diff(Kd_t)); %for this to work the dx must be constant
 ds = mode(diff(S_t));
-Kd = [];
-Ki = [];
-Kwi = [];
-Kwa = [];
-Kc = [];
-S = [];
+% Kd = [];
+% Ki = [];
+% Kwi = [];
+% Kwa = [];
+% Kc = [];
+% S = [];
 
+%grid boundaries
+sgrid_max = opt.bf.N;
+xgrid_max = opt.bf.M;
 %make permutation matrix
 % syms a b c
 % p_mat = [a b c];
@@ -69,15 +72,16 @@ parfor (i = 1 : length(Kd_old),opt.bf.maxworkers)
     D_2(D_2 == 0.1+ds) = 1*ds;
     %no negative value
     %remove any cols where one points is outside the grid boundaries
-    edge_i = D_2(1,:) > 8;
-    edge_i = edge_i + (D_2(2,:) > 8);
-    edge_i = edge_i + (D_2(3,:) > 8);
-    edge_i = edge_i + (D_2(4,:) > 8);
-    edge_i = edge_i + (D_2(5,:) > 8);
-    edge_i = edge_i + (D_2(6,:) > 500);
+
+    edge_i = D_2(1,:) > xgrid_max;
+    edge_i = edge_i + (D_2(2,:) > xgrid_max);
+    edge_i = edge_i + (D_2(3,:) > xgrid_max);
+    edge_i = edge_i + (D_2(4,:) > xgrid_max);
+    edge_i = edge_i + (D_2(5,:) > xgrid_max);
+    edge_i = edge_i + (D_2(6,:) > sgrid_max);
     edge_i = edge_i + (D_2(6,:) < 1);
     edge_i = edge_i + (sum(D_2 < 0,1));
-    rm_i = find(edge_i >= 1);
+    rm_i = edge_i >= 1;
     D_2(:,rm_i) = [];
     Big_Matrix = [Big_Matrix D_2];
 end
