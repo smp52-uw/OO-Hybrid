@@ -138,7 +138,7 @@ tel_i = 1; %starting telescope index
 tol = false; %logical variable for if telescoping tolerance has been met
 while tol == false && tel_i <=opt.tel_max
     %initialize inputs/outputs and set up for parallelization
-    if opt.alg == 'tel'
+    if all(opt.alg == 'tel') || all(opt.alg == 'to2')
         j = opt.bf.j;
         k = opt.bf.k;
         l = opt.bf.l;
@@ -146,9 +146,17 @@ while tol == false && tel_i <=opt.tel_max
         n = opt.bf.n;
         o = opt.bf.o;
         if tel_i == 1 %can't send output to function before output is defined
-            [opt] = telescope_opt(opt,tel_i,[]); %get arrays of kW and S for this grid
+            if all(opt.alg == 'tel')
+                [opt] = telescope_opt(opt,tel_i,[]); %get arrays of kW and S for this grid
+            else
+                [opt] = telescope2_opt(opt,tel_i,[]); %get arrays of kW and S for this grid
+            end
         else
-            [opt] = telescope_opt(opt,tel_i,output); %get arrays of kW and S for this grid
+            if all(opt.alg == 'tel')
+                [opt] = telescope_opt(opt,tel_i,output); %get arrays of kW and S for this grid
+            else
+                [opt] = telescope2_opt(opt,tel_i,output); %get arrays of kW and S for this grid
+            end
         end
         if opt.pd == 6
             [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.curr.kW{tel_i}, opt.Smax{tel_i});
@@ -268,7 +276,7 @@ while tol == false && tel_i <=opt.tel_max
                 Kc = zeros(length(S),1);
             end
         end
-    else
+    elseif all(opt.alg == 'per')
         if tel_i == 1 %can't send output to function before output is defined
             %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
             [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,[]); %get arrays of kW and S for this grid
@@ -282,7 +290,22 @@ while tol == false && tel_i <=opt.tel_max
         m = opt.bf.m;
         n = opt.bf.n;
         o = opt.bf.o;
+    elseif all(opt.alg == 'p2t')
+        if tel_i == 1 %can't send output to function before output is defined
+            %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
+            [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,[],[]); %get arrays of kW and S for this grid
+        else
+            %S_in = S_temp; %surv from previous iteration
+            [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,output,temp_min_cost); %get arrays of kW and S for this grid
+        end
+        j = opt.bf.j;
+        k = opt.bf.k;
+        l = opt.bf.l;
+        m = opt.bf.m;
+        n = opt.bf.n;
+        o = opt.bf.o;
     end
+
 
     %parallel computing via parfor
     tGrid = tic;
@@ -314,12 +337,12 @@ while tol == false && tel_i <=opt.tel_max
     output.surv{tel_i} = S_temp;
     %saved outputs for persistence run
     output.surv_opt = S_temp;
-    output.Kd_run = Kd;
-    output.Ki_run = Ki;
-    output.Kwi_run = Kwi;
-    output.Kwa_run = Kwa;
-    output.Kc_run = Kc;
-    output.S_run = S;
+    output.Kd_run{tel_i} = Kd;
+    output.Ki_run{tel_i} = Ki;
+    output.Kwi_run{tel_i} = Kwi;
+    output.Kwa_run{tel_i} = Kwa;
+    output.Kc_run{tel_i} = Kc;
+    output.S_run{tel_i} = S;
     %INDEXING
     output.tGrid = toc(tGrid);
     disp('Brute forcing current minimum...')
@@ -349,7 +372,20 @@ while tol == false && tel_i <=opt.tel_max
     output.min.kWwa{tel_i} = Kwa(I_min(tel_i));
     output.min.kWc{tel_i} = Kc(I_min(tel_i));
     output.min.Smax{tel_i} = S(I_min(tel_i));
-    if tel_i > 1 & opt.alg == 'tel'
+    temp_min_cost(tel_i) = X(tel_i,I_min(tel_i));
+    if tel_i > 1
+        if any([all(opt.alg == 'per'), all(opt.alg == 'p2t')]) && X(tel_i,I_min(tel_i)) > temp_min_cost(tel_i-1)
+            disp('Something Wrong - new it has higher min')
+%             output.min.kWd{tel_i} = output.min.kWd{tel_i-1};
+%             output.min.kWi{tel_i} = output.min.kWi{tel_i-1};
+%             output.min.kWwi{tel_i} = output.min.kWwi{tel_i-1};
+%             output.min.kWwa{tel_i} = output.min.kWwa{tel_i-1};
+%             output.min.kWc{tel_i} = output.min.kWc{tel_i-1};
+%             output.min.Smax{tel_i} = output.min.Smax{tel_i-1};
+%             temp_min_cost(tel_i) = temp_min_cost(tel_i-1);
+        end
+    end
+    if tel_i > 1 && any([all(opt.alg == 'tel'), all(opt.alg == 'to2')])
         %This check won't work for persistence right now because X(tel_i-1)
         %is not saved
         if abs(X(tel_i,I_min(tel_i)) - X((tel_i-1),I_min(tel_i-1)))/X(tel_i,I_min(tel_i)) <= opt.ctol

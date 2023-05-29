@@ -98,7 +98,7 @@ surv_p(~isfinite(a_sat)) = [];
 colormap(parula(100));
 cmap = colormap;
 max_c = max(a_sat); %maximum
-percent_c = round(100*a_sat./max_c); %cost as percent of maximum rounded to an integer to be used as index of cmap
+percent_c = round(100.*a_sat./max_c); %cost as percent of maximum rounded to an integer to be used as index of cmap
 
 scatter3(kW1,kW2,Smax,35,cmap(percent_c,:),'.')
 view(3);

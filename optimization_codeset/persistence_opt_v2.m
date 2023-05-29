@@ -37,12 +37,12 @@ else
     surv(surv>0.993) = 0;
    
     %previous iteration reshaped grid style arrays
-    Kd_old = output.Kd_run;
-    Ki_old = output.Ki_run;
-    Kwi_old = output.Kwi_run;
-    Kwa_old = output.Kwa_run;
-    Kc_old = output.Kc_run;
-    S_old = output.S_run;
+    Kd_old = output.Kd_run{tel_i-1};
+    Ki_old = output.Ki_run{tel_i-1};
+    Kwi_old = output.Kwi_run{tel_i-1};
+    Kwa_old = output.Kwa_run{tel_i-1};
+    Kc_old = output.Kc_run{tel_i-1};
+    S_old = output.S_run{tel_i-1};
 
     %remove elements of grid style arrays where sruv = 0
     Kd_old(surv == 0) = [];
@@ -82,9 +82,7 @@ else
     
     %make the new grid style arrays for parfor loop
     %[Kd, Ki, Kwi, Kwa, S] = loopyloops(S_t, S_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
-    [Kd, Ki, Kwi, Kwa, Kc, S] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
-    %sim_run is 1 for all points added to the new grid like arrays
-    sim_run = ones(length(S),1);
+    [Kd, Ki, Kwi, Kwa, Kc, S, sim_run] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt);
     
     %initialize X, C_temp and S_temp
     X = zeros(tel_i,sum(sim_run));

@@ -1,4 +1,4 @@
-function [Kd, Ki, Kwi, Kwa, Kc, S] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt)
+function [Kd, Ki, Kwi, Kwa, Kc, S,sim_run] = loopyloops_v2(S_t, S_old, Kc_t, Kc_old, Kwa_t, Kwa_old, Kwi_t, Kwi_old, Ki_t, Ki_old, Kd_t, Kd_old,opt)
 
 %set loop constants
 % i = 1; %index of old grid style array
@@ -13,6 +13,13 @@ ds = mode(diff(S_t));
 % Kc = [];
 % S = [];
 
+%matrix of old points before adjustments
+%old_dim = size(Kd_old)
+% if old_dim(1) > 1
+%     old_points = [Kd_old Ki_old Kwi_old Kwa_old Kc_old S_old];
+% else
+%     old_points = [Kd_old' Ki_old' Kwi_old' Kwa_old' Kc_old' S_old'];
+% end
 %grid boundaries
 sgrid_max = opt.bf.N;
 xgrid_max = opt.bf.M;
@@ -88,6 +95,10 @@ end
 
 Big_Matrix = round(Big_Matrix,4);
 new_points = unique(Big_Matrix','rows','stable');
+%new_points = new_points;
+%old_points = round(old_points,4);
+%[extra_points,in,io] = intersect(new_points, old_points,'stable','rows');
+%new_points(in,:) = [];
 new_points = new_points';
 Kd = new_points(1,:);
 Ki = new_points(2,:);
@@ -95,6 +106,10 @@ Kwi = new_points(3,:);
 Kwa = new_points(4,:);
 Kc = new_points(5,:);
 S = new_points(6,:);
+%sim_run is 1 for all points added to the new grid like arrays
+sim_run = ones(length(S),1);
+%sim_run(in) = 0; %don't re-run the old points - I want to rerun them for
+%the per/tel mix
 
 disp('Loopy Loops end ...')
 end

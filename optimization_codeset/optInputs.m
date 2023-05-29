@@ -15,12 +15,12 @@ opt.bf.o = 9;
 opt.tel_max = 5; %maximum number of telescoping iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'per'; %'tel' is Telescope optimization, 'per' is persistence band optimization
-opt.pd = 3; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 12; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.alg = 'p2t'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel
+opt.pd = 5; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
+opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 
-opt.bf.M = 3; %[kW] max kW in grid
-opt.bf.N = 30; %[kWh] max Smax in grid
+opt.bf.M = 8; %[kW] max kW in grid
+opt.bf.N = 500; %[kWh] max Smax in grid
 %% Run Inputs
 opt.allscenuses = 0;
 opt.alllocuses = 0;
@@ -117,12 +117,12 @@ end
 
 %check to see if HPC
 if feature('numcores') < 10
-    opt.bf.j = 4;
-    opt.bf.k = 4;
-    opt.bf.l = 4;
-    opt.bf.n = 4;
-    opt.bf.m = 4;
-    opt.bf.o = 4;
+    opt.bf.j = 3;
+    opt.bf.k = 3;
+    opt.bf.l = 3;
+    opt.bf.n = 3;
+    opt.bf.m = 3;
+    opt.bf.o = 3;
 end
 
 %% strings
