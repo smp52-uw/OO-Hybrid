@@ -87,24 +87,57 @@ elseif tel_i < 4 %Normal Persistence for 2&3
     S_temp = zeros(length(S),1);
 elseif tel_i >= 4
     %Telescope
-    %get surv data from previous run
-    surv = output.surv_opt; 
-    %zero out the not interesting cases
-    %surv(surv< 0.975) = 0;
-    %surv(surv>0.993) = 0;
-   
-    cost = output.cost{tel_i-1}; %all cost from previous iteration
-    min_cost = temp_min_cost(tel_i-1); %min from the previous iteration
-    %previous iteration reshaped grid style arrays
-    Kd_old = output.Kd_run{tel_i-1};
-    Ki_old = output.Ki_run{tel_i-1};
-    Kwi_old = output.Kwi_run{tel_i-1};
-    Kwa_old = output.Kwa_run{tel_i-1};
-    Kc_old = output.Kc_run{tel_i-1};
-    S_old = output.S_run{tel_i-1};
+    if tel_i == 4
+        %Smoosh together all the old data
+       
+        cost = [output.cost{1,1}; output.cost{1,2}; output.cost{1,3}]; %all cost from previous iteration
+        min_cost = min([temp_min_cost(1), temp_min_cost(2), temp_min_cost(3)]); %min from all previous iterations
+        %previous iteration reshaped grid style arrays
+        Kd_old = [output.Kd_run{1,1}; output.Kd_run{1,2}'; output.Kd_run{1,3}'];
+        Ki_old = [output.Ki_run{1,1}; output.Ki_run{1,2}'; output.Ki_run{1,3}'];
+        Kwi_old = [output.Kwi_run{1,1}; output.Kwi_run{1,2}'; output.Kwi_run{1,3}'];
+        Kwa_old = [output.Kwa_run{1,1}; output.Kwa_run{1,2}'; output.Kwa_run{1,3}'];
+        Kc_old = [output.Kc_run{1,1}; output.Kc_run{1,2}'; output.Kc_run{1,3}'];
+        S_old = [output.S_run{1,1}; output.S_run{1,2}'; output.S_run{1,3}'];
+    else
+        %get surv data from previous run
+        %surv = output.surv_opt; 
+        %zero out the not interesting cases
+        %surv(surv< 0.975) = 0;
+        %surv(surv>0.993) = 0;
+       
+        cost = [output.cost{1,1}; output.cost{1,2}; output.cost{1,3}; output.cost{1,4}]; %all cost from previous iteration
+        min_cost = min([temp_min_cost(1), temp_min_cost(2), temp_min_cost(3), temp_min_cost(4)]); %min from all previous iterations
+        %previous iteration reshaped grid style arrays
+        Kd_old = [output.Kd_run{1,1}; output.Kd_run{1,2}'; output.Kd_run{1,3}'; output.Kd_run{1,4}'];
+        Ki_old = [output.Ki_run{1,1}; output.Ki_run{1,2}'; output.Ki_run{1,3}'; output.Ki_run{1,4}'];
+        Kwi_old = [output.Kwi_run{1,1}; output.Kwi_run{1,2}'; output.Kwi_run{1,3}'; output.Kwi_run{1,4}'];
+        Kwa_old = [output.Kwa_run{1,1}; output.Kwa_run{1,2}'; output.Kwa_run{1,3}'; output.Kwa_run{1,4}'];
+        Kc_old = [output.Kc_run{1,1}; output.Kc_run{1,2}'; output.Kc_run{1,3}'; output.Kc_run{1,4}'];
+        S_old = [output.S_run{1,1}; output.S_run{1,2}'; output.S_run{1,3}'; output.S_run{1,4}'];
+    end
+
+%     %% TEST FOR WA
+%     %get surv data from previous run
+%     surv = output.surv_opt; 
+%     %zero out the not interesting cases
+%     %surv(surv< 0.975) = 0;
+%     %surv(surv>0.993) = 0;
+%    
+%     cost = output.cost{tel_i-1}; %all cost from previous iteration
+%     min_cost = temp_min_cost(tel_i-1); %min from the previous iteration
+%     %previous iteration reshaped grid style arrays
+%     Kd_old = output.Kd_run{tel_i-1};
+%     Ki_old = output.Ki_run{tel_i-1};
+%     Kwi_old = output.Kwi_run{tel_i-1};
+%     Kwa_old = output.Kwa_run{tel_i-1};
+%     Kc_old = output.Kc_run{tel_i-1};
+%     S_old = output.S_run{tel_i-1};
+%     cost(surv == 0) = nan;
+%     %% End TEST SECTION 
 
     %remove elements of grid style arrays where sruv = 0
-    cost(surv == 0) = nan;
+    %cost(surv == 0) = nan;
     %cost(cost > 1.2*min_cost) = nan; %remove all points that are too heavy
     cost(cost< (min_cost*0.8) | cost > (min_cost*1.2)) = nan; 
     Kd_old(isnan(cost)) = nan;
@@ -124,7 +157,7 @@ elseif tel_i >= 4
 
     %find new min and max points of next telescoped grid (accounts for a
     %min at the edge of the tele_i-1 grid
-    j = 7; k = 7; l = 7; m= 7; n = 7; o = 7; %going to be 9 points - CAN ONLY BE AN ODD NUMBER
+    j = 5; k = 5; l = 5; m= 5; n = 5; o = 5; %going to be 9 points - CAN ONLY BE AN ODD NUMBER
     %Might be funky for 5th it
     disp('new grid spacing...')
     if tel_i == 4
@@ -192,6 +225,9 @@ elseif tel_i >= 4
         Kwa(ind_rm2) = [];
         Kc(ind_rm2)  = [];
         S(ind_rm2)  = [];
+
+        %make any wave points below WECSIM be zero wave
+        Kwa(Kwa<0.2144) = 0;
 
         gp_grid = [Kd'; Ki'; Kwi'; Kwa'; Kc'; S';];
         Big_Matrix = [Big_Matrix gp_grid];

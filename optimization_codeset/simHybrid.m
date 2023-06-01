@@ -469,48 +469,78 @@ end
 % % % cost = CapEx + OpEx;
 
 %% Weight Approximation
-mass_solar = inso.wf*kW_inso/(inso.rated*inso.eff); %[kg] - 1 array
-mass_solar_E = 0; %electrical - for 1 buoy
-%mass_solar_S = 3.15*kW_inso/(inso.rated*inso.eff); %structural - for 1 buoy
-mass_solar_S = 0;
-%mass_wind = kW_wind*turb.wf; %[kg] - 1 turbine
-mass_wind = kW_wind*turb.wf; %updated to include a tower
-
-mass_curr = kW_curr*cturb.wf; %total guess
-
-mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
-if kW_dies == 0
-    mass_dies = 0;
-end
-al_plate = 35.24; %[kg/m2]
-mass_diesencl = 6*(polyval(opt.p_dev.d_size,kW_dies)^2)*al_plate; %[kg]
-if kW_dies == 0
+if opt.tar == 1
+    mass_solar = inso.wf*kW_inso/(inso.rated*inso.eff); %[kg] - 1 array
+    mass_solar_E = 0; %electrical - for 1 buoy
+    %mass_solar_S = 3.15*kW_inso/(inso.rated*inso.eff); %structural - for 1 buoy
+    mass_solar_S = 0;
+    %mass_wind = kW_wind*turb.wf; %[kg] - 1 turbine
+    mass_wind = kW_wind*turb.wf; %updated to include a tower
+    
+    mass_curr = kW_curr*cturb.wf; %total guess
+    
+    mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
+    if kW_dies == 0
+        mass_dies = 0;
+    end
+    al_plate = 35.24; %[kg/m2]
+    mass_diesencl = 6*(polyval(opt.p_dev.d_size,kW_dies)^2)*al_plate; %[kg]
+    if kW_dies == 0
+        mass_diesencl = 0;
+    end
+    dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
+    mass_fuel = runtime_tot*lph*dies_dens; %[kg]
+    
+    mass_batt = Smax/(batt.se*batt.V/1000); %[kg] - 1 battery
+    batt_vol = polyval(opt.p_dev.b_size,Smax);
+    batt_len = batt_vol^(1/3); %assume cube
+    mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
+    %old assumption is that 1 encl $ = batt $
+    %mass_battencl = mass_batt;
+    % Pmtrl = econ.platform.wf* ...
+    %     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
+    %     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
+    %mass_wec = Pmtrl * 0.376; %[kg] based on the percent of the RM3 that isn't float mass
+    mass_wec = kW_wave*895.78;
+    if kW_wave == 0
+        mass_wec = 0;
+    end
+    buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...
+        mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl;
+    newbatt_m = newbatt * mass_batt; %[g]
+    cost = buoy_m*2 + newbatt_m; %[kg] - 2 buoy weight + weight of extra batteries
+    % if kW_wave < 0.2144 && kW_wave ~= 0
+    %     cost = inf; %make cost infinity for bad wave power cases - since I'm only adjusting cost it shouldn't affect per_opt
+    % end
+else %Lowest gen capacity target
+    mass_solar = turb.wf*kW_inso; %[kg] - 1 array
+    mass_solar_E = 0; %electrical - for 1 buoy
+    mass_solar_S = 0;
+    mass_wind = kW_wind*turb.wf; %updated to include a tower
+    
+    mass_curr = kW_curr*turb.wf; %total guess
+    
+    mass_dies = turb.wf*kW_dies; %mass of 1 generator [kg]
+    if kW_dies == 0
+        mass_dies = 0;
+    end
     mass_diesencl = 0;
+    mass_fuel = 0; %[kg]
+    al_plate = 35.24; %[kg/m2]
+    mass_batt = Smax/(batt.se*batt.V/1000); %[kg] - 1 battery
+    batt_vol = polyval(opt.p_dev.b_size,Smax);
+    batt_len = batt_vol^(1/3); %assume cube
+    mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
+    
+    mass_wec = kW_wave*turb.wf;
+    if kW_wave == 0
+        mass_wec = 0;
+    end
+    buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...
+        mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl;
+    newbatt_m = newbatt * mass_batt; %[g]
+    cost = buoy_m*2 + newbatt_m; %[kg] - 2 buoy weight + weight of extra batteries
 end
-dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
-mass_fuel = runtime_tot*lph*dies_dens; %[kg]
-
-mass_batt = Smax/(batt.se*batt.V/1000); %[kg] - 1 battery
-batt_vol = polyval(opt.p_dev.b_size,Smax);
-batt_len = batt_vol^(1/3); %assume cube
-mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
-%old assumption is that 1 encl $ = batt $
-%mass_battencl = mass_batt;
-% Pmtrl = econ.platform.wf* ...
-%     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
-%     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
-%mass_wec = Pmtrl * 0.376; %[kg] based on the percent of the RM3 that isn't float mass
-mass_wec = kW_wave*895.78;
-if kW_wave == 0
-    mass_wec = 0;
-end
-buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...
-    mass_diesencl + mass_fuel + mass_wec + mass_batt + mass_battencl;
-newbatt_m = newbatt * mass_batt; %[g]
-cost = buoy_m*2 + newbatt_m; %[kg] - 2 buoy weight + weight of extra batteries
-% if kW_wave < 0.2144 && kW_wave ~= 0
-%     cost = inf; %make cost infinity for bad wave power cases - since I'm only adjusting cost it shouldn't affect per_opt
-% end
 %% dummy output variables that aren't assigned without economics
 CapEx = nan;
 OpEx = nan;

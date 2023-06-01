@@ -351,7 +351,7 @@ while tol == false && tel_i <=opt.tel_max
     temp_I = find(X(tel_i,:)==min(X(tel_i,:)))
     if length(temp_I) == 1
         I_min(tel_i) = temp_I;
-    else
+    elseif opt.tar == 1
         for p = 1:length(temp_I)
             C_tot(p) = Kd(temp_I(p)) + Ki(temp_I(p)) + Kwi(temp_I(p)) + Kwa(temp_I(p)) + Kc(temp_I(p)) + S(temp_I(p));
             gen_vec = [Kd(temp_I(p)) Ki(temp_I(p)) Kwi(temp_I(p)) Kwa(temp_I(p)) Kc(temp_I(p))];
@@ -365,6 +365,14 @@ while tol == false && tel_i <=opt.tel_max
         else
             I_min(tel_i) = temp_I(min_n);
         end
+    elseif opt.tar == 2
+        for p = 1:length(temp_I)
+            C_tot(p) = Kd(temp_I(p)) + Ki(temp_I(p)) + Kwi(temp_I(p)) + Kwa(temp_I(p)) + Kc(temp_I(p)) + S(temp_I(p));
+            %gen_vec = [Kd(temp_I(p)) Ki(temp_I(p)) Kwi(temp_I(p)) Kwa(temp_I(p)) Kc(temp_I(p))];
+            %n_gen(p) = sum(gen_vec > 0);
+        end
+        [min_g,min_gi] = min(C_tot); %minimum total generation
+        I_min(tel_i) = temp_I(min_gi);
     end
     output.min.kWd{tel_i} = Kd(I_min(tel_i));
     output.min.kWi{tel_i} = Ki(I_min(tel_i));
