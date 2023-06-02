@@ -335,6 +335,7 @@ while tol == false && tel_i <=opt.tel_max
     %REMOVED TRANSPOSE BC HIGH ORDER MATRIX CAN'T USE TRANSPOSE - MIGHT MESS UP
     output.cost{tel_i} = C_temp;
     output.surv{tel_i} = S_temp;
+    %output.cost_a{tel_i} = X(tel_i,:);
     %saved outputs for persistence run
     output.surv_opt = S_temp;
     output.Kd_run{tel_i} = Kd;

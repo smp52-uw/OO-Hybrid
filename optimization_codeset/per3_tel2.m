@@ -30,8 +30,8 @@ elseif tel_i < 4 %Normal Persistence for 2&3
     %get surv data from previous run
     surv = output.surv_opt; 
     %zero out the not interesting cases
-    surv(surv< 0.96) = 0;
-    surv(surv>0.993) = 0;
+    surv(surv< opt.pl) = 0;
+    surv(surv> opt.pr) = 0;
    
     %previous iteration reshaped grid style arrays
     Kd_old = output.Kd_run{tel_i-1};
@@ -89,7 +89,7 @@ elseif tel_i >= 4
     %Telescope
     if tel_i == 4
         %Smoosh together all the old data
-       
+        surv = [output.surv{1,1}; output.surv{1,2}; output.surv{1,3}];
         cost = [output.cost{1,1}; output.cost{1,2}; output.cost{1,3}]; %all cost from previous iteration
         min_cost = min([temp_min_cost(1), temp_min_cost(2), temp_min_cost(3)]); %min from all previous iterations
         %previous iteration reshaped grid style arrays
@@ -103,9 +103,8 @@ elseif tel_i >= 4
         %get surv data from previous run
         %surv = output.surv_opt; 
         %zero out the not interesting cases
-        %surv(surv< 0.975) = 0;
-        %surv(surv>0.993) = 0;
-       
+
+        surv = [output.surv{1,1}; output.surv{1,2}; output.surv{1,3}; output.surv{1,4}];
         cost = [output.cost{1,1}; output.cost{1,2}; output.cost{1,3}; output.cost{1,4}]; %all cost from previous iteration
         min_cost = min([temp_min_cost(1), temp_min_cost(2), temp_min_cost(3), temp_min_cost(4)]); %min from all previous iterations
         %previous iteration reshaped grid style arrays
@@ -117,6 +116,8 @@ elseif tel_i >= 4
         S_old = [output.S_run{1,1}; output.S_run{1,2}'; output.S_run{1,3}'; output.S_run{1,4}'];
     end
 
+    surv(surv< opt.pl) = 0;
+    surv(surv>opt.pr) = 0;
 %     %% TEST FOR WA
 %     %get surv data from previous run
 %     surv = output.surv_opt; 
@@ -137,9 +138,9 @@ elseif tel_i >= 4
 %     %% End TEST SECTION 
 
     %remove elements of grid style arrays where sruv = 0
-    %cost(surv == 0) = nan;
+    cost(surv == 0) = nan;
     %cost(cost > 1.2*min_cost) = nan; %remove all points that are too heavy
-    cost(cost< (min_cost*0.8) | cost > (min_cost*1.2)) = nan; 
+    cost(cost< (min_cost*opt.tl) | cost > (min_cost*opt.tr)) = nan; 
     Kd_old(isnan(cost)) = nan;
     Ki_old(isnan(cost)) = nan;
     Kwi_old(isnan(cost)) = nan;
@@ -157,7 +158,11 @@ elseif tel_i >= 4
 
     %find new min and max points of next telescoped grid (accounts for a
     %min at the edge of the tele_i-1 grid
-    j = 5; k = 5; l = 5; m= 5; n = 5; o = 5; %going to be 9 points - CAN ONLY BE AN ODD NUMBER
+    if tel_i == 4
+        j = 5; k = 5; l = 5; m= 5; n = 5; o = 5; %going to be 9 points - CAN ONLY BE AN ODD NUMBER
+    else
+        j = 3; k = 3; l = 3; m= 3; n = 3; o = 3; %going to be 9 points - CAN ONLY BE AN ODD NUMBER
+    end
     %Might be funky for 5th it
     disp('new grid spacing...')
     if tel_i == 4
@@ -171,6 +176,13 @@ elseif tel_i >= 4
 
     Big_Matrix = [];
     %disp('This will create: ',num2str((j^5)*length(Kd_old)),'points')
+    %matrix of old points before adjustments
+    old_dim = size(Kd_old)
+    if old_dim(1) > 1
+        old_points = [Kd_old Ki_old Kwi_old Kwa_old Kc_old S_old];
+    else
+        old_points = [Kd_old' Ki_old' Kwi_old' Kwa_old' Kc_old' S_old'];
+    end
     parfor (gp = 1 : length(Kd_old),opt.bf.maxworkers)
     %for gp = 1:length(Kd_old)
         %define grid boundaries 1 dx away from point
@@ -194,18 +206,24 @@ elseif tel_i >= 4
     
         %Make new arrays
         kd_temp = linspace(j_1,j_max,j);             %[kW]
-        ki_temp = linspace(k_1,k_max,k);              %[kW]
-        kwi_temp = linspace(l_1,l_max,l);              %[kW]
+
+        ki_temp = linspace(k_1,k_max,k);             %[kW]
+
+        kwi_temp = linspace(l_1,l_max,l);            %[kW]
+
         kwa_temp = linspace(m_1,m_max,m);   
+
         kc_temp = linspace(o_1,o_max,o);   
+
         smax_temp = linspace(n_1,n_max,n);
+        
         [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(kd_temp,ki_temp, kwi_temp, kwa_temp, kc_temp, smax_temp);
-        Kd = reshape(Kd,[j*k*l*m*n*o 1]);
-        Ki = reshape(Ki,[j*k*l*m*n*o 1]);
-        Kwi = reshape(Kwi,[j*k*l*m*n*o 1]);
-        Kwa = reshape(Kwa,[j*k*l*m*n*o 1]);
-        Kc = reshape(Kc,[j*k*l*m*n*o 1]);
-        S = reshape(S,[j*k*l*m*n*o 1]);
+        Kd = reshape(Kd,[((j)^6) 1]);
+        Ki = reshape(Ki,[((j)^6) 1]);
+        Kwi = reshape(Kwi,[((j)^6) 1]);
+        Kwa = reshape(Kwa,[((j)^6) 1]);
+        Kc = reshape(Kc,[((j)^6) 1]);
+        S = reshape(S,[((j)^6) 1]);
 
         %remove bad points
         max_x = opt.bf.M;
@@ -234,6 +252,10 @@ elseif tel_i >= 4
     end
     Big_Matrix = round(Big_Matrix,4);
     new_points = unique(Big_Matrix','rows','stable');
+    %new_points = new_points;
+    old_points = round(old_points,4);
+    [extra_points,in,io] = intersect(new_points, old_points,'stable','rows');
+    new_points(in,:) = [];
     new_points = new_points';
     disp(size(Big_Matrix))
     disp(size(new_points))

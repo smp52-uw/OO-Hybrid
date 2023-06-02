@@ -96,29 +96,29 @@ set(gca,'FontSize',10)
 set(gca,'LineWidth',2)
 grid on
 
-%Current Power Time Series
-ax(6) = subplot(8,1,6);
-plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
-    output.min.Pcurr/1000,'Color',[6,139,33]/256, ... 
-    'DisplayName','Current Power','LineWidth',2)
-legend('show')
-ylabel('[kW]')
-xticks([])
-set(gca,'FontSize',10)
-set(gca,'LineWidth',2)
-grid on
-
-% %DUMPED POWER TIME SERIES
+% %Current Power Time Series
 % ax(6) = subplot(8,1,6);
 % plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
-%     output.min.D/1000,'Color',[199,4,128]/256, ... 
-%     'DisplayName','Power Dumped','LineWidth',2)
+%     output.min.Pcurr/1000,'Color',[6,139,33]/256, ... 
+%     'DisplayName','Current Power','LineWidth',2)
 % legend('show')
 % ylabel('[kW]')
 % xticks([])
 % set(gca,'FontSize',10)
 % set(gca,'LineWidth',2)
 % grid on
+
+%DUMPED POWER TIME SERIES
+ax(6) = subplot(8,1,6);
+plot(datetime(data.met.time,'ConvertFrom','datenum'), ...
+    output.min.D/1000,'Color',[199,4,128]/256, ... 
+    'DisplayName','Power Dumped','LineWidth',2)
+legend('show')
+ylabel('[kW]')
+xticks([])
+set(gca,'FontSize',10)
+set(gca,'LineWidth',2)
+grid on
 
 %Load Time Series
 ax(7) = subplot(8,1,7);

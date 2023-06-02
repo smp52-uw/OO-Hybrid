@@ -50,9 +50,10 @@ output = optStruct.output;
 %     a_sat = [a_sat; output.cost{1,i}];
 %     surv_p = [surv_p; output.surv{1,i}];
 % end
-
+figure(1)
+tiledlayout(3,2)
 for i=1:5
-    figure(i)
+    nexttile
     
     kW1 = output.Ki_run{1,i};
     kW2 = output.Kwi_run{1,i};
@@ -108,5 +109,68 @@ for i=1:5
     ylabel('Rated Wind Power [kW]')
     zlabel('Storage Capacity [kWh]')
 end
-end
 
+
+figure(2)
+tiledlayout(3,2)
+for i=1:5
+    figure(1+i)
+    tiledlayout(3,2)
+    
+    kW1 = output.Ki_run{1,i};
+    kW2 = output.Kwi_run{1,i};
+    kW4 = output.Kd_run{1,i};
+    kW3 = output.Kwa_run{1,i};
+    kW5 = output.Kc_run{1,i};
+    Smax = output.S_run{1,i};
+    a_sat = output.cost{1,i};
+    surv_p = output.surv{1,i};
+    
+    kW1(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    kW2(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    kW3(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    kW4(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    kW5(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    Smax(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    a_sat(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    surv_p(output.Kd_run{1,i}>0 | output.Kwa_run{1,i}>0 | output.Kc_run{1,i}>0) = [];
+    
+    a_sat(surv_p < 0.99) = nan;
+    
+    kW1(~isfinite(a_sat)) = [];
+    kW2(~isfinite(a_sat)) = [];
+    kW3(~isfinite(a_sat)) = [];
+    kW4(~isfinite(a_sat)) = [];
+    kW5(~isfinite(a_sat)) = [];
+    Smax(~isfinite(a_sat))= [];
+    a_sat(~isfinite(a_sat))= [];
+    surv_p(~isfinite(a_sat)) = [];
+    
+    [min_m,min_ind] = min(a_sat(:));
+    
+    colormap(parula(100));
+    cmap = colormap;
+    max_c = max(a_sat); %maximum
+    percent_c = round(100.*a_sat./max_c); %cost as percent of maximum rounded to an integer to be used as index of cmap
+    kW_y = {kW2, kW3, kW4, kW5}
+    for j=1:4
+        nexttile
+        scatter3(kW1,kW_y{j},Smax,35,cmap(percent_c,:),'.')
+        view(3);
+        hold on
+        scatter3(kW1(min_ind),kW_y{j}(min_ind),Smax(min_ind), 45,130,'ro', ...
+           'LineWidth',1.5,'MarkerEdgeColor','r')
+        
+        c = colorbar;
+        c.Label.String = '[Mass/Maximum Mass]';
+        % %hold on
+        set(gca,'FontSize',fs)
+        set(gca,'LineWidth',lw)
+        grid on
+        xlabel('Rated Solar Power [kW]')
+        Gr_t = {'Wind','Wave','Diesel','Current'}
+        ylabel(['Rated ',Gr_t{j},'  Power [kW]'])
+        zlabel('Storage Capacity [kWh]')
+    end
+end
+end
