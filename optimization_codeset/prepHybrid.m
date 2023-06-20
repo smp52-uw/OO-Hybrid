@@ -49,10 +49,12 @@ for i=1:num_d(2)
 end
 %Prep Inso
 %make time series data adequately long
+disp('extend solar')
 [data.swso,data.met.insotime] = ...
     extendToLifetime(data.swso,datenum(reginso_time),uc.lifetime);
 %PrepWind
 %make time series data adequately long
+disp('extend wind')
 [data.met.wind_spd,data.met.windtime] = ...
     extendToLifetime(data.met.wind_spd,datenum(regwind_time),uc.lifetime);
 %PrepWave
@@ -67,6 +69,7 @@ opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
 opt.wave.L = fillmissing(opt.wave.L,'nearest');
 
 %extend wavepower, time, hs, tp and wavelength timeseries
+disp('extend wave')
 [opt.wave.wavepower_ts,opt.wave.time] =  ...
     extendToLifetime(opt.wave.wavepower_ts,datenum(regwave_time),uc.lifetime);
 [opt.wave.Hs] = extendToLifetime(opt.wave.Hs,datenum(regwave_time),uc.lifetime);
@@ -74,7 +77,7 @@ opt.wave.L = fillmissing(opt.wave.L,'nearest');
 [opt.wave.L] = extendToLifetime(opt.wave.L,datenum(regwave_time),uc.lifetime);
 
 %extend current speed, and time to life
-
+disp('extend current')
 [data.curr.speed6(:,1),data.curr.time] =  ...
     extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
 for i=2:num_d(2)

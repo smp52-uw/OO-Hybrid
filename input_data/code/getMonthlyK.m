@@ -51,6 +51,7 @@ if isequal(type,'wave')
     K = (1/(16*4*pi))*rho*g^2.*hs(:).^2 ...
         .*tp(:);
     for i = 1:length(dvymu)
+        %disp(dvall(i,1))
         pts = find(dvall(:,1) == dvymu(i,1) & ...
             dvall(:,2) == dvymu(i,2));
         K_avg(i,2) = mean(K(pts),'omitnan');
@@ -87,7 +88,7 @@ end
 if isequal(type,'curr')
     dvall = datevec(curr_time);
     dvymu = unique(dvall(:,1:2),'rows');
-    c_sz = size(c_vel)
+    c_sz = size(c_vel);
     K_avg = zeros(length(dvymu),c_sz(2)+1);
     K_avg(:,1) = datenum(num2str(dvymu(:,1:2)));
     rho = 1025; %[kg/m^3]
@@ -96,6 +97,8 @@ if isequal(type,'curr')
         for j = 1:length(dvymu)
             pts = find(dvall(:,1) == dvymu(j,1) & ...
                 dvall(:,2) == dvymu(j,2));
+            %disp('test')
+            %disp(length(pts))
             K_avg(j,i+1) = mean(K(pts),'omitnan');
         end
     end
