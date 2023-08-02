@@ -134,9 +134,16 @@ if isempty(gcp('nocreate')) %no parallel pool running
         parpool(cores);
     end
 end
+
+%% Firefly Optimization
+if all(opt.alg == 'ffa')
+    [output] = ffa(opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb)
+end
+
+%% DIY Optimization
 tel_i = 1; %starting telescope index
 tol = false; %logical variable for if telescoping tolerance has been met
-while tol == false && tel_i <=opt.tel_max
+while tol == false && tel_i <=opt.tel_max && ~all(opt.alg == 'ffa')
     %initialize inputs/outputs and set up for parallelization
     if all(opt.alg == 'tel') || all(opt.alg == 'to2')
         j = opt.bf.j;
@@ -452,7 +459,8 @@ output.min.CFwi = mean(output.min.Pwind)/(1000*output.min.kWwi{end});
 output.min.CFwa = mean(output.min.Pwave)/(1000*output.min.kWwa{end});
 output.min.CFc = mean(output.min.Pcurr)/(1000*output.min.kWc{end});
 output.min.rotor_h = turb.clearance + ... 
-    sqrt(1000*2*output.min.kWwi{end}/(atmo.rho_a*pi*turb.ura^3)); %rotor height
+    sqrt(1000*2*output.min.kWwi{end}/(turb.eta*atmo.rho_a*pi*turb.ura^3)); %rotor height
+%sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a*pi*turb.ura^3))
 output.min.cw_avg = mean(output.min.cw); %average capture width
 output.min.cwr_avg = mean(output.min.cw_avg/output.min.width); %average cwr
 

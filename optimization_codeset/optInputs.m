@@ -12,18 +12,19 @@ opt.bf.n = 9;
 opt.bf.o = 9;
 
 %% Optimization Algorithm
-opt.tel_max = 5; %maximum number of telescoping iterations
+opt.tel_max = 3; %maximum number of telescoping iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'p2t'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel
+opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly
 
-opt.pd = 5; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
+opt.pm = 4; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 2; %1 = mass, 2 = gen cap 
 opt.pl = 0.975; %persistence left side
-opt.pr = 0.993; %persistence right side
-opt.tl = 0.85; %telescope left side
-opt.tr = 1.15; %telescope right side
+opt.pr = 0.995; %persistence right side
+opt.tl = 0.97; %telescope left side
+opt.tr = 1.03; %telescope right side
+opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
 opt.bf.M = 8; %[kW] max kW in grid
 opt.bf.N = 500; %[kWh] max Smax in grid
@@ -37,6 +38,7 @@ opt.highresobj = 0;
 %pm = 4; %power module, 1:Wi 2:In 3:Wa 4:Di
 c = 2;  %use case 1:ST 2:LT (Only use LT)
 loc = 'argBasin'; %location
+%loc = 'cosEndurance_wa'
 cloc = 'HYCOM_AB_mod_2018'; %current data location
 %batch = false;
 if ~exist('batchtype','var')

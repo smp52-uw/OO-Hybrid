@@ -45,8 +45,8 @@ set(0,'DefaultLegendInterpreter', 'latex')
 tiledlayout(7,1,'TileSpacing','compact')
 
 %Set length of time series
-ts = 1:1:8760;
-%ts = 1:1:length(data.met.time);
+%ts = 1:1:8760;
+ts = 1:1:length(data.met.time);
 t1 = datetime(data.met.time(1),'ConvertFrom','datenum');
 t2 = datetime(data.met.time(ts(end)),'ConvertFrom','datenum');
 %STORAGE TIME SERIES
@@ -55,10 +55,10 @@ plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
     output.min.S1(1:ts(end))/1000,'Color',col(1,:), ... 
     'DisplayName','Battery 1','LineWidth',1)
 %[255,69,0]/256
-% hold on
-% plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
-%     output.min.S2(1:ts(end))/1000,'Color',col(3,:), ... 
-%     'DisplayName','Battery 2','LineWidth',1)
+hold on
+plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
+    output.min.S2(1:ts(end))/1000,'Color',col(3,:), ... 
+    'DisplayName','Battery 2','LineWidth',1)
 % %[245,238,54]/256
 % l1 = legend('show','location','southwest','Orientation','horizontal');
 ylabel({'$S(t)$', '[kWh]'},'interpreter','latex')
@@ -69,7 +69,7 @@ ylh = get(ax(1),'ylabel');
 set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
     'VerticalAlignment','middle', ...
     'HorizontalAlignment','center')
-ylim([0 1.1*max(output.min.S2(1:end-1)/1000)])
+%ylim([0 1.1*max(output.min.S2(1:end-1)/1000)])
 yticks([0 round(max(output.min.S1(1:end-1)/1000),2)])
 xlim([t1 t2])
 set(ax(1),'XTick',[])
@@ -96,7 +96,7 @@ if opt.pm==5
     set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
         'VerticalAlignment','middle', ...
         'HorizontalAlignment','center')
-    ylim([0 1.1*max(output.min.Pdies/1000)])
+    %ylim([0 1.1*max(output.min.Pdies/1000)])
     xlim([t1 t2])
     set(ax(2),'XTick',[])
     set(gca,'FontSize',6)
@@ -302,6 +302,6 @@ text(1.02, 0.5,'(g)','Units','Normalized', ...
 linkaxes(ax,'x')
 %linkaxes(ax(2:6),'y')
 
-print(figure(1), '-dpng','-r600')
+%print(figure(1), '-dpng','-r600')
 end
 

@@ -18,7 +18,7 @@ opt.p_dev.b_size = calcDeviceVal('lfp_vol',[],econ.battsize_n);
 % opt = prepWave(data,opt,wave,atmo,uc);
 [data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso,cturb);
 %Hybrid load case call
-[uc.loaddata, loadseries] = GenerateLoadCases_v3(data);
+[uc.loaddata, loadseries] = GenerateLoadCases_v4(data); %updated to even hour loads
 uc.draw = loadseries.L(uc.loadcase,:);
 %HYBRID Opt Function call
 [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,cturb, wave);

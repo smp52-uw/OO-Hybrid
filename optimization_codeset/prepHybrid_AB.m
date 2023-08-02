@@ -1,7 +1,6 @@
-function [data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso,cturb)
+function [data, opt] = prepHybrid_AB(data,opt,uc,wave,atmo,inso,cturb)
 %PrepHybrid is a combination of PrepDies/PrepInso/PrepWind/PrepWave
 %Written by Sarah Palmer (based on Trent's code)
-%Updates for any location: 6-26
 
 %Nothing from prepDies is active
 %get current data
@@ -24,26 +23,20 @@ opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseries
 converted_time_wave = datetime(data.wave.time,'ConvertFrom','datenum');  
 converted_time_wind = datetime(data.met.time,'ConvertFrom','datenum');
 converted_time_inso = datetime(data.met.time,'ConvertFrom','datenum');
-% %shift the time to 2015 for currents-just works for AB
+%shift the time to 2015 for currents
 curr_vec = datevec(data.curr.time);
-%curr_vec(:,1) = year(converted_time_wave(1));
+curr_vec(:,1) = year(converted_time_wave(1));
 converted_time_curr = datetime(curr_vec);
-
-%temporary clean hour spaced time series for each resource
+%temporary clean hour spaced time series for each resource - need to be
+%exactly as many years as the lifetime of the system
 regwave_time = [dateshift(converted_time_wave(1),'end','hour'):hours(1):dateshift(converted_time_wave(end),'end','hour')]'; 
 regwind_time = [dateshift(converted_time_wind(1),'end','hour'):hours(1):dateshift(converted_time_wind(end),'end','hour')]'; 
 reginso_time = [dateshift(converted_time_inso(1),'end','hour'):hours(1):dateshift(converted_time_inso(end),'end','hour')]'; 
 regcurr_time = [dateshift(converted_time_curr(1),'end','hour'):hours(1):dateshift(converted_time_curr(end),'end','hour')]'; 
 
-time_start = min([regwave_time(1),regwind_time(1), reginso_time(1), regcurr_time(1)]); %earliest time start
-year1 = year(time_start(1)); %starting year for cleaned/aligned time series
-time_final = datetime([year1 01 01]):hours(1):datetime([year1+uc.lifetime 01 01]); %cleaned/aligned time series
-time_final = time_final(1:end-1)'; %need one less than the entire time series so it ends at midnight 12/31
-
 %interpolate data to clean time series
 %The clean time series will have a time slightly before the first data
-%point and the interpolation makes that value go to zero - fixed with the
-%fill missing
+%point and the interpolation makes that value go to zero
 data.met.wind_spd  = interp1(converted_time_wind,data.met.wind_spd(ind_wi),regwind_time,'linear');
 data.met.wind_spd = fillmissing(data.met.wind_spd,'nearest');
 data.swso = fillmissing(data.met.shortwave_irradiance,'linear'); %[W/m^2]
@@ -95,24 +88,84 @@ end
 %regularly spaced time series
 if opt.wave.time(1) == data.met.windtime(1) && opt.wave.time(1) == data.met.insotime(1) && opt.wave.time(1) == data.curr.time(1)
     disp('Time series are aligned')
+%     converted_time = datetime(opt.wave.time,'ConvertFrom','datenum');
+%     reg_time = [converted_time(1):mode(diff(converted_time)):converted_time(end)]';   
+%     %interpolate to same time series
+%     data.met.time = reg_time; %might have to convert back to datenum
+%     data.met.windtime = datetime(data.met.windtime,'ConvertFrom','datenum');
+%     data.met.insotime = datetime(data.met.insotime,'ConvertFrom','datenum');
+%     opt.wave.time = datetime(opt.wave.time,'ConvertFrom','datenum');
+%     opt.wave.wavepower_ts = interp1(opt.wave.time,opt.wave.wavepower_ts,reg_time,'linear');
+%     opt.wave.Hs  = interp1(opt.wave.time,opt.wave.Hs,reg_time,'linear');
+%     opt.wave.Tp  = interp1(opt.wave.time,opt.wave.Tp,reg_time,'linear');
+%     opt.wave.L  = interp1(opt.wave.time,opt.wave.L,reg_time,'linear');
+%     data.met.wind_spd  = interp1(data.met.windtime,data.met.wind_spd,reg_time,'linear');
+%     data.swso  = interp1(data.met.insotime,data.swso,reg_time,'linear');
 else %If time series don't start at the same point then need to add data to the late one
     disp('Test: start not matched')
-    data.met.time = datenum(time_final);
-    
-    opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
-    opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
-    opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
-    opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
-    for i=1:num_d(2)
-        data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i));
+
+    %temporary clean times- need all timestamps to be on the hour so
+    %finding indecies works between timeseries
+%     wave_time = dateshift(regwave_time,'start','hour');
+%     wind_time = dateshift(regwind_time,'start','hour');
+%     inso_time = dateshift(reginso_time,'start','hour');
+    %actual start time
+    time_start = min([opt.wave.time(1),data.met.insotime(1), data.met.windtime(1), data.curr.time(1)]); %earliest time start
+    %time_start = min([opt.wave.time(1),data.met.insotime(1), data.met.windtime(1)]); %earliest time start
+    if time_start == opt.wave.time(1)
+        display('Test: wave first')
+        data.met.wind_spd = align_timeseries(opt.wave.time,data.met.windtime,data.met.wind_spd);
+        data.swso = align_timeseries(opt.wave.time,data.met.insotime,data.swso);
+        for i=1:num_d(2)
+            data.curr.speed6a(:,i) = align_timeseries(opt.wave.time,data.curr.time,data.curr.speed6(:,i));
+        end
+        data.met.time = datenum(opt.wave.time); %might have to convert back to datenum
+        data.curr.time = data.met.time;
+        %[data_out] = align_timeseries(data.met.time,wind_time,data.met.wind_spd)
+        %[data_out] = align_timeseries(reg_time,t_in,a_in)
+
+    elseif time_start == data.met.windtime(1)
+        display('Test: wind first')
+        data.met.time = data.met.windtime;
+        opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
+        opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
+        opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
+        opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
+        for i=1:num_d(2)
+            data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i));
+        end
+        data.curr.time = datenum(data.met.time);
+        opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
+        data.met.time = datenum(data.met.time);
+      
+        %data.swso = align_timeseries(data.met.time,inso_time,data.swso);
+    elseif time_start == data.curr.time(1)
+        display('Test: current first')
+        data.met.time = data.curr.time;
+        data.curr.speed6a = data.curr.speed6;
+        data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd);
+        data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso);
+        opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
+        opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
+        opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
+        opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
+        data.curr.time = datenum(data.met.time);
+        opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
+        data.met.time = datenum(data.met.time);
+        
+        
+
+
+
+%     elseif time_start == inso_time(1)
+%         display('Test: inso first')
+%         data.met.time = inso_time; %might have to convert back to datenum
+%         data.met.wind_spd = align_timeseries(data.met.time,wind_time,data.met.wind_spd);
+%         opt.wave.wavepower_ts = align_timeseries(data.met.time,wave_time,opt.wave.wavepower_ts);
+%         opt.wave.Hs = align_timeseries(data.met.time,wave_time,opt.wave.Hs);
+%         opt.wave.Tp = align_timeseries(data.met.time,wave_time,opt.wave.Tp);
+%         opt.wave.L = align_timeseries(data.met.time,wave_time,opt.wave.L);
     end
-
-    data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd);
-    data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso);
-
-    data.curr.time = datenum(data.met.time);
-    opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
-    data.met.time = datenum(data.met.time);
 end
 
 %winter cleaning
