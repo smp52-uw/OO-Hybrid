@@ -23,7 +23,6 @@ tTot = tic;
 
 %CostFunction=@(x) Rosenbrock(x);        % Cost Function
 
-%this needs to be connected to opt.pd
 nVar=6;                 % Number of Decision Variables - number of dimensions
 
 VarSize=[1 nVar];       % Decision Variables Matrix Size
@@ -44,10 +43,10 @@ end
 %% Firefly Algorithm Parameters
 
 %MaxIt=1000;         % Maximum Number of Iterations
-MaxIt=10;         % Maximum Number of Iterations
+MaxIt=opt.ffa.max;   % Maximum Number of Iterations
 
 %nPop=25;            % Number of Fireflies (Swarm Size)
-nPop=25;            % Number of Fireflies (Swarm Size)
+nPop=opt.ffa.pop;    % Number of Fireflies (Swarm Size)
 
 gamma=1;            % Light Absorption Coefficient
 
@@ -87,7 +86,8 @@ BestSol.Position = [];
 for i=1:nPop %(i = 1:sim_length,opt.bf.maxworkers)
    pop(i).Position=unifrnd(VarMin,VarMax,VarSize);
 end
-
+C_temp = nan(1,nPop);
+S_temp = nan(1,nPop);
 parfor (i = 1:nPop,opt.bf.maxworkers)
    Kd = pop(i).Position(1);
    Ki = pop(i).Position(2);
@@ -137,6 +137,8 @@ for it=1:MaxIt
         newpop(i).Surv = 0;
         newpop(i).Position = nan(VarSize(1),VarSize(2));
         P_temp = zeros(nPop,nVar);
+        C_temp = nan(1,nPop);
+        S_temp = nan(1,nPop);
         for j=1:nPop
             C_temp(j) = inf;
             S_temp(j) = 0;

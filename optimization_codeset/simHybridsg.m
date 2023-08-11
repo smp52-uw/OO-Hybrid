@@ -32,24 +32,26 @@ time = datenum(data.met.time);
 T = length(time);
 dt = 24*(time(2) - time(1)); %time in hours
 %dt = 1; %time in hours
+timeend = 8760;
+%timeend = length(time)
 
 %dist = data.dist; %[m] distance to shore
 %depth = data.depth; %[m] water depth
-swso = data.swso;
-wind = data.met.wind_spd; %[m/s]
+swso = data.swso(1:timeend);
+wind = data.met.wind_spd(1:timeend); %[m/s]
 if atmo.dyn_h %use log law to adjust wind speed based on rotor height
     wind = adjustHeight(wind,data.met.wind_ht, ...
             turb.clearance + ...
             sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a*pi*turb.ura^3)) ...
             ,'log',atmo.zo);
 end
-wavepower = opt.wave.wavepower_ts; %wavepower timeseries
+wavepower = opt.wave.wavepower_ts(1:timeend); %wavepower timeseries
 if wave.method == 1 %divide by B methodology - OUTDATED    
     disp('ERROR- method set to old divide by B method')
 elseif wave.method == 2 %3d interpolation methodology
     %extract data
-    Hs = opt.wave.Hs; %Hs timeseries
-    Tp = opt.wave.Tp; %Tp timeseries
+    Hs = opt.wave.Hs(1:timeend); %Hs timeseries
+    Tp = opt.wave.Tp(1:timeend); %Tp timeseries
     %find width through rated power conditions
     width = interp1(opt.wave.B_func(2,:),opt.wave.B_func(1,:),kW_wave); %[m], B
     if kW_wave == 0 %Set width = 0 for no wave gen (in case the curve cross (0,0))
@@ -72,7 +74,7 @@ t_depth = cturb.clearance + sqrt(1000*2*kW_curr/(cturb.eta*atmo.rho_w*cturb.ura^
 [~,cturb_depth] = min(abs(t_depth - data.curr.depth));
 
 c_speed = data.curr.speed6a(:,cturb_depth); 
-
+c_speed = c_speed(1:timeend);
 
 %set panel degradation
 eff = (1-((inso.deg/100)/8760)*(1:1:length(swso)));
@@ -85,17 +87,17 @@ elseif econ.inso.scen == 2 %human cleaning
     %d_soil_eff = (atmo.soil/100)/8760; %change in soil deg per hour
 end
 soil_eff = 1; %starting soil efficiency
-t2 = tic;
+%t2 = tic;
 
 %initialize diagnostic variables
-S1 = ones(1,length(time))*Smax; %battery level timeseries
+S1 = ones(timeend,1)*Smax; %battery level timeseries
 
-Ptot = zeros(1,length(time)); %power produced timeseries
-Pdies = zeros(1,length(time));
+Ptot = zeros(timeend,1); %power produced timeseries
+Pdies = zeros(timeend,1);
 
-D = zeros(1,length(time)); %power dumped timeseries
-L = uc.draw; %power to load time series
-F = zeros(1,length(time)); %failure series
+D = zeros(timeend,1); %power dumped timeseries
+L = uc.draw(1:timeend); %power to load time series
+F = zeros(timeend,1); %failure series
 
 %surv = 1;
 charging = false;
@@ -124,14 +126,17 @@ Pcurr = kW_curr.*1000.*c_speed_p.^3./cturb.ura.^3; %[W]
 %     end
 
 eff_t = eff.*soil_eff.*inso.eff;
+eff_t = eff_t'; %need the array orientation to be the same
 swso_p = swso;
 swso_p(swso_p > inso.rated*1000) = inso.rated*1000;
 Pinso = eff_t./inso.eff.*kW_inso.*1000.*(swso_p./(inso.rated*1000)); 
 
 Prenew = Pwave + Pwind + Pinso + Pcurr; %total renewable power
+Prenew = Prenew(1:timeend);
 
 %% run simulation
-for t = 1:(length(time))
+% for t = 1:(length(time))
+for t = 1:timeend
     sd1 = S1(t)*(batt.sdr/100)*(1/(30*24))*dt; %[Wh] self discharge
     if ~charging %generator off
         S1(t+1) = S1(t) + (Prenew(t) - uc.draw(t)).*dt - sd1;
@@ -385,7 +390,7 @@ nfr = nan;
 S2 = nan;
 
 %determine if desired uptime was met
-surv = sum(L == uc.draw)/(length(L));
+surv = sum(L == uc.draw(1:timeend))/(length(L));
 % if sum(L == uc.draw)/(length(L)) < uc.uptime
 %     %surv = 0;
 %     if opt.fmin

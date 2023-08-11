@@ -327,8 +327,6 @@ while tol == false && tel_i <=opt.tel_max && ~all(opt.alg == 'ffa')
             %disp(i)
             [C_temp(i),S_temp(i)] = ...
                 simHybrid(Kd(i), Ki(i), Kwi(i), Kwa(i), Kc(i), S(i),opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
-        %else %X only has dummy points for 5D persistence
-            %disp("ERROR IN PERSISTENCE OPT!!!!!")
             
         end
         if S_temp(i) < uc.uptime %update obj val X - if sim_run skipped this i then the surv will fail and cost = inf
