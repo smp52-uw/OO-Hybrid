@@ -30,9 +30,11 @@ end
 
 figure(1)
 set(gcf,'Units','inches')
-set(gcf,'Position', [1, 1, 4.2, 3.5])
+set(gcf,'Position', [1, 1, 6.75, 5.0])
+%set(gcf,'Position', [1, 1, 4.2, 3.5])
 set(gcf,'Color','w')
-fs3 = 8;
+fs3 = 10;
+fs1 = 10;
 col = colormap(brewermap(11,'Spectral')); %colors
 col2 = colormap(brewermap(9,'Greys')); %colors
 col3 = colormap(brewermap(9,'RdPu')); %colors
@@ -45,8 +47,8 @@ set(0,'DefaultLegendInterpreter', 'latex')
 tiledlayout(7,1,'TileSpacing','compact')
 
 %Set length of time series
-%ts = 1:1:8760;
-ts = 1:1:length(data.met.time);
+ts = 1:1:8760;
+%ts = 1:1:length(data.met.time);
 t1 = datetime(data.met.time(1),'ConvertFrom','datenum');
 t2 = datetime(data.met.time(ts(end)),'ConvertFrom','datenum');
 %STORAGE TIME SERIES
@@ -55,10 +57,10 @@ plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
     output.min.S1(1:ts(end))/1000,'Color',col(1,:), ... 
     'DisplayName','Battery 1','LineWidth',1)
 %[255,69,0]/256
-hold on
-plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
-    output.min.S2(1:ts(end))/1000,'Color',col(3,:), ... 
-    'DisplayName','Battery 2','LineWidth',1)
+% hold on
+% plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
+%     output.min.S2(1:ts(end))/1000,'Color',col(3,:), ... 
+%     'DisplayName','Battery 2','LineWidth',1)
 % %[245,238,54]/256
 % l1 = legend('show','location','southwest','Orientation','horizontal');
 ylabel({'$S(t)$', '[kWh]'},'interpreter','latex')
@@ -73,7 +75,7 @@ set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
 yticks([0 round(max(output.min.S1(1:end-1)/1000),2)])
 xlim([t1 t2])
 set(ax(1),'XTick',[])
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation
@@ -99,7 +101,7 @@ if opt.pm==5
     %ylim([0 1.1*max(output.min.Pdies/1000)])
     xlim([t1 t2])
     set(ax(2),'XTick',[])
-    set(gca,'FontSize',6)
+    set(gca,'FontSize',fs1)
     %set(gca,'LineWidth',2)
     grid on
     %add axis annotation
@@ -123,7 +125,7 @@ elseif opt.pm == 4
     ylim([0 1.1*max(output.min.Pcurr/1000)])
     xlim([t1 t2])
     set(ax(2),'XTick',[])
-    set(gca,'FontSize',6)
+    set(gca,'FontSize',fs1)
     %set(gca,'LineWidth',2)
     grid on
     %add axis annotation
@@ -150,7 +152,7 @@ set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
 ylim([0 1.1*max(output.min.Pinso/1000)])
 xlim([t1 t2])
 set(ax(3),'XTick',[])
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation
@@ -175,7 +177,7 @@ set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
 ylim([0 1.1*max(output.min.Pwave/1000)])
 xlim([t1 t2])
 set(ax(4),'XTick',[])
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation
@@ -200,7 +202,7 @@ set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
 ylim([0 1.1*max(output.min.Pwind/1000)])
 xlim([t1 t2])
 set(ax(5),'XTick',[])
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation
@@ -235,7 +237,7 @@ set(ylh,'Rotation',0,'Units','Normalized','Position',[-.1 .75 -1], ...
 ylim([0 1.1*max(output.min.D/1000)])
 xlim([t1 t2])
 set(ax(6),'XTick',[])
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation
@@ -262,7 +264,7 @@ t1 = datetime(data.met.time(1),'ConvertFrom','datenum');
 t2 = datetime(data.met.time(ts(end)),'ConvertFrom','datenum');
 xlim([t1 t2])
 xlabel('Time','interpreter','latex')
-set(gca,'FontSize',6)
+set(gca,'FontSize',fs1)
 %set(gca,'LineWidth',2)
 grid on
 %add axis annotation

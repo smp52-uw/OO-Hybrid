@@ -47,7 +47,7 @@ yline(mean(L(i,1:tend)),'--','linewidth',3,'Color',col(2,:))
 % xline(day_m2,'-','linewidth',4)
 
 %title(load_case(i).name,'fontweight','b')
-yl = ylabel('L [W]');
+yl = ylabel('$$L_c$$ [W]','Interpreter','latex');
 
 grid on
 
@@ -55,11 +55,11 @@ xl = xlabel('Time [days]');
 xlim([days(t(1)) days(t(tend))])
 ax(1).TickLabelInterpreter = 'latex';
 
-hl = legend('$$L(t)$$','$$L_{avg}$$','Interpreter','latex','location','northwest');
+hl = legend('$$L_c(t)$$','$$L_{c,avg}$$','Interpreter','latex','location','northwest');
 set(hl,'Interpreter','latex')
 set(xl,'Interpreter','latex')
 set(yl,'Interpreter','latex')
 
-print(datacomp,'C:\Users\smpal\Documents\GitHub\EWTEC_fig\Load_fig',  ...
+print(datacomp,'C:\Users\smpal\Documents\GitHub\EWTEC_fig\Load_fig_c',  ...
     '-dpng','-r600')
 

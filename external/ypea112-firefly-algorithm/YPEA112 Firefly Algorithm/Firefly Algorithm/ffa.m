@@ -83,8 +83,10 @@ BestSol.Surv = [];
 BestSol.Position = [];
 
 % Create Initial Fireflies
+rng('shuffle','Twister') %maybe will make the cluster rand work better?
 for i=1:nPop %(i = 1:sim_length,opt.bf.maxworkers)
-   pop(i).Position=unifrnd(VarMin,VarMax,VarSize);
+   %pop(i).Position=unifrnd(VarMin,VarMax,VarSize); 
+   pop(i).Position = VarMin + (VarMax - VarMin).*rand(VarSize); %maybe works for the cluster??
 end
 C_temp = nan(1,nPop);
 S_temp = nan(1,nPop);
@@ -146,7 +148,8 @@ for it=1:MaxIt
                 rij=norm(pop(i).Position-pop(j).Position)/dmax;
                 beta=beta0*exp(-gamma*rij^m);
                 %added .*
-                e=delta.*unifrnd(-1,+1,VarSize);
+                %e=delta.*unifrnd(-1,+1,VarSize);
+                e = delta.*(-1 + (1 + 1).*rand(VarSize)); %maybe works on the cluster?
                 %e=delta*randn(VarSize);
                 
                 P_temp(j,:) = pop(i).Position ...
