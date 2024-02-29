@@ -14,7 +14,7 @@ opt.ffa.pop = 25; %population size
 
 %% Optimization Algorithm
 opt.tel_max = 3; %maximum number of telescoping iterations
-opt.ffa.max = 10; %max number of firefly iterations
+opt.ffa.max = 20; %max number of firefly iterations
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
 opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly

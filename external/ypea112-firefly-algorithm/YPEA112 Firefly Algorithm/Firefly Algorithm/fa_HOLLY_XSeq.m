@@ -11,6 +11,7 @@
 % Contact Info: sm.kalami@gmail.com, info@yarpiz.com
 %
 % Changes: by SM Palmer 7-6-23 to fit hybrid optimization
+% Changes: by SM Palmer 9-14-23 to fit XS equations as a test
 
 % clc;
 % clear;
@@ -160,12 +161,17 @@ for it=1:MaxIt
                 beta=beta0*exp(-gamma*rij^m);
                 %added .*
                 e=delta.*unifrnd(-1,+1,VarSize);
+                %scale=abs(VarMax-VarMin);
+                %steps = (rand(VarSize)-0.5).*scale;
                 %e=delta*randn(VarSize);
                 
                 P_temp(j,:) = pop(i).Position ...
-                                + beta*rand(VarSize).*(pop(j).Position-pop(i).Position) ...
-                                + alpha*e;
-                
+                                + beta.*rand(VarSize).*(pop(j).Position-pop(i).Position) ...
+                                + alpha.*e;
+                %ns(i,:)=ns(i,:)+beta.*rand(1,d).*(ns(j,:)-ns(i,:))+steps;
+                %beta=beta0*exp(-gamma*r.^2);
+                %steps=alpha.*(rand(1,d)-0.5).*scale;
+                %ns(i,:)=ns(i,:)+beta*(ns(j,:)-ns(i,:))+steps;
                 P_temp(j,:)=max(P_temp(j,:),VarMin);
                 P_temp(j,:)=min(P_temp(j,:),VarMax);
                 

@@ -226,7 +226,7 @@ elseif m == 7
     plot(datetime(data.met.time(ts),'ConvertFrom','datenum'), ...
         output.min.L(ts)/1000,'Color',col2(7,:), ... 
         'DisplayName','Load','LineWidth',1)
-    yticks([0 1])
+    %yticks([0 1])
     %[212,92,176]/
     %legend('show')
 %     ylabel({'$L(t)$', '[kW]'},'interpreter','latex')
