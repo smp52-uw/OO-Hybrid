@@ -56,12 +56,19 @@ else %just one simulation
         ', bc: ' num2str(bc) ...
         ', uc: ' num2str(c) ') beginning'])
     tTot = tic;
-    %optInputs %load inputs
-    data = load(loc,loc);
-    data = data.(loc);
-    %load current data
-    curr = load(cloc);
-    data.curr = curr; %add current data to data structure
+
+    %%optInputs %load inputs - USED FOR TRENT'S LOCATIONS
+    %data = load(loc,loc);
+    %data = data.(loc);
+
+    %load inputs - USED FOR TASK 2 LOCATIONS
+    data = load(loc,'data');
+    data = data.('data');
+
+    %%load current data - ONLY USED FOR INITIAL HYBRID TESTS
+    %curr = load(cloc);
+    %data.curr = curr; %add current data to data structure
+
     [output,opt] = ...
         optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,cturb, wave,dies);
     optStruct.output = output;

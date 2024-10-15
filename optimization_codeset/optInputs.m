@@ -39,9 +39,9 @@ opt.senssm = 0;
 opt.highresobj = 0;
 %pm = 4; %power module, 1:Wi 2:In 3:Wa 4:Di
 c = 2;  %use case 1:ST 2:LT (Only use LT)
-loc = 'argBasin'; %location
-%loc = 'cosEndurance_wa'
-cloc = 'HYCOM_AB_mod_2018'; %current data location
+loc = 'PISCES';
+%loc = 'argBasin'; %location
+%cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 %batch = false;
 if ~exist('batchtype','var')
     batchtype = [];
@@ -137,7 +137,8 @@ end
 
 %% strings
 opt.locations = {'argBasin';'cosEndurance_wa'; ...
-    'cosPioneer';'irmSea';'souOcean'};
+    'cosPioneer';'irmSea';'souOcean';'WETS';'SFOMF';'PortHueneme';'PISCES';...
+    'PacWave';'MidAtlSB';'BerSea'};
 %opt.powermodules = {'wind';'inso';'wave';'dies'};
 opt.usecases = {'short term';'long term'};
 opt.wavescens = {'Conservative';'Optimistic Cost';'Optimistic Durability'};
@@ -162,8 +163,21 @@ econ.diessize_n = 1;                %[~]
 econ.diesburn_n = 1;                %[~]   
 econ.diesvol_n = 1;                %[~]  
 
-%HYBRID PLATFORM DEFINITION IS NEEDED - THIS IS A TEMPORARY FIX
-load('mdd_output_wave.mat')
+% %HYBRID PLATFORM DEFINITION IS NEEDED - THIS IS A TEMPORARY FIX
+% load('mdd_output_wave.mat')
+% econ.platform.cost = cost;
+% econ.platform.depth = depth;
+% econ.platform.diameter = diameter;
+% 
+% econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
+% econ.platform.boundary_di = 12; %[m] for multi-mooring
+% econ.platform.boundary_mf = 3; %multi line factor
+% %End of temporary fix section
+
+%% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
+moorfile = strcat(loc,'_Mooring.mat');
+load(moorfile)
+%NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
 econ.platform.cost = cost;
 econ.platform.depth = depth;
 econ.platform.diameter = diameter;
@@ -171,7 +185,7 @@ econ.platform.diameter = diameter;
 econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
 econ.platform.boundary_di = 12; %[m] for multi-mooring
 econ.platform.boundary_mf = 3; %multi line factor
-%End of temporary fix section
+%%
 
 clear cost depth diameter
 econ.platform.wf = 5;               %weight factor (of light ship)

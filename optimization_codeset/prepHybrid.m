@@ -1,32 +1,50 @@
 function [data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso,cturb)
 %PrepHybrid is a combination of PrepDies/PrepInso/PrepWind/PrepWave
 %Written by Sarah Palmer (based on Trent's code)
-%Updates for any location: 6-26
+%Updates for any location: 6-26-23
+%More updates for task 2 locations: 10-8-2024
 
-%Nothing from prepDies is active
+%Figure out if you're working with Trent's locations or task data
+input1 = isfield(data,'met'); %Trent's data
+input2 = isfield(data,'wind'); %Task 2 data
+
 %get current data
 data.curr.vmag = (data.curr.u.^2 + data.curr.v.^2).^0.5; %velocity magnitude
 data.curr.vmag = data.curr.vmag';
+data.curr.vmag(data.curr.vmag>4) = nan; %Remove any non-physical current speeds
 %Get wave data
 opt.wave.wavepower_ra = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     (wave.Hs_ra)^2*(wave.Tp_ra); %[W], wave power at rated
 %extract data
-Hs = data.wave.significant_wave_height; %[m]
-Tp = data.wave.peak_wave_period; %[s]
+if input1
+    Hs = data.wave.significant_wave_height; %[m]
+    Tp = data.wave.peak_wave_period; %[s]
+elseif input2
+    Hs = data.wave.Hs; %[m]
+    Tp = data.wave.Tp; %[s]
+end
 opt.wave.wavepower_ts = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     Hs.^2.*Tp./1000; %[kW/m] %timeseries of wavepower
 opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseries
 
 %Clean Time series
-[data.met.time, ind_wi] = unique(data.met.time); %need a time series without duplicates
-[data.wave.time, ind_wa] = unique(data.wave.time);
+if input1
+    [data.met.time, ind_wi] = unique(data.met.time); %need a time series without duplicates
+    [data.wave.time, ind_wa] = unique(data.wave.time);
+    converted_time_wind = datetime(data.met.time,'ConvertFrom','datenum');
+    converted_time_inso = datetime(data.met.time,'ConvertFrom','datenum');
+    converted_time_wave = datetime(data.wave.time,'ConvertFrom','datenum'); 
+elseif input2
+    [data.wind.time, ind_wi] = unique(data.wind.time); %need a time series without duplicates
+    [data.solar.time, ind_in] = unique(data.solar.time);
+    [data.wave.time, ind_wa] = unique(data.wave.time);
+    converted_time_wind = data.wind.time;
+    converted_time_inso = data.solar.time;
+    converted_time_wave = data.wave.time;
+end
 [data.curr.time, ind_c] = unique(data.curr.time);
-converted_time_wave = datetime(data.wave.time,'ConvertFrom','datenum');  
-converted_time_wind = datetime(data.met.time,'ConvertFrom','datenum');
-converted_time_inso = datetime(data.met.time,'ConvertFrom','datenum');
-% %shift the time to 2015 for currents-just works for AB
 curr_vec = datevec(data.curr.time);
-%curr_vec(:,1) = year(converted_time_wave(1));
+%curr_vec(:,1) = year(converted_time_wave(1)); % %shift the time to 2015 for currents-just works for AB
 converted_time_curr = datetime(curr_vec);
 
 %temporary clean hour spaced time series for each resource
@@ -44,26 +62,46 @@ time_final = time_final(1:end-1)'; %need one less than the entire time series so
 %The clean time series will have a time slightly before the first data
 %point and the interpolation makes that value go to zero - fixed with the
 %fill missing
-data.met.wind_spd  = interp1(converted_time_wind,data.met.wind_spd(ind_wi),regwind_time,'linear');
-data.met.wind_spd = fillmissing(data.met.wind_spd,'nearest');
-data.swso = fillmissing(data.met.shortwave_irradiance,'linear'); %[W/m^2]
-data.swso  = interp1(converted_time_inso,data.swso(ind_wi),reginso_time,'linear');
-data.swso = fillmissing(data.swso,'nearest');
+if input1
+    data.met.wind_spd  = interp1(converted_time_wind,data.met.wind_spd(ind_wi),regwind_time,'linear');
+    data.met.wind_spd = fillmissing(data.met.wind_spd,'nearest');
+    data.swso = fillmissing(data.met.shortwave_irradiance,'linear'); %[W/m^2]
+    data.swso  = interp1(converted_time_inso,data.swso(ind_wi),reginso_time,'linear');
+    data.swso = fillmissing(data.swso,'nearest');
+    swso_neg_count = sum(data.swso < 0);
+    if swso_neg_count > 0
+        disp('removing negative solar data')
+        data.swso(data.solar.swso < 0) = 0; %remove any negative swso points
+    end
+    disp('extend solar')
+    [data.swso,data.met.insotime] = extendToLifetime(data.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
+    disp('extend wind')
+    [data.met.wind_spd,data.met.windtime] = extendToLifetime(data.met.wind_spd,datenum(regwind_time),uc.lifetime); %make time series data adequately long
+
+elseif input2
+    data.wind.U  = interp1(converted_time_wind,data.wind.U(ind_wi),regwind_time,'linear');
+    data.wind.U = fillmissing(data.wind.U,'nearest');
+    data.solar.swso = fillmissing(data.solar.swso,'linear'); %[W/m^2]
+    data.solar.swso  = interp1(converted_time_inso,data.solar.swso(ind_wi),reginso_time,'linear');
+    data.solar.swso = fillmissing(data.solar.swso,'nearest');
+    swso_neg_count = sum(data.solar.swso < 0);
+    if swso_neg_count > 0
+        disp('removing negative solar data')
+        data.solar.swso(data.solar.swso < 0) = 0; %remove any negative swso points
+    end
+    disp('extend solar')
+    [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
+    disp('extend wind')
+    [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U,datenum(regwind_time),uc.lifetime); %make time series data adequately long
+
+end
+
 num_d = size(data.curr.vmag);
 for i=1:num_d(2)
     data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');
     data.curr.speed(:,i) = fillmissing(data.curr.speed(:,i),'nearest');
 end
-%Prep Inso
-%make time series data adequately long
-disp('extend solar')
-[data.swso,data.met.insotime] = ...
-    extendToLifetime(data.swso,datenum(reginso_time),uc.lifetime);
-%PrepWind
-%make time series data adequately long
-disp('extend wind')
-[data.met.wind_spd,data.met.windtime] = ...
-    extendToLifetime(data.met.wind_spd,datenum(regwind_time),uc.lifetime);
+
 %PrepWave
 %Interpolate wave data to clean time series
 opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'linear');
@@ -85,38 +123,44 @@ disp('extend wave')
 
 %extend current speed, and time to life
 disp('extend current')
-[data.curr.speed6(:,1),data.curr.time] =  ...
-    extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
+[data.curr.speed6(:,1),data.curr.time] = extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
 for i=2:num_d(2)
-    [data.curr.speed6(:,i)] =  ...
-        extendToLifetime(data.curr.speed(:,i),datenum(regcurr_time),uc.lifetime);
+    [data.curr.speed6(:,i)] = extendToLifetime(data.curr.speed(:,i),datenum(regcurr_time),uc.lifetime);
 end
 %% Make Clean time series
-%regularly spaced time series
-if opt.wave.time(1) == data.met.windtime(1) && opt.wave.time(1) == data.met.insotime(1) && opt.wave.time(1) == data.curr.time(1)
-    disp('Time series are aligned')
-else %If time series don't start at the same point then need to add data to the late one
-    disp('Test: start not matched')
-    data.met.time = datenum(time_final);
+if input1
+    if opt.wave.time(1) == data.met.windtime(1) && opt.wave.time(1) == data.met.insotime(1) && opt.wave.time(1) == data.curr.time(1)
+        disp('Time series are aligned')
+    else %If time series don't start at the same point then need to add data to the late one
+        disp('Test: start not matched')
+        data.met.time = datenum(time_final);
+        
+        opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
+        opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
+        opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
+        opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
+        for i=1:num_d(2)
+            data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i));
+        end
     
-    opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
-    opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
-    opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
-    opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
-    for i=1:num_d(2)
-        data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i));
+        data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd);
+        data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso);
+    
+        data.curr.time = datenum(data.met.time);
+        opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
+        data.met.time = datenum(data.met.time);
     end
-
-    data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd);
-    data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso);
-
-    data.curr.time = datenum(data.met.time);
-    opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
-    data.met.time = datenum(data.met.time);
+elseif input2
+    if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1) && opt.wave.time(1) == data.curr.time(1)
+        disp('Time series are aligned')
+    else
+        disp('ERROR - Task2 data should already be aligned...')
+    end
 end
 
 %winter cleaning
-if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
+if inso.cleanstrat == 3  %winter cleaning
+    disp('ERROR - should use clean strat 4 for Hybrid')
     %winter cleaning (if applicable)
     if data.lat < 0 %southern hemisphere
         wint_clean_mo = 5; %may
@@ -126,21 +170,12 @@ if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
     dv = datevec(data.met.time);
     data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 ...
         & dv(:,4) == 0);
-    if inso.cleanstrat == 4 %every other winter
-        data.wint_clean_ind = data.wint_clean_ind(2:2:end);
-    end
+end
+if inso.cleanstrat == 4 %every other winter
+    data.wint_clean_ind = data.wint_clean_ind(2:2:end);
 end
 
-% %set mooring system
-% if econ.platform.inso.boundary == 1
-%     econ.platform.inso.depth(:,4) = econ.platform.inso.depth(:,1);
-%     econ.platform.inso.diameter(:,4) =  ...
-%         econ.platform.inso.boundary_di.*ones(5,1);
-%     econ.platform.inso.cost(:,4) = ...
-%         econ.platform.inso.cost(:,3).*econ.platform.inso.boundary_mf;
-% end
-
-%Get current power
+%% Get current power
 [opt.curr.F_curr] = Current_Power(cturb,atmo);
 %current_Pmatrix = load('current_Pmatrix.mat');
 
