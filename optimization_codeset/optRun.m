@@ -12,16 +12,19 @@ opt.p_dev.b_size = calcDeviceVal('lfp_vol',[],econ.battsize_n);
 [opt.p_dev.b,~,opt.p_dev.kWhmax] = calcDeviceVal('agm',[],econ.batt_n);
 
 %HYBRID Prep Function Calls
-% [data,econ] = prepInso(data,inso,econ,uc);
-% data = prepWind(data,uc);
-% data = prepDies(data,econ,uc);
-% opt = prepWave(data,opt,wave,atmo,uc);
 [data, opt] = prepHybrid(data,opt,uc,wave,atmo,inso,cturb);
 %Hybrid load case call
 [uc.loaddata, loadseries] = GenerateLoadCases_v4(data); %updated to even hour loads
 uc.draw = loadseries.L(uc.loadcase,:);
 %HYBRID Opt Function call
 [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,cturb, wave);
+
+% Single gen prep and opt function calls
+% [data,econ] = prepInso(data,inso,econ,uc);
+% data = prepWind(data,uc);
+% data = prepDies(data,econ,uc);
+% opt = prepWave(data,opt,wave,atmo,uc);
+
 % if pm == 1 %WIND
 %     data = prepWind(data,uc);
 %     [output,opt] = optWind(opt,data,atmo,batt,econ,uc,bc,turb);

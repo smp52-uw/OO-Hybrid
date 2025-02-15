@@ -21,7 +21,7 @@ opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, '
 
 opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
 opt.pm = 4; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
-opt.tar = 2; %1 = mass, 2 = gen cap 
+opt.tar = 2; %1 = mass, 2 = gen cap, 3 = economic
 opt.pl = 0.975; %persistence left side
 opt.pr = 0.995; %persistence right side
 opt.tl = 0.97; %telescope left side
@@ -178,9 +178,12 @@ econ.diesvol_n = 1;                %[~]
 moorfile = strcat(loc,'_Mooring.mat');
 load(moorfile)
 %NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
-econ.platform.cost = cost;
-econ.platform.depth = depth;
-econ.platform.diameter = diameter;
+econ.platform.cost = MoorMat.WorstCase.cost;
+platM = 1545; %[kg] platform mass with no payload - probably only correct for medium buoy
+econ.platform.payloadmass = MoorMat.WorstCase.mass - platM;
+%econ.platform.depth = depth; %I don't think we need this because the moor
+%matrix is specific to a location so no depth-wise interpolation is needed
+econ.platform.diameter = MoorMat.WorstCase.dia;
 
 econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
 econ.platform.boundary_di = 12; %[m] for multi-mooring
@@ -188,8 +191,8 @@ econ.platform.boundary_mf = 3; %multi line factor
 %%
 
 clear cost depth diameter
-econ.platform.wf = 5;               %weight factor (of light ship)
-econ.platform.steel = 2000;          %[$/metric ton], steelbenchmarker
+%econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
+econ.platform.steel = 44;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL)
 econ.platform.t_i = [6 12];         %[h] added h for inst
 econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 
@@ -307,7 +310,7 @@ lfp.T = 15;                 %[C] temperature
 lfp.EoL = 0.2;              %battery end of life
 lfp.rf_os = true;           %toggle using open source rainflow
 lfp.bdi = 2190;              %battery degradation evaluation interaval
-bc = 2; %battery chemistry 1:AGM 2:LFP
+bc = 2; %battery chemistry 1:AGM 2:LFP (ONLY USE LFP FOR HYBRID)
 if bc == 1 %agm chemistry
     batt = agm;
 elseif bc == 2 %lfp chemistry
@@ -324,7 +327,7 @@ atmo.dyn_h = true;          %toggle dynamic hub height
 atmo.soil = 35;             %[%/year]
 %atmo.clean = 0.5;           %heavy rain cleans X amt of soil
 
-%% USE CASES
+%% USE CASES - Not Used for Hybrid Analysis
 %short term instrumentation
 %uc(1).draw = 200;               %[W] - load now defined in optRun
 uc(1).lifetime = 6;             %[y]
