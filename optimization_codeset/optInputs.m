@@ -204,7 +204,8 @@ econ.vessel.speccost = 50000*1.15;       %[$/day] 2020->2022
 %econ.vessel.int = 1;                %[vessel int/year] -obselete
 
 %battery 
-econ.batt.enclmult = 1;             %multiplier on battery cost for encl
+econ.batt.enclmult = 1;             %multiplier on battery cost for encl - obselete
+econ.batt.volmult = 1.2;            %volume multiplier for batter enclosure (makes room of electrical equipment)
 %wind
 econ.wind.installed = 5120;         %[$/kW] installed cost (DWR, 2022)
 econ.wind.tcm = 1;                  %turbine cost multiplier (sens var)
@@ -223,11 +224,13 @@ econ.wave.costmult_con = 10;         %conservative cost multiplier
 econ.wave.costmult_opt = 4;         %optimistic cost multiplier
 %diesel costs
 econ.dies.fcost = 1.4;              %[$/L] diesel fuel cost
-econ.dies.enclcost = 5000*1.19;     %[$], 2018->2022
-econ.dies.enclcap = 1.5;            %[m^3]
+%econ.dies.enclcost = 5000*1.19;     %[$], 2018->2022 - obselete
+%econ.dies.enclcap = 1.5;            %[m^3] - obselete
 econ.dies.autostart = 3000*1.15;    %[$], 2020->2022
 %econ.dies.fail = .2;                %failures per year
 econ.dies.gcm = 1;                  %generator cost multiplier (sens var)
+econ.dies.volmult = 1.2;            %volume multiplier for diesel enclosure (makes room for equipment)
+econ.curr.costmult = 3;             %multiplier from wind to current (Brian)
 
 %ENERGY
 %wind parameters
