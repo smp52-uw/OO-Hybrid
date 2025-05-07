@@ -38,7 +38,7 @@ dt = 24*(time(2) - time(1)); %time in hours
 %dt = 1; %time in hours
 
 %dist = data.dist; %[m] distance to shore
-%depth = data.depth; %[m] water depth
+depth = data.depth; %[m] water depth
 swso = data.swso;
 wind = data.met.wind_spd; %[m/s]
 if atmo.dyn_h %use log law to adjust wind speed based on rotor height
@@ -385,18 +385,16 @@ mass_wind = kW_wind*turb.wf; %updated to include a tower
 mass_curr = 0; %assume the turbine assembly is ballasted to neutral buoyancy (Brian)
 
 mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
-if kW_dies == 0
-    mass_dies = 0;
-end
 al_plate = 35.24; %[kg/m2] - 1.2" 6061 AL
 gen_vol = econ.dies.volmult*polyval(opt.p_dev.d_size,kW_dies)^3;
 mass_diesencl = 6*(gen_vol^2/3)*al_plate; %[kg]
-if kW_dies == 0
-    mass_diesencl = 0;
-end
 dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
 mass_fuel = runtime_tot*lph*dies_dens; %[kg]
-
+if kW_dies == 0
+    mass_diesencl = 0;
+    mass_fuel = 0;
+    mass_dies = 0;
+end
 mass_batt = Smax/(batt.se*batt.V/1000); %[kg] - 1 battery
 batt_vol = polyval(opt.p_dev.b_size,Smax)*econ.batt.volmult;
 batt_len = (batt_vol)^(1/3); %assume cube
@@ -445,7 +443,7 @@ if opt.tar ==3 %economic
     end
 
     %costs - current
-    KWcost_curr = 2*econ.curr.costmult*polyval(opt.p_dev.t,kW_curr); %current
+    kWcost_curr = 2*econ.curr.costmult*polyval(opt.p_dev.t,kW_curr); %current
     if kW_curr == 0, kWcost_curr = 0; end
     
     if kW_curr ~= 0
@@ -488,25 +486,37 @@ if opt.tar ==3 %economic
     end
     battencl = 2*6*(batt_len^2)*al_cost;
     Icost_batt = 0.1*(Scost+battencl); %installation cost (10% is a guess from Brian)
-    %%Calculate dp (based on area of components on the platform)
-    % vol_fuel = runtime_tot*lph*1000; %[m^3]
-    % A_fuel = (vol_fuel)^(2/3); %area required for fuel
-    % batt_vol = polyval(opt.p_dev.b_size,Smax);
-    % A_batt = batt_vol^(2/3); %area required for battery
-    % A_dies = polyval(opt.p_dev.d_size,kW_dies)^2;
-    % PipeDia40 = 1.875*0.0254; %diameter in [m]
-    % A_WT = 4*pi*(PipeDia40/2)^2; %area required for wind turbine tower pipes
-    % A_inso = kW/(inso.eff*inso.rated); %area required for solar panels
-    % 
-    % A_total = A_WT + A_inso + A_dies + A_batt + A_fuel;
-    % dp = 2*sqrt(A_total/pi);
 
-    %%New Mooring Model
-    Pmooring = 2*interp1(econ.platform.mass,econ.platform.cost,comp_plat_mass,'linear'); %mooring cost - this should not extrapolate 
-    dp = interp1(econ.platform.mass,econ.platform.dia,comp_plat_mass,'linear');
-    Buoy_Mass = interp1(econ.platform.mass,econ.platform.buoy_mass,comp_plat_mass,'linear');
+    %%Old mooring model
+    if any(strcmp(data.title,"Argentine Basin"))
+        Buoy_Mass = econ.platform.wf*comp_plat_mass; %Trent's assumption that the platform is 5x the on platform equipment mass
+        if opt.pm == 3 %wave
+            dp = width;
+        elseif opt.pm == 2 %solar
+            dp = getInsoDiameter(kW_inso,inso);
+            if dp < 2, dp = 2; end
+        elseif opt.pm == 1 %wind
+            dp = 0.8;
+        elseif opt.pm == 4 %diesel
+            dp = polyval(opt.p_dev.d_size,kW);
+            if dp < 2, dp = 2; end
+        end
+        Pmooring = interp2(econ.platform.diameter, ...
+        econ.platform.depth, ...
+        econ.platform.cost,dp,depth,'linear');
+    else
+        %%New Mooring Model
+        tempPmooring = nan(3,1);
+        tempmass = nan(3,1);
+        for b = 1:3 %loop through buoy sizes
+            tempPmooring(b) = 2*interp1(econ.platform.payloadmass(b,:),econ.platform.cost(b,:),comp_plat_mass,'linear'); %mooring cost - this should not extrapolate
+            tempmass(b) = interp1(econ.platform.payloadmass(b,:),econ.platform.mass(b,:),comp_plat_mass,'linear');
+        end
+        [Pmooring,indMoor] = min(tempPmooring);
+        Buoy_Mass = tempmass(indMoor);
+        dp = nan; %platform diameter is not needed for Task 2 modeling
+    end
     Pmtrl = 2*Buoy_Mass*econ.platform.steel;  %platform material cost - UPDATED BASED ON INFO FROM DEREK
-
     t_i = interp1(econ.platform.d_i,econ.platform.t_i,depth, ...
         'linear','extrap'); %installation time
     if depth < 500
@@ -521,10 +531,12 @@ if opt.tar ==3 %economic
     vesselcost = C_v*(nvi*(2*triptime + t_os)); %vessel cost
     %Maintenance Costs
     solarrepair = 1/4*0.5*(Strcost_inso + Icost_inso + Ecost_inso); %solar refurb repair
+    if solarrepair < 0, solarrepair = 0; end
+    
     turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
     if turbrepair < 0, turbrepair = 0; end
 
-    cturbrepair = 1/2*0.5*(KWcost_curr + Icost_curr)*(nvi); %current turbine refurb cost
+    cturbrepair = 1/2*0.5*(kWcost_curr + Icost_curr)*(nvi); %current turbine refurb cost
     if cturbrepair <0, cturbrepair = 0; end
 
     wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
@@ -539,7 +551,7 @@ if opt.tar ==3 %economic
     %Total Cost Calculations
     CapEx = Pmooring + Pinst + Pmtrl + battencl + Scost + Icost_batt + ...
         genencl + kWcost_dies + Icost_dies + Icost_inso + Mcost_inso + Ecost_inso + ...
-        Strcost_inso + Icost_wind + kWcost_wind + Icost_wave + kWcost_wave + KWcost_curr + Icost_curr;
+        Strcost_inso + Icost_wind + kWcost_wind + Icost_wave + kWcost_wave + kWcost_curr + Icost_curr;
     OpEx = fuel + battreplace + batteryrepair + genrepair + vesselcost + turbrepair + cturbrepair + wecrepair + solarrepair + mooringrepair;
     cost = CapEx + OpEx;
 
@@ -611,8 +623,8 @@ if opt.tar == 1 || opt.tar ==2
     fuel = mass_fuel;
     triptime = nan;
     dp = nan;
-    pvci = nan;
 end
+pvci = nan; %This variable is not needed anymore
 %determine if desired uptime was met
 surv = sum(L == uc.draw)/(length(L));
 % if sum(L == uc.draw)/(length(L)) < uc.uptime  %This is handled in the

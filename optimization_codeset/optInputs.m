@@ -4,32 +4,35 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
-opt.bf.j = 9;
-opt.bf.k = 9;
-opt.bf.l = 9;
-opt.bf.m = 9;
-opt.bf.n = 9;
-opt.bf.o = 9;
-opt.ffa.pop = 25; %population size 
-
 %% Optimization Algorithm
-opt.tel_max = 3; %maximum number of telescoping iterations
-opt.ffa.max = 20; %max number of firefly iterations
+opt.ffa.max = 10; %max number of firefly iterations
+opt.ffa.pop = 100; %population size 
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
 opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly
 
-opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 4; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
-opt.tar = 2; %1 = mass, 2 = gen cap, 3 = economic
-opt.pl = 0.975; %persistence left side
-opt.pr = 0.995; %persistence right side
-opt.tl = 0.97; %telescope left side
-opt.tr = 1.03; %telescope right side
+opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
+opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
 opt.bf.M = 8; %[kW] max kW in grid
 opt.bf.N = 500; %[kWh] max Smax in grid
+
+opt.pltdebug = 1;
+%% Obselete Optimization Inputs
+% opt.bf.j = 9;
+% opt.bf.k = 9;
+% opt.bf.l = 9;
+% opt.bf.m = 9;
+% opt.bf.n = 9;
+% opt.bf.o = 9;
+% opt.pl = 0.975; %persistence left side
+% opt.pr = 0.995; %persistence right side
+% opt.tl = 0.97; %telescope left side
+% opt.tr = 1.03; %telescope right side
+% opt.tel_max = 3; %maximum number of telescoping iterations
+
 %% Run Inputs
 opt.allscenuses = 0;
 opt.alllocuses = 0;
@@ -37,11 +40,12 @@ opt.sens = 0;
 opt.tdsens = 0;
 opt.senssm = 0;
 opt.highresobj = 0;
-%pm = 4; %power module, 1:Wi 2:In 3:Wa 4:Di
-c = 2;  %use case 1:ST 2:LT (Only use LT)
-loc = 'PISCES';
-%loc = 'argBasin'; %location
-%cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
+c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
+loc = 'argBasin';
+cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
+
+trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
+task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea'};
 %batch = false;
 if ~exist('batchtype','var')
     batchtype = [];
@@ -163,35 +167,45 @@ econ.diessize_n = 1;                %[~]
 econ.diesburn_n = 1;                %[~]   
 econ.diesvol_n = 1;                %[~]  
 
-% %HYBRID PLATFORM DEFINITION IS NEEDED - THIS IS A TEMPORARY FIX
-% load('mdd_output_wave.mat')
-% econ.platform.cost = cost;
-% econ.platform.depth = depth;
-% econ.platform.diameter = diameter;
-% 
-% econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
-% econ.platform.boundary_di = 12; %[m] for multi-mooring
-% econ.platform.boundary_mf = 3; %multi line factor
-% %End of temporary fix section
-
-%% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
-moorfile = strcat(loc,'_Mooring.mat');
-load(moorfile)
-%NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
-econ.platform.cost = MoorMat.WorstCase.cost;
-platM = 1545; %[kg] platform mass with no payload - probably only correct for medium buoy
-econ.platform.payloadmass = MoorMat.WorstCase.mass - platM;
-%econ.platform.depth = depth; %I don't think we need this because the moor
-%matrix is specific to a location so no depth-wise interpolation is needed
-econ.platform.diameter = MoorMat.WorstCase.dia;
-
-econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
-econ.platform.boundary_di = 12; %[m] for multi-mooring
-econ.platform.boundary_mf = 3; %multi line factor
+if any(strcmp(loc,trentloc)) %if Trent's locations
+    %% Trent Location Mooring - only works for 2D simulation
+    if opt.pm == 2 || opt.pm == 4 %solar or diesel
+        load('mdd_output_inso.mat')
+        econ.platform.cost = cost;
+        econ.platform.depth = depth;
+        econ.platform.diameter = diameter;
+        econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
+        econ.platform.boundary_di = 12; %[m] for multi-mooring
+        econ.platform.boundary_mf = 3; %multi line factor
+    elseif opt.pm == 3 %wave
+        load('mdd_output_wave.mat')
+        econ.platform.cost = cost;
+        econ.platform.depth = depth;
+        econ.platform.diameter = diameter;
+    elseif opt.pm == 1 %wind
+        load('mdd_output_wind.mat')
+        econ.platform.cost = cost;
+        econ.platform.depth = depth;
+        econ.platform.diameter = diameter;
+    end
+else
+    %% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
+    moorfile = strcat(loc,'_Mooring.mat');
+    load(moorfile)
+    %NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
+    econ.platform.cost = MoorMat.WorstCase.cost;
+    econ.platform.payloadmass = MoorMat.WorstCase.PLmass;
+    econ.platform.mass = MoorMat.WorstCase.mass; %platform mass
+    %econ.platform.depth = depth; %I don't think we need this because the moor
+    %matrix is specific to a location so no depth-wise interpolation is needed
+    
+    econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
+    econ.platform.boundary_di = 12; %[m] for multi-mooring
+end
 %%
 
 clear cost depth diameter
-%econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
+econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
 econ.platform.steel = 44;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL)
 econ.platform.t_i = [6 12];         %[h] added h for inst
 econ.platform.d_i = [500 5000];     %[m] depth for inst cost
@@ -330,8 +344,8 @@ atmo.dyn_h = true;          %toggle dynamic hub height
 atmo.soil = 35;             %[%/year]
 %atmo.clean = 0.5;           %heavy rain cleans X amt of soil
 
-%% USE CASES - Not Used for Hybrid Analysis
-%short term instrumentation
+%% USE CASES
+%short term instrumentation  - Not Used for Hybrid Analysis
 %uc(1).draw = 200;               %[W] - load now defined in optRun
 uc(1).lifetime = 6;             %[y]
 uc(1).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W

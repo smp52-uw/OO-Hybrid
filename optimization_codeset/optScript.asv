@@ -61,16 +61,17 @@ else %just one simulation
         %optInputs %load inputs - USED FOR TRENT'S LOCATIONS
         data = load(loc,loc);
         data = data.(loc);
-        %%load current data - ONLY USED FOR INITIAL HYBRID TESTS
-        curr = load(cloc);
-        data.curr = curr; %add current data to data structure
-    elseif any(strcmp(task2loc,loc))
+    elseif any(stcmp(task2loc,loc))
         %load inputs - USED FOR TASK 2 LOCATIONS
         data = load(loc,'data');
         data = data.('data');
     else
         disp('ERROR THE LOCATION IS INVALID')
     end
+
+    %%load current data - ONLY USED FOR INITIAL HYBRID TESTS
+    %curr = load(cloc);
+    %data.curr = curr; %add current data to data structure
 
     [output,opt] = ...
         optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,cturb, wave,dies);

@@ -30,7 +30,8 @@ end
 %extend SoC timeseries to mission life
 orig_l = length(a_in);
 tStart = datevec(t_in(1));
-tEnd = tStart; tEnd(1) = tEnd(1) + y;
+tEnd = tStart; 
+tEnd(1) = tEnd(1) + y;
 % test1 = datetime(tStart)
 % test2 = datetime(tEnd)
 %t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];

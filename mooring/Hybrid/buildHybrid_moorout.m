@@ -1,11 +1,13 @@
 %convert mooring output into a mat file with useful information
 %Sarah May Palmer
 %10-14-2024
+
 clear
 clc
-%load data
+
+%% load data
 %moordat = readtable("Orcaflex mooring costs preliminary - Sheet1.csv"); %Initial mooring data from Curty (only for medium buoy size)
-moordat = readtable("OrcaFlex Mooring model results - Regular Wave Jan 3rd 2025 results.csv"); %Initial mooring data from Curty (only for medium buoy size)
+moordat = readtable("OrcaFlex Mooring model results - Regular Wave Jan 3rd 2025 results.csv"); %final mooring data from Curty (for SM/MD/LG buoys)
 
 %locations
 locs = {'WETS';'SFOMF';'Hueneme';'PISCES';...
@@ -14,10 +16,8 @@ saveL = {'WETS';'SFOMF';'PortHueneme';'PISCES';...
     'PacWave';'MidAtlSB';'BerSea'};
 buoysz = {'Small';'Medium';'Large'};
 buoydia = [2,4,6];
-%buoysz = {'Medium'}; %for now we only have medium data
 
-% figure
-% tiledlayout(3,1)
+%% process and save data
 for l = 1:max(size(locs))
     for b = 1:max(size(buoysz))
         isL = strcmp(moordat.Site,locs{l}); %find rows of this location
@@ -56,32 +56,25 @@ for l = 1:max(size(locs))
         if length(indLBW) == length(indLBC)
             for ii = 1:length(indLBC)
                 jj = find(MoorMat.MaxW.mass(b,ii) == MoorMat.MaxC.mass(b,:)); %find current case with same buoy mass
-
-                % %%worst performing mooring method
-                % if MoorMat.MaxW.Sub(b,ii) < MoorMat.MaxC.Sub(b,jj)
-                %     MoorMat.WorstCase.dia(b,ii) = buoydia(b);
-                %     MoorMat.WorstCase.mass(b,ii) = MoorMat.MaxW.mass(b,ii);
-                %     MoorMat.WorstCase.cost(b,ii) = MoorMat.MaxW.cost(b,ii);
-                %     MoorMat.WorstCase.Size(b,ii) = MoorMat.MaxW.Size(b,ii);
-                %     MoorMat.WorstCase.Sub(b,ii) = MoorMat.MaxW.Sub(b,ii);
-                % else
-                %     MoorMat.WorstCase.dia(b,ii) = buoydia(b);
-                %     MoorMat.WorstCase.mass(b,ii) = MoorMat.MaxC.mass(b,jj);
-                %     MoorMat.WorstCase.cost(b,ii) = MoorMat.MaxC.cost(b,jj);
-                %     MoorMat.WorstCase.Size(b,ii) = MoorMat.MaxC.Size(b,jj);
-                %     MoorMat.WorstCase.Sub(b,ii) = MoorMat.MaxC.Sub(b,jj);
-                % end
-
                 
                 %%alternate method
-                if MoorMat.MaxW.Sub(b,ii) < -0.1 || MoorMat.MaxC.Sub(b,jj) < -0.1
+                if MoorMat.MaxW.Sub(b,ii) < -0.1 || MoorMat.MaxC.Sub(b,jj) < -0.1 %fails the submergence requirement
+                    MoorMat.WorstCase.dia(b,ii) = buoydia(b);
+                    MoorMat.WorstCase.mass(b,ii) = MoorMat.MaxW.mass(b,ii);
+                    MoorMat.WorstCase.PLmass(b,ii) = MoorMat.MaxW.PLmass(b,ii);
+
+                    MoorMat.WorstCase.cost(b,ii) = nan; %cost is undefined for the failed moorings
+                    MoorMat.WorstCase.Size(b,ii) = MoorMat.MaxW.Size(b,ii);
+                    MoorMat.WorstCase.Sub(b,ii) = min([MoorMat.MaxW.Sub(b,ii),MoorMat.MaxC.Sub(b,jj)]);
+
+                elseif strcmp(locs{l},'Hueneme') && buoydia(b) == 4 && MoorMat.MaxC.mass(b,jj) == 11000 %check for the self propelling buoy case
                     MoorMat.WorstCase.dia(b,ii) = buoydia(b);
                     MoorMat.WorstCase.mass(b,ii) = MoorMat.MaxW.mass(b,ii);
                     MoorMat.WorstCase.PLmass(b,ii) = MoorMat.MaxW.PLmass(b,ii);
 
                     MoorMat.WorstCase.cost(b,ii) = MoorMat.MaxW.cost(b,ii);
                     MoorMat.WorstCase.Size(b,ii) = MoorMat.MaxW.Size(b,ii);
-                    MoorMat.WorstCase.Sub(b,ii) = min([MoorMat.MaxW.Sub(b,ii),MoorMat.MaxC.Sub(b,jj)]);
+                    MoorMat.WorstCase.Sub(b,ii) = MoorMat.MaxW.Sub(b,ii);
 
                 elseif MoorMat.MaxW.cost(b,ii) > MoorMat.MaxC.cost(b,jj)
                     MoorMat.WorstCase.dia(b,ii) = buoydia(b);
@@ -102,33 +95,21 @@ for l = 1:max(size(locs))
                 end
             end
         end
-
-
-        % nexttile(1)
-        % hold on
-        % plot(MoorMat.MaxC.mass,MoorMat.MaxC.cost,'DisplayName',locs{l},'LineWidth',2)
-        % title('Max Current/Average Wave')
-        % ylabel('Cost $')
-        % xlabel('Mass [kg]')
-        % nexttile(2)
-        % hold on
-        % plot(MoorMat.MaxW.mass,MoorMat.MaxW.cost,'DisplayName',locs{l},'LineWidth',2)
-        % title('Max Wave/Average Current')
-        % xlabel('Mass [kg]')
-        % ylabel('Cost $')
-        % 
-        % nexttile(3)
-        % hold on
-        % plot(MoorMat.WorstCase.mass,MoorMat.WorstCase.cost,'DisplayName',locs{l},'LineWidth',2)
-        % title('Max Wave/Average Current')
-        % xlabel('Mass [kg]')
-        % ylabel('Cost $')
-
-
+        
     end
+
+    %Find lowest cost mooring cost for a given payload mass
+    [mincost,minind] = min(MoorMat.WorstCase.cost, [], 1); %lowest cost payload (will ignore nan)
+    loopsz = size(MoorMat.WorstCase.cost);
+    for ii = 1:loopsz(2)
+        MoorMat.SimMoor.dia(ii) = MoorMat.WorstCase.dia(minind(ii),ii);
+        MoorMat.SimMoor.mass(ii) = MoorMat.WorstCase.mass(minind(ii),ii);
+        MoorMat.SimMoor.PLmass(ii) = MoorMat.WorstCase.PLmass(minind(ii),ii);
+        MoorMat.SimMoor.cost(ii) = MoorMat.WorstCase.cost(minind(ii),ii);
+        MoorMat.SimMoor.Size(ii) = MoorMat.WorstCase.Size(minind(ii),ii);
+        MoorMat.SimMoor.Sub(ii) = MoorMat.WorstCase.Sub(minind(ii),ii);
+    end
+
     filenm = strcat(saveL{l},'_Mooring','.mat');
     save(filenm, 'MoorMat')
 end
-
-%legend('location','eastoutside')
-

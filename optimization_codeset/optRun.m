@@ -16,6 +16,15 @@ opt.p_dev.b_size = calcDeviceVal('lfp_vol',[],econ.battsize_n);
 %Hybrid load case call
 [uc.loaddata, loadseries] = GenerateLoadCases_v4(data); %updated to even hour loads
 uc.draw = loadseries.L(uc.loadcase,:);
+if opt.pltdebug
+    figure(3)
+    hold on
+    plot(uc.draw(1:8760),'linewidth',1.5)
+    yline(mean(uc.draw),'--','linewidth',1.5)
+    ylabel('[W]')
+    xlabel('Index')
+    title(strcat("1 Year, Load Case: ",string(uc.loadcase)))
+end
 %HYBRID Opt Function call
 [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,cturb, wave);
 

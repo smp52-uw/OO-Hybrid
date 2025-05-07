@@ -12,6 +12,45 @@ input2 = isfield(data,'wind'); %Task 2 data
 data.curr.vmag = (data.curr.u.^2 + data.curr.v.^2).^0.5; %velocity magnitude
 data.curr.vmag = data.curr.vmag';
 data.curr.vmag(data.curr.vmag>4) = nan; %Remove any non-physical current speeds
+
+if opt.pltdebug && input2 %diagnostic plot of input data for Task 2 locations (raw data)
+    col = colormap(brewermap(9,'Set2')); %colors
+    figure(1)
+    tf = tiledlayout(5,1);
+    title(tf,strcat(data.title," - Unprocessed Data"))
+    
+    ax(1) = nexttile; %solar
+    plot(data.solar.time,data.solar.swso,'linewidth',1.5,'Color',col(6,:))
+    ylabel('[W/m^2]')
+    title('Inso')
+
+    ax(2) = nexttile; %wind
+    plot(data.wind.time,data.wind.U,'linewidth',1.5,'color',col(1,:))
+    ylabel('[m/s]')
+    title('Wind Speed')
+
+    ax(3) = nexttile; %current
+    temptime = datetime(data.curr.time,'ConvertFrom','datenum');
+    temptime.TimeZone = "UTC";
+    plot(temptime,data.curr.vmag(:,1),'linewidth',1.5,'color',col(3,:))
+    ylabel('[m/s]')
+    title('Surface Current Speed')
+
+
+    ax(4) = nexttile; %wave height
+    plot(data.wave.time,data.wave.Hs,'linewidth',1.5,'color',col(4,:))
+    ylabel('[m]')
+    title('Wave Height')
+
+    ax(5) = nexttile; %wave period
+    plot(data.wave.time,data.wave.Tp,'linewidth',1.5,'color',col(4,:))
+    ylabel('[s]')
+    title('Wave Period')
+    xlabel('Time')
+
+    linkaxes(ax,'x')
+end
+
 %Get wave data
 opt.wave.wavepower_ra = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     (wave.Hs_ra)^2*(wave.Tp_ra); %[W], wave power at rated
@@ -46,6 +85,9 @@ end
 curr_vec = datevec(data.curr.time);
 %curr_vec(:,1) = year(converted_time_wave(1)); % %shift the time to 2015 for currents-just works for AB
 converted_time_curr = datetime(curr_vec);
+if input2
+    converted_time_curr.TimeZone = 'UTC'; %verified the time zone on the HYCOM user group
+end
 
 %temporary clean hour spaced time series for each resource
 regwave_time = [dateshift(converted_time_wave(1),'end','hour'):hours(1):dateshift(converted_time_wave(end),'end','hour')]'; 
@@ -71,7 +113,7 @@ if input1
     swso_neg_count = sum(data.swso < 0);
     if swso_neg_count > 0
         disp('removing negative solar data')
-        data.swso(data.solar.swso < 0) = 0; %remove any negative swso points
+        data.swso(data.swso < 0) = 0; %remove any negative swso points
     end
     disp('extend solar')
     [data.swso,data.met.insotime] = extendToLifetime(data.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
@@ -135,44 +177,85 @@ if input1
         disp('Test: start not matched')
         data.met.time = datenum(time_final);
         
-        opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts);
-        opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs);
-        opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp);
-        opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L);
+        opt.wave.wavepower_ts = align_timeseries(data.met.time,opt.wave.time,opt.wave.wavepower_ts,uc);
+        opt.wave.Hs = align_timeseries(data.met.time,opt.wave.time,opt.wave.Hs,uc);
+        opt.wave.Tp = align_timeseries(data.met.time,opt.wave.time,opt.wave.Tp,uc);
+        opt.wave.L = align_timeseries(data.met.time,opt.wave.time,opt.wave.L,uc);
         for i=1:num_d(2)
-            data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i));
+            data.curr.speed6a(:,i) = align_timeseries(data.met.time,data.curr.time,data.curr.speed6(:,i),uc);
         end
     
-        data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd);
-        data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso);
+        data.met.wind_spd = align_timeseries(data.met.time,data.met.windtime,data.met.wind_spd,uc);
+        data.swso = align_timeseries(data.met.time,data.met.insotime,data.swso,uc);
     
         data.curr.time = datenum(data.met.time);
         opt.wave.time = datenum(data.met.time); %might have to convert back to datenum
         data.met.time = datenum(data.met.time);
     end
 elseif input2
-    if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1) && opt.wave.time(1) == data.curr.time(1)
+    if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1)
+        for i=1:num_d(2) %current data isn't aligned
+            data.curr.speed6a(:,i) = align_timeseries(data.wind.time,data.curr.time,data.curr.speed6(:,i),uc);
+        end
+        data.curr.time = datenum(data.wind.time);
+        data.met.time = data.wind.time;
+        data.swso = data.solar.swso;
+        data.met.wind_spd = data.wind.U;
+        data.met.wind_ht = 10; %all ERA5 data is at 10 m
         disp('Time series are aligned')
     else
         disp('ERROR - Task2 data should already be aligned...')
     end
 end
 
-%winter cleaning
-if inso.cleanstrat == 3  %winter cleaning
-    disp('ERROR - should use clean strat 4 for Hybrid')
+%%Plot processed data
+if opt.pltdebug && input2 %diagnostic plot of input data for Task 2 locations (aligned data)
+    clear ax
+    figure(2)
+    tf = tiledlayout(4,1);
+    title(tf,strcat(data.title," - Processed Data"))
+
+    ax(1) = nexttile; %solar
+    plot(data.met.time, data.swso,'linewidth',1.5,'Color',col(6,:))
+    ylabel('[W/m^2]')
+    title('Inso')
+
+    ax(2) = nexttile; %wind
+    plot(data.met.time,data.met.wind_spd,'linewidth',1.5,'color',col(1,:))
+    ylabel('[m/s]')
+    title('Wind Speed')
+
+    ax(3) = nexttile; %current
+    plot(data.curr.time,data.curr.speed6a(:,1),'linewidth',1.5,'color',col(3,:))
+    ylabel('[m/s]')
+    title('Surface Current Speed')
+
+    ax(4) = nexttile; %wave height
+    plot(data.met.time,opt.wave.wavepower_ts,'linewidth',1.5,'color',col(4,:))
+    ylabel('[W/m ??]')
+    title('Wave Power')
+    xlabel('Time')
+
+    linkaxes(ax,'x')
+    xlim([min(data.met.time),max(data.met.time)])
+end
+%% winter cleaning
+if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
     %winter cleaning (if applicable)
     if data.lat < 0 %southern hemisphere
         wint_clean_mo = 5; %may
     else
         wint_clean_mo = 11; %november
     end
-    dv = datevec(data.met.time);
-    data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 ...
-        & dv(:,4) == 0);
-end
-if inso.cleanstrat == 4 %every other winter
-    data.wint_clean_ind = data.wint_clean_ind(2:2:end);
+    if input1
+        dv = datevec(data.met.time);
+    elseif input2
+        dv = datevec(data.solar.time);
+    end
+    data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 & dv(:,4) == 0);
+    if inso.cleanstrat == 4 %every other winter
+        data.wint_clean_ind = data.wint_clean_ind(2:2:end);
+    end
 end
 
 %% Get current power

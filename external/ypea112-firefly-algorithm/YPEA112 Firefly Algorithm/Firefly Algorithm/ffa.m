@@ -23,13 +23,12 @@ tTot = tic;
 
 %CostFunction=@(x) Rosenbrock(x);        % Cost Function
 
-nVar=6;                 % Number of Decision Variables - number of dimensions
+nVar=6;                                                          % Number of Decision Variables - number of dimensions
+VarSize=[1 nVar];                                                % Decision Variables Matrix Size
 
-VarSize=[1 nVar];       % Decision Variables Matrix Size
-
-%Min and Max of gird - needs to connect to opt.bf.M or .N
-VarMin= [0 0 0 0 0 1];             % Decision Variables Lower Bound
-VarMax= [8 8 8 8 8 500];             % Decision Variables Upper Bound
+%Min and Max of gird
+VarMin= [0 0 0 0 0 1];                                           % Decision Variables Lower Bound
+VarMax= [opt.bf.M opt.bf.M opt.bf.M opt.bf.M opt.bf.M opt.bf.N]; % Decision Variables Upper Bound
 
 %adjustments for 5D opt
 if opt.pd == 5
@@ -38,14 +37,13 @@ if opt.pd == 5
     elseif opt.pm == 4 %no diesel
         VarMax(1) = 0;
     end
+elseif opt.pd == 2
+    VarMax = zeros(1,6);
+    VarMax(opt.pm) = opt.bf.M;
 end
 
 %% Firefly Algorithm Parameters
-
-%MaxIt=1000;         % Maximum Number of Iterations
 MaxIt=opt.ffa.max;   % Maximum Number of Iterations
-
-%nPop=25;            % Number of Fireflies (Swarm Size)
 nPop=opt.ffa.pop;    % Number of Fireflies (Swarm Size)
 
 gamma=1;            % Light Absorption Coefficient
