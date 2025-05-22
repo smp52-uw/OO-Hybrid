@@ -100,6 +100,61 @@ year1 = year(time_start(1)); %starting year for cleaned/aligned time series
 time_final = datetime([year1 01 01]):hours(1):datetime([year1+uc.lifetime 01 01]); %cleaned/aligned time series
 time_final = time_final(1:end-1)'; %need one less than the entire time series so it ends at midnight 12/31
 
+
+%% Fill big gaps
+if input2
+    bad_wind = sum(isnan(data.wind.U));
+    data.wind.U  = interp1(converted_time_wind,data.wind.U(ind_wi),regwind_time,'nearest');
+    if bad_wind > 24
+        data.wind.U = fillmiss_phaseavg(data.wind.U, regwin_time);
+    end
+    data.wind.U = fillmissing(data.wind.U,'nearest');
+    disp('extend wind')
+    [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U,datenum(regwind_time),uc.lifetime); %make time series data adequately long
+
+    bad_solar = sum(isnan(data.solar.swso));
+    data.solar.swso  = interp1(converted_time_inso,data.solar.swso(ind_in),reginso_time,'nearest');
+    if bad_solar > 24
+        data.solar.swso = fillmiss_phaseavg(data.solar.swso, reginso_time);
+    end
+    data.solar.swso = fillmissing(data.solar.swso,'nearest');
+    swso_neg_count = sum(data.solar.swso < 0);
+    if swso_neg_count > 0
+        disp('removing negative solar data')
+        data.solar.swso(data.solar.swso < 0) = 0; %remove any negative swso points
+    end
+    disp('extend solar')
+    [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
+    
+    num_d = size(data.curr.vmag);  
+    for i = 1:min(num_d)
+        bad_curr = sum(isnan(data.curr.vmag(:,i)));
+        data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');
+        if bad_curr > 24
+            data.curr.speed(:,i) = fillmiss_phaseavg(data.curr.speed(:,i), regcurr_time);
+        end
+        data.curr.speed(:,i) = fillmissing(data.curr.speed(:,i),'nearest');
+    end
+    
+    bad_wave = sum(isnan(Hs));
+    if bad_wave > 24
+        opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'nearest');
+        opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'nearest');
+        opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'nearest');
+        opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'nearest');
+
+        opt.wave.wavepower_ts = fillmiss_phaseavg(opt.wave.wavepower_ts, regwave_time);
+        nanwave = isnan(opt.wave.wavepower_ts);
+        opt.wave.Hs = fillmiss_phaseavg(opt.wave.Hs, regwave_time);
+        opt.wave.Tp  = fillmiss_phaseavg(opt.wave.Tp, regwave_time);
+        opt.wave.L = fillmiss_phaseavg(opt.wave.L, regwave_time);
+
+        opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
+        opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
+        opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
+        opt.wave.L = fillmissing(opt.wave.L,'nearest');
+    end
+end
 %interpolate data to clean time series
 %The clean time series will have a time slightly before the first data
 %point and the interpolation makes that value go to zero - fixed with the
@@ -120,40 +175,22 @@ if input1
     disp('extend wind')
     [data.met.wind_spd,data.met.windtime] = extendToLifetime(data.met.wind_spd,datenum(regwind_time),uc.lifetime); %make time series data adequately long
 
-elseif input2
-    data.wind.U  = interp1(converted_time_wind,data.wind.U(ind_wi),regwind_time,'linear');
-    data.wind.U = fillmissing(data.wind.U,'nearest');
-    data.solar.swso = fillmissing(data.solar.swso,'linear'); %[W/m^2]
-    data.solar.swso  = interp1(converted_time_inso,data.solar.swso(ind_wi),reginso_time,'linear');
-    data.solar.swso = fillmissing(data.solar.swso,'nearest');
-    swso_neg_count = sum(data.solar.swso < 0);
-    if swso_neg_count > 0
-        disp('removing negative solar data')
-        data.solar.swso(data.solar.swso < 0) = 0; %remove any negative swso points
+    for i=1:num_d(2)
+        data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');
+        data.curr.speed(:,i) = fillmissing(data.curr.speed(:,i),'nearest');
     end
-    disp('extend solar')
-    [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
-    disp('extend wind')
-    [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U,datenum(regwind_time),uc.lifetime); %make time series data adequately long
 
+    %PrepWave
+    %Interpolate wave data to clean time series
+    opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'linear');
+    opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'linear');
+    opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'linear');
+    opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'linear');
+    opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
+    opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
+    opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
+    opt.wave.L = fillmissing(opt.wave.L,'nearest');
 end
-
-num_d = size(data.curr.vmag);
-for i=1:num_d(2)
-    data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');
-    data.curr.speed(:,i) = fillmissing(data.curr.speed(:,i),'nearest');
-end
-
-%PrepWave
-%Interpolate wave data to clean time series
-opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'linear');
-opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'linear');
-opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'linear');
-opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'linear');
-opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
-opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
-opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
-opt.wave.L = fillmissing(opt.wave.L,'nearest');
 
 %extend wavepower, time, hs, tp and wavelength timeseries
 disp('extend wave')
@@ -216,28 +253,30 @@ if opt.pltdebug && input2 %diagnostic plot of input data for Task 2 locations (a
     title(tf,strcat(data.title," - Processed Data"))
 
     ax(1) = nexttile; %solar
-    plot(data.met.time, data.swso,'linewidth',1.5,'Color',col(6,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'), data.swso,'linewidth',1.5,'Color',col(6,:))
     ylabel('[W/m^2]')
     title('Inso')
 
     ax(2) = nexttile; %wind
-    plot(data.met.time,data.met.wind_spd,'linewidth',1.5,'color',col(1,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'),data.met.wind_spd,'linewidth',1.5,'color',col(1,:))
     ylabel('[m/s]')
     title('Wind Speed')
 
     ax(3) = nexttile; %current
-    plot(data.curr.time,data.curr.speed6a(:,1),'linewidth',1.5,'color',col(3,:))
+    plot(datetime(data.curr.time,'convertfrom','datenum'),data.curr.speed6a(:,1),'linewidth',1.5,'color',col(3,:))
     ylabel('[m/s]')
     title('Surface Current Speed')
 
     ax(4) = nexttile; %wave height
-    plot(data.met.time,opt.wave.wavepower_ts,'linewidth',1.5,'color',col(4,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'),opt.wave.wavepower_ts,'linewidth',1.5,'color',col(4,:))
+    hold on
+    plot(datetime(data.met.time(nanwave),'convertfrom','datenum'),opt.wave.wavepower_ts(nanwave),'kx')
     ylabel('[W/m ??]')
     title('Wave Power')
     xlabel('Time')
 
-    linkaxes(ax,'x')
-    xlim([min(data.met.time),max(data.met.time)])
+    %linkaxes(ax,'x')
+    %xlim([min(data.met.time),max(data.met.time)])
 end
 %% winter cleaning
 if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning

@@ -5,14 +5,14 @@ econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
 %% Optimization Algorithm
-opt.ffa.max = 10; %max number of firefly iterations
-opt.ffa.pop = 100; %population size 
+opt.ffa.max = 3; %max number of firefly iterations
+opt.ffa.pop = 25; %population size 
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
 opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 3; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
@@ -41,8 +41,8 @@ opt.tdsens = 0;
 opt.senssm = 0;
 opt.highresobj = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'argBasin';
-cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
+loc = 'BerSea';
+%cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
 task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea'};
@@ -206,14 +206,14 @@ end
 
 clear cost depth diameter
 econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
-econ.platform.steel = 44;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL)
+econ.platform.steel = 44;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL) [2025]
 econ.platform.t_i = [6 12];         %[h] added h for inst
 econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 
 %econ.vessel.osvcost = 15000*1.15;  %[$/day] 2020->2022
 %econ.vessel.speed = 10;             %[kts]
 %econ.vessel.t_mosv = 6;             %[h] time on site for maint (osv)
-econ.vessel.speccost = 50000*1.15;       %[$/day] 2020->2022
+econ.vessel.speccost = 50000*2;       %[$/day] 2020->2024 (PPI)
 %econ.vessel.t_ms = 6;               %[h] time on site  (spec) - obselete
 %econ.vessel.int = 1;                %[vessel int/year] -obselete
 
@@ -221,15 +221,15 @@ econ.vessel.speccost = 50000*1.15;       %[$/day] 2020->2022
 econ.batt.enclmult = 1;             %multiplier on battery cost for encl - obselete
 econ.batt.volmult = 1.2;            %volume multiplier for batter enclosure (makes room of electrical equipment)
 %wind
-econ.wind.installed = 5120;         %[$/kW] installed cost (DWR, 2022)
+econ.wind.installed = 5120*1.1;         %[$/kW] installed cost (DWR, 2022->2024 PPI)
 econ.wind.tcm = 1;                  %turbine cost multiplier (sens var)
 %econ.wind.mim = 137/49;             %marine installment multiplier (CoWR)
-econ.wind.marinization = 1.8;       %[CoWR]
+econ.wind.marinization = 2;       %[CoWR]
 %solar
-econ.inso.module = 480;             %[$/kW], all SCB, Q12022
-econ.inso.installation = 160;       %[$/kW]
-econ.inso.electrical = 310;         %[$/kW]
-econ.inso.structural = 90;         %[$/kW]
+econ.inso.module = 480*1.1;             %[$/kW], all SCB, Q12022 (2022->2024 from PPI)
+econ.inso.installation = 160*1.1;       %[$/kW]
+econ.inso.electrical = 310*1.1;         %[$/kW]
+econ.inso.structural = 90*1.1;         %[$/kW]
 econ.inso.marinization = 1.2;       %[~]
 econ.inso.pcm = 1;                  %cost multiplier (sens var)
 %wave costs
@@ -240,7 +240,7 @@ econ.wave.costmult_opt = 4;         %optimistic cost multiplier
 econ.dies.fcost = 1.4;              %[$/L] diesel fuel cost
 %econ.dies.enclcost = 5000*1.19;     %[$], 2018->2022 - obselete
 %econ.dies.enclcap = 1.5;            %[m^3] - obselete
-econ.dies.autostart = 3000*1.15;    %[$], 2020->2022
+econ.dies.autostart = 3000*1.2;    %[$], 2020->2024 (PPI)
 %econ.dies.fail = .2;                %failures per year
 econ.dies.gcm = 1;                  %generator cost multiplier (sens var)
 econ.dies.volmult = 1.2;            %volume multiplier for diesel enclosure (makes room for equipment)
@@ -321,7 +321,7 @@ lfp.lc_max = 12*5;          %maximum months of operation
 lfp.sdr = 3;                %[%/month] self discharge rate
 %lfp.dyn_lc = true;         %toggle dynamic life cycle
 lfp.dmax = 0;              %maximum depth of discharge
-lfp.cost = 466;             %[$/kWh] - irena2020electricty
+lfp.cost = 466*1.2;         %[$/kWh] - irena2020electricty 2020->2024 (PPI)
 lfp.lcm = 1;%battery life cycle model, 1:bolun 2:dyn_lc 3:fixed_lc
 lfp.T = 15;                 %[C] temperature
 lfp.EoL = 0.2;              %battery end of life

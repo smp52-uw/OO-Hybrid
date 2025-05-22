@@ -5,7 +5,7 @@ function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_curr, kWcost_wind
     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,kW_curr, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb) %#codegen
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
-
+disp("I'm working on it")
 ID = [kW_dies kW_inso kW_wind kW_wave kW_curr Smax];
 %disp('made it into SimHybrid')
 % if kW_wave < 0.2144
@@ -413,6 +413,7 @@ comp_plat_mass = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_die
 
 %% Economic Optimization
 if opt.tar ==3 %economic
+    tic
     %costs - solar
     Mcost_inso = 2*econ.inso.module*kW_inso*econ.inso.marinization*econ.inso.pcm; %module
     Icost_inso = 2*econ.inso.installation*kW_inso*econ.inso.pcm; %installation
@@ -554,7 +555,7 @@ if opt.tar ==3 %economic
         Strcost_inso + Icost_wind + kWcost_wind + Icost_wave + kWcost_wave + kWcost_curr + Icost_curr;
     OpEx = fuel + battreplace + batteryrepair + genrepair + vesselcost + turbrepair + cturbrepair + wecrepair + solarrepair + mooringrepair;
     cost = CapEx + OpEx;
-
+    toc
 %% Weight Approximation
 elseif opt.tar == 1
     buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...

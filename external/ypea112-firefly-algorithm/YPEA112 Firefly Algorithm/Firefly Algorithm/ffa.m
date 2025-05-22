@@ -40,6 +40,7 @@ if opt.pd == 5
 elseif opt.pd == 2
     VarMax = zeros(1,6);
     VarMax(opt.pm) = opt.bf.M;
+    VarMax(6) = opt.bf.N;
 end
 
 %% Firefly Algorithm Parameters
