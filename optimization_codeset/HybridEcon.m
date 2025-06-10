@@ -1,4 +1,4 @@
-function [CapEx,OpEx,cost,costcomp,indMoor,mass] = HybridEcon(data,econ,opt,inso,batt,turb,bc,kW_inso,kW_wind,kW_wave,kW_curr,kW_dies,Smax,runtime_tot,nvi,newbatt)
+function [CapEx,OpEx,cost,costcomp,indPM,mass] = HybridEcon(data,econ,opt,inso,batt,turb,bc,kW_inso,kW_wind,kW_wave,kW_curr,kW_dies,Smax,runtime_tot,nvi,newbatt)
     %Hybrid Economic Model
     depth = data.depth;
     lph = polyval(opt.p_dev.d_burn,kW_dies); %[l/h], burn rate
@@ -31,7 +31,7 @@ function [CapEx,OpEx,cost,costcomp,indMoor,mass] = HybridEcon(data,econ,opt,inso
     %     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
     %     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
     
-    mass_wec = kW_wave.*895.78;
+    mass_wec = kW_wave.*895.78; %based on RM3 weight with no float
     if kW_wave == 0
         mass_wec = 0;
     end
@@ -146,15 +146,22 @@ function [CapEx,OpEx,cost,costcomp,indMoor,mass] = HybridEcon(data,econ,opt,inso
         %%New Mooring Model
         tempPmooring = nan(length(kW_dies),3);
         tempmass = nan(length(kW_dies),3);
+        dp = nan; %platform diameter is not needed for Task 2 modeling
         for b = 1:3 %loop through buoy sizes
             tempPmooring(:,b) = 2.*interp1(econ.platform.payloadmass(b,:),econ.platform.cost(b,:),comp_plat_mass,'linear'); %mooring cost - this should not extrapolate
             tempmass(:,b) = interp1(econ.platform.payloadmass(b,:),econ.platform.mass(b,:),comp_plat_mass,'linear');
+            tempPmtrl(:,b) = 2.*(tempmass(:,b)-comp_plat_mass).*econ.platform.steel;
+            tempMTRLMOOR(:,b) = tempPmtrl(:,b) + tempPmooring(:,b);
         end
-        [Pmooring,indMoor] = min(tempPmooring,[],2);
-        for m = 1:length(indMoor)
-            Buoy_Mass(m,1) = tempmass(m,indMoor(m));
+        [Pmooring,indMoor] = min(tempPmooring,[],2); %find min mooring cost and index of that min
+        [~,indPM] = min(tempMTRLMOOR,[],2); %find index of lowers material + mooring cost
+        % for m = 1:length(indMoor)
+        %     Buoy_Mass(m,1) = tempmass(m,indMoor(m));
+        % end
+        for m = 1:length(indPM)
+            Buoy_Mass(m,1) = tempmass(m,indPM(m)) - comp_plat_mass(m);
+            Pmooring(m,1) = tempPmooring(m,indPM(m));
         end
-        dp = nan; %platform diameter is not needed for Task 2 modeling
     end
     Pmtrl = 2.*Buoy_Mass.*econ.platform.steel;  %platform material cost - UPDATED BASED ON INFO FROM DEREK
     t_i = interp1(econ.platform.d_i,econ.platform.t_i,depth, ...

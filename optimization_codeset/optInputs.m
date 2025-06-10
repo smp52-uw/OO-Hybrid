@@ -6,13 +6,13 @@ econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
 %% Optimization Algorithm
 opt.ffa.max = 3; %max number of firefly iterations
-opt.ffa.pop = 25; %population size 
+opt.ffa.pop = 5; %population size 
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly
+opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 3; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 1; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
@@ -21,18 +21,19 @@ opt.bf.N = 500; %[kWh] max Smax in grid
 
 opt.pltdebug = 1;
 %% Obselete Optimization Inputs
-% opt.bf.j = 9;
-% opt.bf.k = 9;
-% opt.bf.l = 9;
-% opt.bf.m = 9;
-% opt.bf.n = 9;
-% opt.bf.o = 9;
-% opt.pl = 0.975; %persistence left side
-% opt.pr = 0.995; %persistence right side
-% opt.tl = 0.97; %telescope left side
-% opt.tr = 1.03; %telescope right side
-% opt.tel_max = 3; %maximum number of telescoping iterations
-
+if ~strcmp(opt.alg,'ffa')
+    opt.bf.j = 9;
+    opt.bf.k = 9;
+    opt.bf.l = 9;
+    opt.bf.m = 9;
+    opt.bf.n = 9;
+    opt.bf.o = 9;
+    opt.pl = 0.975; %persistence left side
+    opt.pr = 0.995; %persistence right side
+    opt.tl = 0.97; %telescope left side
+    opt.tr = 1.03; %telescope right side
+    opt.tel_max = 1; %maximum number of telescoping iterations
+end
 %% Run Inputs
 opt.allscenuses = 0;
 opt.alllocuses = 0;
@@ -41,8 +42,8 @@ opt.tdsens = 0;
 opt.senssm = 0;
 opt.highresobj = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'BerSea';
-%cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
+loc = 'argBasin';
+cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
 task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea'};
@@ -182,11 +183,13 @@ if any(strcmp(loc,trentloc)) %if Trent's locations
         econ.platform.cost = cost;
         econ.platform.depth = depth;
         econ.platform.diameter = diameter;
+        econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
     elseif opt.pm == 1 %wind
         load('mdd_output_wind.mat')
         econ.platform.cost = cost;
         econ.platform.depth = depth;
         econ.platform.diameter = diameter;
+        econ.platform.boundary = 2; %1: multi-mooring, 2: 8m diameter limit
     end
 else
     %% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
@@ -195,7 +198,7 @@ else
     %NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
     econ.platform.cost = MoorMat.WorstCase.cost;
     econ.platform.payloadmass = MoorMat.WorstCase.PLmass;
-    econ.platform.mass = MoorMat.WorstCase.mass; %platform mass
+    econ.platform.mass = MoorMat.WorstCase.mass; %platform mass + payload mass
     %econ.platform.depth = depth; %I don't think we need this because the moor
     %matrix is specific to a location so no depth-wise interpolation is needed
     
@@ -206,7 +209,8 @@ end
 
 clear cost depth diameter
 econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
-econ.platform.steel = 44;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL) [2025]
+learningfactor = 100^(log10(1-0.2)/log10(2)); %mass production learning rate (100 assumed number of units, learning rate = 0.2) - from Brian
+econ.platform.steel = 44*learningfactor;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL) [2025]
 econ.platform.t_i = [6 12];         %[h] added h for inst
 econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 

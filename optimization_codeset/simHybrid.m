@@ -1,11 +1,15 @@
 function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_curr, kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
-    vesselcost,genrepair,turbrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
+    vesselcost,genrepair,turbrepair, solarrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
     triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies,Pinso,Pwind,Pwave,Pcurr,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
-    simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,kW_curr, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb) %#codegen
+    simHybrid(GenCoord, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb) %#codegen
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
-disp("I'm working on it")
+kW_wind = GenCoord(1);
+kW_inso = GenCoord(2);
+kW_wave = GenCoord(3);
+kW_dies = GenCoord(4);
+kW_curr = GenCoord(5); %1:Wi 2:In 3:Wa 4:Di 5:Cu
 ID = [kW_dies kW_inso kW_wind kW_wave kW_curr Smax];
 %disp('made it into SimHybrid')
 % if kW_wave < 0.2144
@@ -386,7 +390,7 @@ mass_curr = 0; %assume the turbine assembly is ballasted to neutral buoyancy (Br
 
 mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
 al_plate = 35.24; %[kg/m2] - 1.2" 6061 AL
-gen_vol = econ.dies.volmult*polyval(opt.p_dev.d_size,kW_dies)^3;
+gen_vol = econ.dies.volmult*polyval(opt.p_dev.d_size,kW_dies).^3;
 mass_diesencl = 6*(gen_vol^2/3)*al_plate; %[kg]
 dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
 mass_fuel = runtime_tot*lph*dies_dens; %[kg]
@@ -404,7 +408,7 @@ mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
 %     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
 %     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
 
-mass_wec = kW_wave*895.78;
+mass_wec = kW_wave*895.78; %based on RM3 weight with no float
 if kW_wave == 0
     mass_wec = 0;
 end
@@ -414,6 +418,7 @@ comp_plat_mass = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_die
 %% Economic Optimization
 if opt.tar ==3 %economic
     tic
+    %% Costs
     %costs - solar
     Mcost_inso = 2*econ.inso.module*kW_inso*econ.inso.marinization*econ.inso.pcm; %module
     Icost_inso = 2*econ.inso.installation*kW_inso*econ.inso.pcm; %installation
@@ -437,7 +442,7 @@ if opt.tar ==3 %economic
     if kW_wave == 0, kWcost_wave = 0; end
     if kW_wave ~= 0 %no Icost if kW_wave = 0
         Icost_wave = 2*(econ.wind.installed - (0.5*kWcost_wave)/ ...
-            (kW_wave*econ.wave.costmult))*kW_wave*econ.wave.costmult; %installation
+            (kW_wave*econ.wave.costmult))*kW_wave.*econ.wave.costmult; %installation
         if Icost_wave < 0, Icost_wave = 0; end
     else
         Icost_wave = 0;
@@ -498,24 +503,40 @@ if opt.tar ==3 %economic
             if dp < 2, dp = 2; end
         elseif opt.pm == 1 %wind
             dp = 0.8;
+            Pmooring = interp1(econ.platform.depth, ...
+            econ.platform.cost,depth,'linear');
         elseif opt.pm == 4 %diesel
-            dp = polyval(opt.p_dev.d_size,kW);
+            dp = polyval(opt.p_dev.d_size,kW_dies);
             if dp < 2, dp = 2; end
         end
-        Pmooring = interp2(econ.platform.diameter, ...
-        econ.platform.depth, ...
-        econ.platform.cost,dp,depth,'linear');
+        if opt.pm~=1
+            Pmooring = interp2(econ.platform.diameter, ...
+            econ.platform.depth, ...
+            econ.platform.cost,dp,depth,'linear');
+        end
     else
         %%New Mooring Model
-        tempPmooring = nan(3,1);
-        tempmass = nan(3,1);
-        for b = 1:3 %loop through buoy sizes
-            tempPmooring(b) = 2*interp1(econ.platform.payloadmass(b,:),econ.platform.cost(b,:),comp_plat_mass,'linear'); %mooring cost - this should not extrapolate
-            tempmass(b) = interp1(econ.platform.payloadmass(b,:),econ.platform.mass(b,:),comp_plat_mass,'linear');
-        end
-        [Pmooring,indMoor] = min(tempPmooring);
-        Buoy_Mass = tempmass(indMoor);
+        tempPmooring = nan(length(kW_dies),3);
+        tempmass = nan(length(kW_dies),3);
+        tempPmtrl = nan(length(kW_dies),3);
+        tempMTRLMOOR = nan(length(kW_dies),3);
+        Buoy_Mass = nan(length(kW_dies),1);
         dp = nan; %platform diameter is not needed for Task 2 modeling
+        for b = 1:3 %loop through buoy sizes
+            tempPmooring(:,b) = 2*interp1(econ.platform.payloadmass(b,:),econ.platform.cost(b,:),comp_plat_mass,'linear'); %mooring cost - this should not extrapolate
+            tempmass(:,b) = interp1(econ.platform.payloadmass(b,:),econ.platform.mass(b,:),comp_plat_mass,'linear');
+            tempPmtrl(:,b) = 2*(tempmass(:,b)-comp_plat_mass)*econ.platform.steel;
+            tempMTRLMOOR(:,b) = tempPmtrl(:,b) + tempPmooring(:,b);
+        end
+        [Pmooring,indMoor] = min(tempPmooring,[],2); %find min mooring cost and index of that min
+        [~,indPM] = min(tempMTRLMOOR,[],2); %find index of lowers material + mooring cost
+        % for m = 1:length(indMoor)
+        %     Buoy_Mass(m,1) = tempmass(m,indMoor(m));
+        % end
+        for m = 1:length(indPM)
+            Buoy_Mass(m,1) = tempmass(m,indPM(m)) - comp_plat_mass(m);
+            Pmooring(m,1) = tempPmooring(m,indPM(m));
+        end
     end
     Pmtrl = 2*Buoy_Mass*econ.platform.steel;  %platform material cost - UPDATED BASED ON INFO FROM DEREK
     t_i = interp1(econ.platform.d_i,econ.platform.t_i,depth, ...
@@ -555,6 +576,7 @@ if opt.tar ==3 %economic
         Strcost_inso + Icost_wind + kWcost_wind + Icost_wave + kWcost_wave + kWcost_curr + Icost_curr;
     OpEx = fuel + battreplace + batteryrepair + genrepair + vesselcost + turbrepair + cturbrepair + wecrepair + solarrepair + mooringrepair;
     cost = CapEx + OpEx;
+
     toc
 %% Weight Approximation
 elseif opt.tar == 1

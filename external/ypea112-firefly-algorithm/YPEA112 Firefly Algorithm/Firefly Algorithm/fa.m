@@ -32,11 +32,11 @@ MaxIt=1000;         % Maximum Number of Iterations
 
 nPop=25;            % Number of Fireflies (Swarm Size)
 
-gamma=1;            % Light Absorption Coefficient
+gamma=3;            % Light Absorption Coefficient
 
-beta0=2;            % Attraction Coefficient Base Value
+beta0=1;            % Attraction Coefficient Base Value
 
-alpha=0.2;          % Mutation Coefficient
+alpha=0.8;          % Mutation Coefficient
 
 alpha_damp=0.98;    % Mutation Coefficient Damping Ratio
 
@@ -89,6 +89,10 @@ for it=1:MaxIt
                 e=delta*unifrnd(-1,+1,VarSize);
                 %e=delta*randn(VarSize);
                 
+                % newsol.Position = pop(i).Position ...
+                %                 + beta.*(pop(j).Position-pop(i).Position) ...
+                %                 + alpha*e;
+
                 newsol.Position = pop(i).Position ...
                                 + beta*rand(VarSize).*(pop(j).Position-pop(i).Position) ...
                                 + alpha*e;
@@ -133,9 +137,9 @@ end
 
 %% Results
 
-figure;
-%plot(BestCost,'LineWidth',2);
-semilogy(BestCost,'LineWidth',2);
-xlabel('Iteration');
-ylabel('Best Cost');
-grid on;
+% figure;
+% %plot(BestCost,'LineWidth',2);
+% semilogy(BestCost,'LineWidth',2);
+% xlabel('Iteration');
+% ylabel('Best Cost');
+% grid on;

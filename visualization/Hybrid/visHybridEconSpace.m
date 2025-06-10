@@ -24,6 +24,26 @@ end
 [kWgrid,Smaxgrid] = ndgrid(kW,Smax);
 costgrid = reshape(cost,[disc,500]);
 massgrid = reshape(mass.total,[disc,500]);
+buoygrid = reshape(optStruct.indPM,[disc,500]);
+
+testS = linspace(1,500,500);
+med = 11000.*ones(size(testS));
+sm = 1200.*ones(size(testS));
+lg = 16000.*ones(size(testS));
+
+massinterp = scatteredInterpolant(mass.total,reshape(Smaxgrid,[disc*500,1]),reshape(kWgrid,[disc*500,1]));
+
+
+kWsm = massinterp(sm,testS);
+kWmed = massinterp(med,testS);
+kWlg = massinterp(lg,testS);
+
+kWsm(kWsm<0) = nan;
+kWsm(kWsm>8) = nan;
+kWmed(kWmed<0) = nan;
+kWmed(kWmed>8) = nan;
+kWlg(kWlg<0) = nan;
+kWlg(kWlg>8) = nan;
 
 figure
 s = surf(kWgrid,Smaxgrid,costgrid);
@@ -41,24 +61,47 @@ hold on
 grid on
 
 figure
-s = surf(kWgrid,Smaxgrid,massgrid);
+s = surf(kWgrid,Smaxgrid,buoygrid);
 s.EdgeColor = 'none';
 s.FaceColor = 'flat';
 
 view(0,90)
 ylabel('Storage Capacity [kWh]')
 xlabel('Rated Power [kW]')
-title('Total Payload Mass')
+title('buoy')
 c = colorbar;
-c.Label.String = '[kg]';
 
 hold on
 grid on
 
 
-[~,id1] = min(abs(1.5-kW));
+figure
+s = surf(kWgrid,Smaxgrid,massgrid);
+s.EdgeColor = 'none';
+s.FaceColor = 'flat';
+view(0,90)
+c = colorbar;
+c.Label.String = '[kg]';
+hold on
+col = brewermap(10,'greys'); %colors
+zloc = 1.2*max(massgrid,[],'all').*ones(size(testS));
+pl(1) = plot3(kWsm,testS,zloc,'-','Color',col(4,:),'LineWidth',2,'DisplayName','Small Buoy Limit');
+pl(2) = plot3(kWmed,testS,zloc,'-','Color',col(8,:),'LineWidth',2,'DisplayName','Medium Buoy Limit');
+pl(3) = plot3(kWlg,testS,zloc,'r-','LineWidth',2,'DisplayName','Large Buoy Limit');
+
+ylabel('Storage Capacity [kWh]')
+xlabel('Rated Power [kW]')
+title('Total Payload Mass')
+legend(pl,'Location','northoutside','Orientation','horizontal')
+
+
+grid on
+
+
+
+[~,id1] = min(abs(0.3-kW));
 kWr(1) = kW(id1);
-Smr(1) = 150;
+Smr(1) = 15;
 
 [~,id2] = min(abs(3.5-kW));
 kWr(2) = kW(id2);
@@ -77,8 +120,6 @@ for f = 1:length(fn)
     end
 end
 
-indMoor = reshape(optStruct.indMoor,[disc,500]);
-
 figure
 set(gcf,'Units','inches')
 set(gcf,'Position', [1, 1, 8.5, 4])
@@ -86,7 +127,6 @@ tiledlayout(1,3)
 for j = 1:3
 
     ind = find(kWgrid == kWr(j) & Smaxgrid == Smr(j));
-    indMoorPoint(j) = indMoor(ind);
     c = 1; %counter 
     for f = 1:length(fn)
         if isfield(costcompgrid,fn{f})

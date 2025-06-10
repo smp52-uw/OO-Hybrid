@@ -102,6 +102,7 @@ time_final = time_final(1:end-1)'; %need one less than the entire time series so
 
 
 %% Fill big gaps
+num_d = size(data.curr.vmag); 
 if input2
     bad_wind = sum(isnan(data.wind.U));
     data.wind.U  = interp1(converted_time_wind,data.wind.U(ind_wi),regwind_time,'nearest');
@@ -125,8 +126,7 @@ if input2
     end
     disp('extend solar')
     [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
-    
-    num_d = size(data.curr.vmag);  
+     
     for i = 1:min(num_d)
         bad_curr = sum(isnan(data.curr.vmag(:,i)));
         data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');

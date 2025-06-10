@@ -13,6 +13,6 @@
 
 function z=Sphere(x)
 
-    z=sum(x.^2);
+    z=sum((x-1).^2);
 
 end

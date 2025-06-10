@@ -1,0 +1,105 @@
+% ---------------------------------------------------------------------- %
+% The Firefly Algorithm (FA) for unconstrained function optimization     %
+% by Xin-She Yang (Cambridge University) @2008-2009                      %
+% Programming dates: 2008-2009, then revised and updated in Oct 2010     %
+% ---------------------------------------------------------------------- %
+
+% References -- citation details: -------------------------------------- %
+% (1) Xin-She Yang, Nature-Inspired Metaheuristic Algorithms,            %
+%     Luniver Press, First Edition, (2008).                              %
+% (2) Xin-She Yang, Firefly Algorithm, Stochastic Test Functions and     %
+%     Design Optimisation, Int. Journal of Bio-Inspired Computation,     %
+%     vol. 2, no. 2, 78-84 (2010).                                       %
+% ---------------------------------------------------------------------- %
+
+%Changes for Hybrid Optimization Implementation
+% 6/5/2025 - SM Palmer - initial implementation
+% -------- Start the Firefly Algorithm (FA) main loop ------------------ % 
+function [output] = fa_ndim_new(opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb)
+n=opt.ffa.pop;          % Population size (number of fireflies)
+tMax=opt.ffa.max;       % Maximum number of iterations
+d=6;                    % Number of dimensions
+
+alpha=1.0;              % Randomness strength 0--1 (highly random)
+beta0=1.0;              % Attractiveness constant
+gamma=0.01;             % Absorption coefficient
+theta=0.97;             % Randomness reduction factor theta=10^(-5/tMax) 
+
+Lb=-zeros(1,d);         % Lower bounds/limits
+Lb(end) = 1;            % battery lower bound is 1
+Ub=opt.bf.M*ones(1,d);  % Upper bounds/limits
+Ub(end) = opt.bf.N;     % battery upper bound is 500
+
+
+% Generating the initial locations of n fireflies
+rng('shuffle','Twister') %maybe will make the cluster rand work better?
+for i=1:n
+   ns(i,:)=Lb+(Ub-Lb).*rand(1,d);         % Randomization
+   Kd = ns(i,1);
+   Ki = ns(i,2);
+   Kwi = ns(i,3);
+   Kwa = ns(i,4);
+   Kc = ns(i,5);
+   S = ns(i,6);
+   [Lightn(i),S_temp(i)] = simHybrid(Kd, Ki, Kwi, Kwa, Kc, S,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
+   if S_temp(i) >= 0.99 %eval the constraint and save the output
+       output.cost{1}(i) = Lightn(i);
+       output.surv{1}(i) = S_temp(i);
+       output.Position{1}(i,:) = ns(i,:);
+   else
+       output.cost{1}(i) = Lightn(i);
+       output.surv{1}(i) = S_temp(i);
+       output.Position{1}(i,:) = ns(i,:);
+       Lightn(i) = inf; %overwrite since this doesn't meet the constraint
+   end
+
+end
+
+%%%%%%%%%%%%%%%%% Start the iterations (main loop) %%%%%%%%%%%%%%%%%%%%%%%
+for k=1:tMax        
+    alpha=alpha*theta;     % Reduce alpha by a factor theta
+    scale=abs(Ub-Lb);      % Scale of the optimization problem
+    % Two loops over all the n fireflies
+    for i=1:n
+        for j=1:n
+          % Evaluate the objective values of current solutions
+          [Lightn(i),S_temp(i)] = simHybrid(Kd, Ki, Kwi, Kwa, Kc, S,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);           % Call the objective
+          %apply constraint
+          if S_temp(i) < 0.99
+              Lightn(i) = inf;
+          end
+          % Update moves
+          if Lightn(i)>=Lightn(j)           % Brighter/more attractive
+             r=sqrt(sum((ns(i,:)-ns(j,:)).^2));
+             beta=beta0*exp(-gamma*r.^2);    % Attractiveness
+             steps=alpha.*(rand(1,d)-0.5).*scale;
+          % The FA equation for updating position vectors
+             ns(i,:)=ns(i,:)+beta*(ns(j,:)-ns(i,:))+steps;
+          end
+       end % end for j
+    end % end for i
+    
+    % Check if the new solutions/locations are within limits/bounds
+    ns=findlimits(n,ns,Lb,Ub);
+    %% Rank fireflies by their light intensity/objectives
+    [Lightn,Index]=sort(Lightn);
+    nsol_tmp=ns;
+    for i=1:n
+        ns(i,:)=nsol_tmp(Index(i),:);
+    end
+    %% Find the current best solution and display outputs
+    fbest=Lightn(1)
+    nbest=ns(1,:)
+end % End of the main FA loop (up to tMax) 
+
+% Make sure that new fireflies are within the bounds/limits
+function [ns]=findlimits(n,ns,Lb,Ub)
+for i=1:n
+  nsol_tmp=ns(i,:);
+  % Apply the lower bound
+  I=nsol_tmp<Lb;  nsol_tmp(I)=Lb(I);
+  % Apply the upper bounds
+  J=nsol_tmp>Ub;  nsol_tmp(J)=Ub(J);
+  % Update this new move
+  ns(i,:)=nsol_tmp;
+end
