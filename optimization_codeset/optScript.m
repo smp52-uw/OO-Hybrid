@@ -32,6 +32,13 @@ elseif opt.allscenuses %run all dimensions for a location
     disp(['All scenarios and use cases for the ' loc ...
         ' scenario complete after' num2str(round(toc(T)/60,2)) ...
         ' minutes.'])
+
+elseif opt.ffasens %firefly algorithm sensitivity run
+    disp(['Firefly algorithm sensitivity for the ' loc ...
+        ' location beginning now.'])
+    multStruct = 
+    disp('Firefly algorithm sensitivity complete')
+
 %  Line 36-53 obselete from individual pm modules
 % elseif opt.senssm
 %     if pm == 1

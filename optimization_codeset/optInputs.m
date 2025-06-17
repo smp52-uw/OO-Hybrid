@@ -7,6 +7,11 @@ econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 %% Optimization Algorithm
 opt.ffa.max = 3; %max number of firefly iterations
 opt.ffa.pop = 5; %population size 
+opt.ffa.gamma = 1;
+opt.ffa.beta0 = 1;
+opt.ffa.alpha = 0.2;
+opt.ffa.adamp = 0.98;
+
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
 opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
@@ -128,6 +133,14 @@ elseif isequal(batchtype,'sens')
     c = batchc;
     loc = batchloc;
     %batch = true;
+elseif strcmp(batchtype,'ffasc') %firefly algorithm sensitivity
+    opt.alg = 'ffa';
+    opt.ffa.sens{1} = [50 100 500 1000]; %max number of firefly iterations
+    opt.ffa.sens{2} = [25 50 75 125 250]; %population size 
+    opt.ffa.sens{3} = [0.1 0.5 1 2 5 10]; %gamma
+    opt.ffa.sens{4}= [1 2 3 6 8 10]; %beta0
+    opt.ffa.sens{5} = linspace(0.1,1,5); %alpha
+    opt.ffa.sens{6} = linspace(0.9,1,5); %alpha damp
 end
 
 %check to see if HPC
@@ -138,6 +151,9 @@ if feature('numcores') < 10
     opt.bf.n = 3;
     opt.bf.m = 3;
     opt.bf.o = 3;
+
+    opt.ffa.max = 1;
+    opt.ffa.pop = 10;
 end
 
 %% strings

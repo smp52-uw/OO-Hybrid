@@ -49,13 +49,13 @@ end
 MaxIt=opt.ffa.max;   % Maximum Number of Iterations
 nPop=opt.ffa.pop;    % Number of Fireflies (Swarm Size)
 
-gamma=1;            % Light Absorption Coefficient
+gamma=opt.ffa.gamma;            % Light Absorption Coefficient
 
-beta0=1;            % Attraction Coefficient Base Value
+beta0=opt.ffa.beta0;            % Attraction Coefficient Base Value
 
-alpha=0.2;          % Mutation Coefficient
+alpha=opt.ffa.alpha;          % Mutation Coefficient
 
-alpha_damp=0.98;    % Mutation Coefficient Damping Ratio
+alpha_damp=opt.ffa.adamp;    % Mutation Coefficient Damping Ratio
 
 %added the .* to do element wise multiplication
 delta=0.05.*(VarMax-VarMin);     % Uniform Mutation Range
