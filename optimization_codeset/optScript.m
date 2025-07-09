@@ -36,7 +36,7 @@ elseif opt.allscenuses %run all dimensions for a location
 elseif opt.ffasens %firefly algorithm sensitivity run
     disp(['Firefly algorithm sensitivity for the ' loc ...
         ' location beginning now.'])
-    multStruct = 
+    multStruct = doFFAsens(prepath,name,batchtype);
     disp('Firefly algorithm sensitivity complete')
 
 %  Line 36-53 obselete from individual pm modules

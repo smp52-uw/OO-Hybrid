@@ -86,6 +86,7 @@ end
 
 %set econ scenario
 switch econ.wave.scen
+    
     case 1 %conservative
         econ.wave.costmult = econ.wave.costmult_con; %cost multiplier
         %econ.wave.lambda = econ.wave.highfail; %vessel interventions

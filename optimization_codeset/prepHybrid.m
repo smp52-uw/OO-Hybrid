@@ -137,23 +137,23 @@ if input2
     end
     
     bad_wave = sum(isnan(Hs));
+    opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'nearest');
+    opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'nearest');
+    opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'nearest');
+    opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'nearest');
     if bad_wave > 24
-        opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'nearest');
-        opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'nearest');
-        opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'nearest');
-        opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'nearest');
-
         opt.wave.wavepower_ts = fillmiss_phaseavg(opt.wave.wavepower_ts, regwave_time);
         nanwave = isnan(opt.wave.wavepower_ts);
         opt.wave.Hs = fillmiss_phaseavg(opt.wave.Hs, regwave_time);
         opt.wave.Tp  = fillmiss_phaseavg(opt.wave.Tp, regwave_time);
         opt.wave.L = fillmiss_phaseavg(opt.wave.L, regwave_time);
-
-        opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
-        opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
-        opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
-        opt.wave.L = fillmissing(opt.wave.L,'nearest');
+    else
+        nanwave = [];
     end
+    opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
+    opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
+    opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
+    opt.wave.L = fillmissing(opt.wave.L,'nearest');
 end
 %interpolate data to clean time series
 %The clean time series will have a time slightly before the first data
@@ -264,6 +264,8 @@ if opt.pltdebug && input2 %diagnostic plot of input data for Task 2 locations (a
 
     ax(3) = nexttile; %current
     plot(datetime(data.curr.time,'convertfrom','datenum'),data.curr.speed6a(:,1),'linewidth',1.5,'color',col(3,:))
+    hold on
+    yline(cturb.uci,'linewidth',2)
     ylabel('[m/s]')
     title('Surface Current Speed')
 

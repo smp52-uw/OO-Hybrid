@@ -1,12 +1,12 @@
-function [multStruct] = doFFAsens()
+function [multStruct] = doFFAsens(prepath,name,batchtype)
 optInputs %load inputs
-data = load(loc,loc);
-data = data.(loc);
+data = load(loc,'data');
+data = data.('data');
 
 opt.S1 = length(opt.ffa.sens{1});
 opt.S2 = length(opt.ffa.sens{2});
 opt.S3 = length(opt.ffa.sens{3});
-opt.S4 = legnth(opt.ffa.sens{4});
+opt.S4 = length(opt.ffa.sens{4});
 opt.S5 = length(opt.ffa.sens{5});
 opt.S6 = length(opt.ffa.sens{6});
 
@@ -46,6 +46,9 @@ for p = 1:opt.S1
                         multStruct(p,q,r,s,u,v).wave = wave;
                         multStruct(p,q,r,s,u,v).dies = dies;
                         multStruct(p,q,r,s,u,v).comptime = num2str(round(toc(tTot),2)); %seconds
+
+                        stru.(name) = multStruct;
+                        save([prepath name '.mat'], '-struct','stru','-v7.3')
                     end
                 end
             end

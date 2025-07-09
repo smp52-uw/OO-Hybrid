@@ -134,7 +134,7 @@ BestCost=zeros(MaxIt,1);
 
 for it=1:MaxIt
     newpop=repmat(firefly,nPop,1); 
-    for i=1:nPop
+    parfor (i = 1:nPop,opt.bf.maxworkers)
         newpop(i).Cost = inf;
         newpop(i).Surv = 0;
         newpop(i).Position = nan(VarSize(1),VarSize(2));
@@ -166,34 +166,37 @@ for it=1:MaxIt
 
         % % end %%I'm fairly certain this is not necessary (separate for loops)
         % % for j=1:nPop
-                newsol.Position = P_temp(j,:);
-                newsol.Cost = C_temp(j);
-                newsol.Surv = S_temp(j);
-                if newsol.Surv < 0.99
-                    newsol.Cost = inf;
+                if S_temp(j) < 0.99
+                    C_temp(j) = inf;
                 end
                 
-                if newsol.Cost <= newpop(i).Cost
-                    newpop(i) = newsol;
-                    if newpop(i).Cost<=BestSol.Cost
-                        %BestSol=newpop(i);
-                        BestSol.Cost = newpop(i).Cost;
-                        BestSol.Surv{it}=newpop(i).Surv;
-                        BestSol.Position{it} = newpop(i).Position;
+                if C_temp(j) <= newpop(i).Cost
+                    newpop(i).Position = P_temp(j,:);
+                    newpop(i).Cost = C_temp(j);
+                    newpop(i).Surv = S_temp(j);
 
-                    end
                     
                 end
             end
         end
     end
     
+    %FIND BEST SOL
+    for i = 1:nPop
+        if newpop(i).Cost<=BestSol.Cost
+            %BestSol=newpop(i);
+            BestSol.Cost = newpop(i).Cost;
+            BestSol.Surv{it}=newpop(i).Surv;
+            BestSol.Position{it} = newpop(i).Position;
+    
+        end
+    end
     % Merge
     pop=[pop
          newpop];  %#ok
     %save populations
     for s = 1:nPop
-        output.cost{it+1}(s) = newpop(s).Cost;
+        output.cost{it+1}(s) = newpop(s).Cost; %new population costs - not necessarily kept in the pop
         output.surv{it+1}(s) = newpop(s).Surv;
         
         output.Kwi_run{it+1}(s) = newpop(s).Position(1);
@@ -217,6 +220,7 @@ for it=1:MaxIt
     % Show Iteration Information
     disp(['Iteration ' num2str(it) ': Best Cost = ' num2str(BestCost(it))]);
     
+    output.popBestCost(it) = BestCost(it); %saving the population best cost
     % Damp Mutation Coefficient
     alpha = alpha*alpha_damp;
     

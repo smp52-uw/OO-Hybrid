@@ -78,7 +78,7 @@ if kW_wave < 0.2144
     %disp('Zero wave power due to WECSIM min')
 end
 %current power
-t_depth = cturb.clearance + sqrt(1000*2*kW_curr/(cturb.eta*atmo.rho_w*cturb.ura^3)); %current turb height
+t_depth = cturb.clearance + sqrt(1000*2*kW_curr/(cturb.eta*atmo.rho_w*cturb.ura^3))/2; %current turb height
 [~,cturb_depth] = min(abs(t_depth - data.curr.depth));
 
 c_speed = data.curr.speed6a(:,cturb_depth); 
@@ -417,7 +417,6 @@ comp_plat_mass = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_die
 
 %% Economic Optimization
 if opt.tar ==3 %economic
-    tic
     %% Costs
     %costs - solar
     Mcost_inso = 2*econ.inso.module*kW_inso*econ.inso.marinization*econ.inso.pcm; %module
@@ -577,7 +576,6 @@ if opt.tar ==3 %economic
     OpEx = fuel + battreplace + batteryrepair + genrepair + vesselcost + turbrepair + cturbrepair + wecrepair + solarrepair + mooringrepair;
     cost = CapEx + OpEx;
 
-    toc
 %% Weight Approximation
 elseif opt.tar == 1
     buoy_m = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_curr + mass_dies + ...

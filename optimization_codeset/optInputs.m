@@ -14,10 +14,10 @@ opt.ffa.adamp = 0.98;
 
 opt.ctol = 1/100; %Tolerance on minimum cost [1% of cost]
 opt.kwtol = 1/100; %Tolerance on kW or kWh of minimum system [1% of kW or kWh]
-opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
+opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 1; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
@@ -46,9 +46,10 @@ opt.sens = 0;
 opt.tdsens = 0;
 opt.senssm = 0;
 opt.highresobj = 0;
+opt.ffasens = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'argBasin';
-cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
+loc = 'MidAtlSB';
+%cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
 task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea'};
@@ -134,13 +135,25 @@ elseif isequal(batchtype,'sens')
     loc = batchloc;
     %batch = true;
 elseif strcmp(batchtype,'ffasc') %firefly algorithm sensitivity
+    disp('firefly sens')
+    opt.ffasens = 1;
     opt.alg = 'ffa';
-    opt.ffa.sens{1} = [50 100 500 1000]; %max number of firefly iterations
-    opt.ffa.sens{2} = [25 50 75 125 250]; %population size 
-    opt.ffa.sens{3} = [0.1 0.5 1 2 5 10]; %gamma
-    opt.ffa.sens{4}= [1 2 3 6 8 10]; %beta0
-    opt.ffa.sens{5} = linspace(0.1,1,5); %alpha
-    opt.ffa.sens{6} = linspace(0.9,1,5); %alpha damp
+
+    %full sweep
+    opt.ffa.sens{1} = [100]; %max number of firefly iterations
+    opt.ffa.sens{2} = [25 50]; %population size 
+    opt.ffa.sens{3} = [0.1 1 5]; %gamma
+    opt.ffa.sens{4}= [1 5]; %beta0
+    opt.ffa.sens{5} = linspace(0.1,0.7,3); %alpha
+    opt.ffa.sens{6} = linspace(0.9,1,3); %alpha damp
+
+    %partial sweep
+    % opt.ffa.sens{1} = [50 100]; %max number of firefly iterations
+    % opt.ffa.sens{2} = [25 125]; %population size 
+    % opt.ffa.sens{3} = [0.1 1]; %gamma
+    % opt.ffa.sens{4}= [1 2]; %beta0
+    % opt.ffa.sens{5} = 0.2; %alpha
+    % opt.ffa.sens{6} = 0.98; %alpha damp
 end
 
 %check to see if HPC
@@ -253,7 +266,7 @@ econ.inso.structural = 90*1.1;         %[$/kW]
 econ.inso.marinization = 1.2;       %[~]
 econ.inso.pcm = 1;                  %cost multiplier (sens var)
 %wave costs
-econ.wave.scenarios = 3;            %number of scenarios
+%econ.wave.scenarios = 3;            %number of scenarios - obselete
 econ.wave.costmult_con = 10;         %conservative cost multiplier
 econ.wave.costmult_opt = 4;         %optimistic cost multiplier
 %diesel costs
@@ -374,7 +387,7 @@ uc(1).uptime = .99;             %[%] uptime
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 6;             %[y]
-uc(2).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).loadcase = 5;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
 uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 
