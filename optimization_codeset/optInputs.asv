@@ -15,29 +15,29 @@ opt.ffa.adamp = 0.9;
 opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 
-% % %% Debugging inputs
-% % kwtemp = linspace(0,8,500);
-% % opt.bf.M = kwtemp(40);
-% % opt.bf.N = 14;
+%% Debugging inputs
+kwtemp = linspace(0,8,500);
+opt.bf.M = kwtemp(40)*2;
+opt.bf.N = 13*2;
 
 %%
-opt.bf.M = 8; %[kW] max kW in grid
-opt.bf.N = 500; %[kWh] max Smax in grid
+%opt.bf.M = 8; %[kW] max kW in grid
+%opt.bf.N = 500; %[kWh] max Smax in grid
 
 opt.pltdebug = 1;
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
-        opt.bf.j = 500; %The inactive dimensions will be reset to 1 in optHybrid
-        opt.bf.k = 500;
-        opt.bf.l = 500;
-        opt.bf.m = 500;
-        opt.bf.n = 500;
-        opt.bf.o = 500;
+        opt.bf.j = 2; %The inactive dimensions will be reset to 1 in optHybrid
+        opt.bf.k = 2;
+        opt.bf.l = 2;
+        opt.bf.m = 2;
+        opt.bf.n = 2;
+        opt.bf.o = 2;
 
         opt.tel_max = 1; %maximum number of telescoping iterations
     else % Obselete Optimization Inputs

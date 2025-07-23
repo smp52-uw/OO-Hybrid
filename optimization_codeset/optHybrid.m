@@ -172,6 +172,11 @@ if strcmp(opt.alg,'EconOnly')
     [CapEx,OpEx,cost,costcomp,indPM,mass] = HybridEcon(data,econ,opt,inso,batt,turb,bc,Ki,Kwi,Kwa,Kc,Kd,S,runtime_tot,nvi,newbatt);
 end
 
+%% debugging - this runs one point if you put a break at 182
+% % % opt.fmin = false;
+% % % GenCoords = [0,0,0,0, opt.curr.kW_m];
+% % % [~,check_s] = simHybrid(GenCoords, opt.Smax_n,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
+
 %% Check Coarse Mesh
 %check to make sure coarse mesh will work
 opt.fmin = false;

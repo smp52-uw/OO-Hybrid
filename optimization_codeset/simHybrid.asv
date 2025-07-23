@@ -303,7 +303,7 @@ for t = 1:(length(time))
     Ptot(t) = Prenew(t) + Pdies(t); %total power
     if buoy1 == 1
         if L(t) > mean(uc.draw) %if load is higher than the mean
-            hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
+            hotelper = min(uc.draw)*hours(uc.loaddata(loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
             if S1(t+1) < hotelper
                 S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
                 L(t) = 0; %load drops to zero
@@ -318,7 +318,7 @@ for t = 1:(length(time))
         end
     else %buoy2
         if L(t) > mean(uc.draw) %if load is higher than the mean
-            hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
+            hotelper = min(uc.draw)*hours(uc.loaddata(loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
             if S2(t+1) < hotelper
                 S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
                 L(t) = 0; %load drops to zero

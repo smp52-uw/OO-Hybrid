@@ -119,6 +119,15 @@ turbineLib(28).cost = nan;
 turbineLib(29).kW = 5.01;
 turbineLib(29).cost = nan;
 
+%%Potential add on turbines for low power cost values
+% %Shine Turbine (https://shineturbine.com/products/shinewindturbine)
+% turbineLib(30) = 40/1000;
+% turbineLib(30).cost = 399.99;
+% 
+% %ATO (https://www.ato.com/100w-wind-turbine?srsltid=AfmBOoo9fZn2Ohukte8TzJJ7BHwjpTHXr07ZeBZ99sZQMtD2wt9bx6-P)
+% turbineLib(30) = 100/1000;
+% turbineLib(30).cost = 293.69;
+
 %outliers for linear regression
 % turbine(26).kW = 9;
 % turbine(26).cost = 5000;

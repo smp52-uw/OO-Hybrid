@@ -5,6 +5,7 @@
 
 clear
 
+%% WARNING THIS IS OBSELETE - USE GenerateLoadCases_v4.m
 %% Setup
 
 %output file

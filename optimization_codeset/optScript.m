@@ -38,6 +38,8 @@ elseif opt.ffasens %firefly algorithm sensitivity run
         ' location beginning now.'])
     multStruct = doFFAsens(prepath,name,batchtype);
     disp('Firefly algorithm sensitivity complete')
+elseif opt.allloads
+    multStruct = doAllLoad1Loc(prepath,name,batchtype);
 
 %  Line 36-53 obselete from individual pm modules
 % elseif opt.senssm
