@@ -231,6 +231,20 @@ if input1
     end
 elseif input2
     if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1)
+        if opt.timeadj > 1
+            opt.wave.time = opt.wave.time(opt.timeadj:end); %jump forward 2 months
+            data.wind.time = data.wind.time(opt.timeadj:end);
+            data.solar.time = data.wind.time(opt.timeadj:end);
+
+            [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U(opt.timeadj:end),datenum(data.wind.time),uc.lifetime); %make time series data adequately long
+            [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso(opt.timeadj:end),datenum(data.solar.time),uc.lifetime); %make time series data adequately long
+
+
+            [opt.wave.wavepower_ts,opt.wave.time] = extendToLifetime(opt.wave.wavepower_ts(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+            [opt.wave.Hs] = extendToLifetime(opt.wave.Hs(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+            [opt.wave.Tp] = extendToLifetime(opt.wave.Tp(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+            [opt.wave.L] = extendToLifetime(opt.wave.L(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+        end
         for i=1:num_d(2) %current data isn't aligned
             data.curr.speed6a(:,i) = align_timeseries(data.wind.time,data.curr.time,data.curr.speed6(:,i),uc);
         end

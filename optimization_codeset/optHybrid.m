@@ -203,8 +203,10 @@ end
 %set number of cores
 if isempty(gcp('nocreate')) %no parallel pool running
     cores = feature('numcores'); %find number of cofes
-    if cores > 4 %only start if using HPC
+    if cores > 10 %only start if using HPC
         parpool(cores);
+    else %- use this if you want to stop the parallel pool from starting
+        opt.bf.maxworkers = 0;
     end
 end
 

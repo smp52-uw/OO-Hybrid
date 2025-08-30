@@ -5,16 +5,19 @@ optInputs %load inputs
 data = load(loc,'data');
 data = data.('data');
 
+%Task 2 load cases
+task2 = [1, 3, 5];
+
 %initialize outputs
 clear allLoad1Loc
-allLoad1Loc(1,5) = struct();
+allLoad1Loc(1,length(task2)) = struct();
 
-for LoadC = 1:5
-    uc(c).loadcase = LoadC; %Re-set load case
+for LoadC = 1:length(task2)
+    uc(c).loadcase = task2(LoadC); %Re-set load case
 
     disp(['Optimization at ' char(loc) ...
         ' for load case ' ...
-        char(LoadC) ' beginning after ' ...
+        string(task2(LoadC)) ' beginning after ' ...
         num2str(round(toc(tTot),2)) ' seconds.'])
     [allLoad1Loc(1,LoadC).output, ...
         allLoad1Loc(1,LoadC).opt] = optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,cturb, wave,dies);
@@ -37,7 +40,7 @@ for LoadC = 1:5
 
     disp(['Optimization at ' char(opt.locations(1)) ...
         ' for ' ...
-        char(LoadC) ' application complete after ' ...
+        string(task2(LoadC)) ' application complete after ' ...
         num2str(round(toc(tTot),2)) ' seconds.'])
 end
 end

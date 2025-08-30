@@ -18,18 +18,23 @@ Smax = linspace(opt.Smax_1,opt.Smax_n,500).';
 if opt.pm == 1
     kW = linspace(opt.wind.kW_1,opt.wind.kW_m,disc); 
     kWmin = optStruct.output.min.kWwi{1};
+    kWrun = optStruct.output.Kwi_run{1};
 elseif opt.pm == 2
     kW = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);
     kWmin = optStruct.output.min.kWi{1};
+    kWrun = optStruct.output.Ki_run{1};
 elseif opt.pm == 3
     kW = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);
     kWmin = optStruct.output.min.kWwa{1};
+    kWrun = optStruct.output.Kwa_run{1};
 elseif opt.pm == 4
     kW = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);   
     kWmin = optStruct.output.min.kWd{1};
+    kWrun = optStruct.output.Kwd_run{1};
 else
     kW = linspace(opt.curr.kW_1,opt.curr.kW_m,disc).'; 
     kWmin = optStruct.output.min.kWc{1};
+    kWrun = optStruct.output.Kc_run{1};
 end
 
 [kWgrid,Smaxgrid] = ndgrid(kW,Smax);
@@ -46,12 +51,9 @@ cMap = cMap(100:end,:); %cutting off the mostly white colors
 
 figure %cost figure (white)
 hold on
-costtr = costgridW.';
-%s = surf(Smaxgrid.',kWgrid.',costtr);
-plot3(Smaxgrid.',kWgrid.',costtr);
-colormap(cMap)
-s.EdgeColor = 'none';
-s.FaceColor = 'flat';
+Srun = optStruct.output.S_run{1};
+scatter3(Srun,kWrun,costW,[],costW,'filled');
+colormap(gca, cMap)
 pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
 
 view(0,90)

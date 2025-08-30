@@ -18,11 +18,12 @@ opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
 opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
-
-% % %% Debugging inputs
+opt.timeadj = 0;
+%% Debugging inputs
 % % kwtemp = linspace(0,8,500);
-% % opt.bf.M = kwtemp(40);
-% % opt.bf.N = 14;
+% % opt.bf.M = kwtemp(50);
+% % opt.bf.N = 19;
+% % %opt.timeadj = 6*24*30;
 
 %%
 opt.bf.M = 8; %[kW] max kW in grid
@@ -32,12 +33,12 @@ opt.pltdebug = 1;
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
-        opt.bf.j = 500; %The inactive dimensions will be reset to 1 in optHybrid
-        opt.bf.k = 500;
-        opt.bf.l = 500;
-        opt.bf.m = 500;
-        opt.bf.n = 500;
-        opt.bf.o = 500;
+        opt.bf.j = 5; %The inactive dimensions will be reset to 1 in optHybrid
+        opt.bf.k = 5;
+        opt.bf.l = 5;
+        opt.bf.m = 5;
+        opt.bf.n = 5;
+        opt.bf.o = 5;
 
         opt.tel_max = 1; %maximum number of telescoping iterations
     else % Obselete Optimization Inputs
@@ -66,7 +67,7 @@ opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'MidAtlSB';
+loc = 'BerSea';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};

@@ -102,6 +102,10 @@ end
 soil_eff = 1; %starting soil efficiency
 t2 = tic;
 
+%This is the battery min SoC for non-constant load cases
+hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval); %needs to be able to achieve the hotel load for half the interval
+meanL = mean(uc.draw); %mean load for this load case
+
 %initialize diagnostic variables
 S1 = zeros(1,length(time)); %battery level timeseries
 S2 = zeros(1,length(time)); %battery level timeseries
@@ -135,6 +139,7 @@ clear clean_ind batt_lft1
 %clean_ind = zeros(length(swso),1);
 
 %% run simulation
+
 for t = 1:(length(time))
     if t < fbi1 + batt.bdi - 1 %less than first interval after fresh batt
         batt_L1(t) = 0;
@@ -302,12 +307,15 @@ for t = 1:(length(time))
     end
     Ptot(t) = Prenew(t) + Pdies(t); %total power
     if buoy1 == 1
-        if L(t) > mean(uc.draw) %if load is higher than the mean
-            hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
+        if L(t) > meanL %if load is higher than the mean
             if S1(t+1) < hotelper
                 S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
                 L(t) = 0; %load drops to zero
                 F(t) = 1; %failure tracker
+                if S1(t+1) >= (Smax*1000) - cf1 %check that we aren't overcharging the battery
+                    D(t) = S1(t+1) - ((Smax*1000) - cf1); %[Wh]
+                    S1(t+1) = (Smax*1000) - cf1;
+                end
             end
         else
             if S1(t+1) <= Smax*batt.dmax*1000 %bottomed out
@@ -317,12 +325,15 @@ for t = 1:(length(time))
             end
         end
     else %buoy2
-        if L(t) > mean(uc.draw) %if load is higher than the mean
-            hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval)/2; %needs to be able to achieve the hotel load for half the interval
+        if L(t) > meanL %if load is higher than the mean
             if S2(t+1) < hotelper
                 S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
                 L(t) = 0; %load drops to zero
                 F(t) = 1; %failure trackerEoL
+                if S2(t+1) >= (Smax*1000) - cf2 %check that we aren't overcharging the battery
+                    D(t) = S2(t+1) - ((Smax*1000) - cf2); %[Wh]
+                    S2(t+1) = (Smax*1000) - cf2;
+                end
             end
         else
             if S2(t+1) <= Smax*batt.dmax*1000 %bottomed out
@@ -357,7 +368,7 @@ for t = 1:(length(time))
         buoy1 = 1 - buoy1; %switch buoy case
     end
 end
-    
+
 % battery degradation model
 if batt.lcm == 1 %bolun's model
 %     [batt_L,batt_lft] =  irregularDegradation(S/(Smax*1000), ...
