@@ -12,13 +12,16 @@ opt.ffa.beta0 = 5;
 opt.ffa.alpha = 0.1;
 opt.ffa.adamp = 0.9;
 
-opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
+opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
-opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt
-opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pd = 5; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
+opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 opt.timeadj = 0;
+div_wave_cost = 1; %constant to divide wave cost by
+econ.wave.mass_mult = 10; %constant to divide wave mass by
+
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
 % % opt.bf.M = kwtemp(50);
@@ -291,7 +294,7 @@ econ.inso.marinization = 1.2;       %[~]
 econ.inso.pcm = 1;                  %cost multiplier (sens var)
 %wave costs
 %econ.wave.scenarios = 3;            %number of scenarios - obselete
-econ.wave.costmult_con = 10;         %conservative cost multiplier
+econ.wave.costmult_con = 10/div_wave_cost;         %conservative cost multiplier
 econ.wave.costmult_opt = 4;         %optimistic cost multiplier
 %diesel costs
 econ.dies.fcost = 1.4;              %[$/L] diesel fuel cost

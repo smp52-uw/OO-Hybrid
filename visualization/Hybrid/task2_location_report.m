@@ -20,10 +20,6 @@ if ~exist('allData','var')
     allData.PacWave = data;
     load('PISCES')
     allData.PISCES = data;
-    load('PortHueneme')
-    allData.PortHueneme = data;
-    load('SFOMF')
-    allData.SFOMF = data;
     load('WETS')
     allData.WETS = data;
 end
@@ -91,16 +87,8 @@ maptitles{1} = {'Bering Sea'};
 maptitles{2} = {'Mid-Atlantic','Shelf Break'};
 maptitles{3} = {'PacWave'};
 maptitles{4} = {'PISCES'};
-maptitles{5} = {'Port Hueneme'};
-maptitles{6} = {'SFOMF'};
-maptitles{7} = {'WETS'};
-% maptitles{1} = {"1"};
-% maptitles{2} = {"2"};
-% maptitles{3} = {"3"};
-% maptitles{4} = {"4"};
-% maptitles{5} = {"5"};
-% maptitles{6} = {"6"};
-% maptitles{7} = {"7"};
+maptitles{5} = {'WETS'};
+
 %plot settings
 col = colormap(brewermap(l,'Set2')); %colors
 ms = 5; %marker size
@@ -120,11 +108,11 @@ set(gcf,'Units','inches')
 %set(gcf,'Position', [1, 1, 6.5, 3.25])
 set(gcf,'Position', [1, 1, 6.5, 5])
 set(gcf,'Color','w')
-t = tiledlayout(2,3);
+t = tiledlayout(4,3);
 t.TileSpacing = 'loose';
 t.Padding = 'compact';
 %MAP
-ax(1) = nexttile(1,[2,2]);
+ax(1) = nexttile(1,[4,2]);
 set(gca,'Units','Normalized')
 wm = worldmap({'South America','Canada','USA'});
 hold on
@@ -135,8 +123,8 @@ set(ax(1),'LineWidth',10)
 framem off %remove frame
 gridm off %remove grid
 %add point locations and text
-posmod = [1.5 1.1 2.6 2.4 4.6 1.2 1.4 ; ...
-          1 1 1 1 0.95 1 1]; %modify text position placement
+posmod = [1.5 1.1 2.6 2.4 1.4 ; ...
+          1 1 1 1 1]; %modify text position placement
 for i = 1:l
     %add point locations
     pt = geoshow(lats(i),lons(i),'DisplayType','Point', 'Marker','o', ...
@@ -148,56 +136,9 @@ for i = 1:l
     tx.FontSize = fs2;
 end
 
-%DISTANCE
-ax(2) = nexttile(3);
-dummy_dist = 1000.*ones(1,l);
-b = barh(labels,dummy_dist./1000); %SHOULD BE REPLATED WITH DIST INFO
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-b(1).FaceColor = 'flat';
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(dummy_dist)/1000])
-set(gca,'FontSize',fs)
-ax(2).TickLabelInterpreter = 'latex';
-xl = xlabel('Distance to Coast [km]','Fontsize',fs,'Interpreter','latex');
 
-txann = text(1.05,.5,'(a)','Units','Normalized', ...
-    'VerticalAlignment','middle','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-
-%DEPTH
-ax(3) = nexttile(6);
-b = barh(labels,depths);
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-b(1).FaceColor = 'flat';
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(depths)])
-set(gca,'FontSize',fs)
-ax(3).TickLabelInterpreter = 'latex';
-xl = xlabel('Depth [m]','Fontsize',fs,'Interpreter','latex');
-text(1.05,.5,'(b)','Units','Normalized', ...
-    'VerticalAlignment','middle','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-
-% print(datacomp,['C:\Users\smpal\Documents\OO-Hybrid-Research\OO-Hybrid\visualization\paper_hybrid\DRAFT_LocHybrid'],  ...
-%     '-dpng','-r600')
-
-%% Resource Figure
-datacomp2 = figure(2);
-set(gcf,'Units','inches')
-%set(gcf,'Position', [1, 1, 6.5, 3.25])
-set(gcf,'Position', [1, 1, 6.5, 5])
-set(gcf,'Color','w')
-t = tiledlayout(4,2);
-t.TileSpacing = 'loose';
-t.Padding = 'loose';
 % MONTHLY K - WAVE
-ax(1) = nexttile(1);
+ax(1) = nexttile(3);
 xt = [];
 for i = 1:l
     plot(datetime(Kwave{i}(:,1),'ConvertFrom','datenum'), ...
@@ -230,7 +171,7 @@ text(1.05, 0.5,'(a)','Units','Normalized', ...
 grid on
 
 % %MONTHLY K - WIND
-ax(2) = nexttile(3);
+ax(2) = nexttile(6);
 xt = [];
 for i = 1:l
     plot(datetime(Kwind{i}(:,1),'ConvertFrom','datenum'), ...
@@ -256,13 +197,13 @@ set(gca,'FontSize',fs)
 ax(2).TickLabelInterpreter = 'latex';
 
 %add axis annotation
-text(1.05,.5,'(c)','Units','Normalized', ...
+text(1.05,.5,'(b)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs3,'Interpreter','latex')
 grid on
 
 % %MONTHLY K - SOLAR
-ax(3) = nexttile(5);
+ax(3) = nexttile(9);
 xt = [];
 for i = 1:l
     plot(datetime(Ksolar{i}(:,1),'ConvertFrom','datenum'), ...
@@ -288,13 +229,13 @@ set(gca,'FontSize',fs)
 ax(3).TickLabelInterpreter = 'latex';
 
 %add axis annotation
-text(1.05,.5,'(e)','Units','Normalized', ...
+text(1.05,.5,'(c)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs3,'Interpreter','latex')
 grid on
 
 % %MONTHLY K - CURRENT
-ax(4) = nexttile(7);
+ax(4) = nexttile(12);
 xt = [];
 for i = 1:l
     plot(datetime(Kcurr{i}(:,1),'ConvertFrom','datenum'), ...
@@ -320,117 +261,10 @@ set(gca,'FontSize',fs)
 ax(4).TickLabelInterpreter = 'latex';
 
 %add axis annotation
-text(1.05,.5,'(g)','Units','Normalized', ...
+text(1.05,.5,'(d)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs3,'Interpreter','latex')
 grid on
 
-
-% %AVERAGE K - need to plot first to get the width value
-ax(5) = nexttile(2);
-b = barh(labels,Kmean_wave(:,1));
-hold on
-e = errorbar(Kmean_wave(:,1),labels, ...
-    Kmean_wave(:,2),Kmean_wave(:,3),'.', ...
-    'horizontal','DisplayName','interquartile range');
-e.Color = 'k';
-e.LineStyle = 'none';
-b(1).FaceColor = 'flat';
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(Kmean_wave(:,1) + Kmean_wave(:,3))])
-set(gca,'FontSize',fs)
-ax(5).TickLabelInterpreter = 'latex';
-xl = xlabel(['Average Wave Power Density ' ...
-    '$$\mathrm{\big[kWm^{-1}\big]}$$' ...
-    ' (with Interquartile Range)'], ...
-    'Fontsize',fs,'interpreter','latex');
-
-text(1.05,.5,'(b)','Units','Normalized', ...
-    'VerticalAlignment','middle','HorizontalAlignment','center','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-% 
-% %AVERAGE K - need to plot first to get the width value
-ax(6) = nexttile(4);
-b = barh(labels,Kmean_wind(:,1));
-hold on
-e = errorbar(Kmean_wind(:,1), labels,...
-    Kmean_wind(:,2),Kmean_wind(:,3),'.', ...
-    'horizontal','DisplayName','interquartile range');
-e.Color = 'k';
-e.LineStyle = 'none';
-b(1).FaceColor = 'flat';
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(Kmean_wind(:,1) + Kmean_wind(:,3))])
-set(gca,'FontSize',fs)
-ax(6).TickLabelInterpreter = 'latex';
-xl = xlabel(['Average Wind Power Density ' ...
-    '$$\mathrm{\big[kWm^{-2}\big]}$$' ...
-    ' (with Interquartile Range)'], ...
-    'Fontsize',fs,'interpreter','latex');
-
-text(1.05,.5,'(d)','Units','Normalized', ...
-    'VerticalAlignment','middle','HorizontalAlignment','center','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-
-% %AVERAGE K - need to plot first to get the width value
-ax(7) = nexttile(6);
-b = barh(labels,Kmean_solar(:,1));
-hold on
-e = errorbar(Kmean_solar(:,1), labels,...
-    Kmean_solar(:,2),Kmean_solar(:,3),'.', ...
-    'horizontal','DisplayName','interquartile range');
-e.Color = 'k';
-e.LineStyle = 'none';
-b(1).FaceColor = 'flat';
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(Kmean_solar(:,1) + Kmean_solar(:,3))])
-set(gca,'FontSize',fs)
-ax(7).TickLabelInterpreter = 'latex';
-xl = xlabel(['Average Solar Power Density ' ...
-    '$$\mathrm{\big[kWm^{-2}\big]}$$' ...
-    ' (with Interquartile Range)'], ...
-    'Fontsize',fs,'interpreter','latex');
-text(1.05,.5,'(f)','Units','Normalized', ...
-    'VerticalAlignment','middle','HorizontalAlignment','center','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-
-% %AVERAGE K - need to plot first to get the width value
-ax(8) = nexttile(8);
-b = barh(labels,Kmean_curr(:,1));
-hold on
-e = errorbar(Kmean_curr(:,1), labels,...
-    Kmean_curr(:,2),Kmean_curr(:,3),'.', ...
-    'horizontal','DisplayName','interquartile range');
-e.Color = 'k';
-e.LineStyle = 'none';
-b(1).FaceColor = 'flat';
-b(1).BarWidth = b(1).BarWidth*bw_adj;
-for i = 1:l
-    b(1).CData(i,:) = col(end+1-i,:);
-end
-xlim([0 1.1*max(Kmean_curr(:,1) + Kmean_curr(:,3))])
-set(gca,'FontSize',fs)
-ax(8).TickLabelInterpreter = 'latex';
-xl = xlabel(['Average Current Power Density ' ...
-    '$$\mathrm{\big[kWm^{-2}\big]}$$' ...
-    ' (with Interquartile Range)'], ...
-    'Fontsize',fs,'interpreter','latex');
-text(1.05,.5,'(h)','Units','Normalized', ...
-    'VerticalAlignment','middle','HorizontalAlignment','center','FontWeight','normal', ...
-    'FontSize',fs3,'Interpreter','latex');
-grid on
-
-print(datacomp2,['C:\Users\smpal\Documents\OO-Hybrid-Research\OO-Hybrid\visualization\paper_hybrid\DRAFT_ResourceHybrid'],  ...
+print(datacomp,['C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\NAVFACReport\DRAFT_ResourceHybrid'],  ...
     '-dpng','-r600')

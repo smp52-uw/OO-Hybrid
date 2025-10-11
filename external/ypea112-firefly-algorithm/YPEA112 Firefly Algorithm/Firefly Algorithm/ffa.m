@@ -38,6 +38,8 @@ if opt.pd == 5
         VarMax(5) = 0;
     elseif opt.pm == 4 %no diesel
         VarMax(1) = 0;
+    elseif opt.pm == 2 %no solar
+        VarMax(2) = 0;
     end
 elseif opt.pd == 2
     VarMax = zeros(1,6);

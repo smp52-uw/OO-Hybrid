@@ -438,7 +438,7 @@ mass_battencl = 6*(batt_len^2)*al_plate; %[kg]
 %     (mass_dies + mass_diesencl + mass_fuel + mass_solar + mass_wind + mass_batt + ...
 %     mass_battencl + mass_solar_E + mass_solar_S); % 1 platform material [kg]
 
-mass_wec = kW_wave*895.78; %based on RM3 weight with no float
+mass_wec = kW_wave*895.78/econ.wave.mass_mult; %based on RM3 weight with no float
 if kW_wave == 0
     mass_wec = 0;
 end
