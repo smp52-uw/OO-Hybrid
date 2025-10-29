@@ -423,7 +423,7 @@ al_plate = 35.24; %[kg/m2] - 1.2" 6061 AL
 gen_vol = econ.dies.volmult*polyval(opt.p_dev.d_size,kW_dies).^3;
 mass_diesencl = 6*(gen_vol^2/3)*al_plate; %[kg]
 dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
-mass_fuel = runtime_tot*lph*dies_dens; %[kg]
+mass_fuel = max(runtime)*lph*dies_dens; %[kg]
 if kW_dies == 0
     mass_diesencl = 0;
     mass_fuel = 0;

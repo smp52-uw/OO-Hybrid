@@ -26,12 +26,14 @@ for i = 1:strsz(1)
                 scatter(count, optStruct(i,j,k).output.min.cost/1000,'o','MarkerEdgeColor',cola(4,:),'linewidth',2)
             else
                 titlestr = strcat("PM: ",string(optStruct(1,1,1,1).opt.pm), " LC: ",string(optStruct(1,1,1,1).uc.loadcase));
-                ind = find(strsz > 1,1,'last');
-                for l = 1:strsz(ind)
-                    count = count + 1;
-                    %scatter(count, optStruct(i,j,k,1,1,l).output.min.cost/1000,'o','MarkerEdgeColor',cola(4,:),'linewidth',2)
-
-                    scatter(count, optStruct(i,j,k,1,1,l).output.min.surv,'o','MarkerEdgeColor',cola(4,:),'linewidth',2)
+                %ind = find(strsz > 1,1,'last');
+                for l = 1:strsz(5)
+                    for m = 1:strsz(6)
+                        count = count + 1;
+                        %scatter(count, optStruct(i,j,k,1,l,m).output.min.cost/1000,'o','MarkerEdgeColor',cola(4,:),'linewidth',2)
+    
+                        scatter(count, optStruct(i,j,k,1,l,m).output.min.surv,'o','MarkerEdgeColor',cola(4,:),'linewidth',2)
+                    end
                 end
             end
         end
