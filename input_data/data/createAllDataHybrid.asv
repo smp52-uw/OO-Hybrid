@@ -24,6 +24,6 @@ data.lon = lon;
 data.curr.vmag = current.U_z;
 %data.curr.v = v;
 data.curr.depth = current.z;
-data.curr.time = current.time;
+data.curr.time = time;
 
 save(loc,"data")

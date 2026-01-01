@@ -107,7 +107,8 @@ for i=1:nPop
    pop(i).Cost = C_temp(i);
    pop(i).Surv = S_temp(i);
    if pop(i).Surv < 0.99
-       pop(i).Cost = inf;
+       %pop(i).Cost = inf;
+       pop(i).Cost = pop(i).Cost*(opt.failsurv/pop(i).Surv);
    end
 
    if pop(i).Cost<=BestSol.Cost
@@ -169,7 +170,8 @@ for it=1:MaxIt
         % % end %%I'm fairly certain this is not necessary (separate for loops)
         % % for j=1:nPop
                 if S_temp(j) < 0.99
-                    C_temp(j) = inf;
+                    %C_temp(j) = inf;
+                    C_temp(j) = C_temp(j)*(opt.failsurv/S_temp(j));
                 end
                 
                 if C_temp(j) <= newpop(i).Cost

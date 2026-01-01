@@ -14,13 +14,14 @@ opt.ffa.adamp = 0.9;
 
 opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
-opt.pd = 5; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
+opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
 opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
-opt.timeadj = 0;
+opt.timeadj = 0; %shift in the data time series
 div_wave_cost = 1; %constant to divide wave cost by
-econ.wave.mass_mult = 10; %constant to divide wave mass by
+econ.wave.mass_mult = 1; %constant to divide wave mass by
+opt.failsurv = 100; %multiplier used to adjust the cost of points that fail the persistence constraint
 
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -168,19 +169,19 @@ elseif strcmp(batchtype,'ffasc') %firefly algorithm sensitivity
 
     %full sweep
     opt.ffa.sens{1} = [100]; %max number of firefly iterations
-    opt.ffa.sens{2} = [25 50]; %population size 
+    opt.ffa.sens{2} = [25]; %population size 
     opt.ffa.sens{3} = [0.1 1 5]; %gamma
-    opt.ffa.sens{4}= [1 5]; %beta0
-    opt.ffa.sens{5} = linspace(0.1,0.7,3); %alpha
-    opt.ffa.sens{6} = linspace(0.9,1,3); %alpha damp
+    opt.ffa.sens{4}= [1]; %beta0
+    opt.ffa.sens{5} = 0.7; %alpha
+    opt.ffa.sens{6} = 0.98; %alpha damp
 
     %partial sweep
-    % opt.ffa.sens{1} = [50 100]; %max number of firefly iterations
-    % opt.ffa.sens{2} = [25 125]; %population size 
-    % opt.ffa.sens{3} = [0.1 1]; %gamma
-    % opt.ffa.sens{4}= [1 2]; %beta0
-    % opt.ffa.sens{5} = 0.2; %alpha
-    % opt.ffa.sens{6} = 0.98; %alpha damp
+    % opt.ffa.sens{1} = [100]; %max number of firefly iterations
+    % opt.ffa.sens{2} = [25 50]; %population size 
+    % opt.ffa.sens{3} = [0.1 1 5]; %gamma
+    % opt.ffa.sens{4}= [1 5]; %beta0
+    % opt.ffa.sens{5} = linspace(0.1,0.7,3); %alpha
+    % opt.ffa.sens{6} = linspace(0.9,1,3); %alpha damp
 end
 
 %check to see if HPC
@@ -414,7 +415,7 @@ uc(1).uptime = .99;             %[%] uptime
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 6;             %[y]
-uc(2).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).loadcase = 5;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
 uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 

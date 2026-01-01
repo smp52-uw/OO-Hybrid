@@ -1,5 +1,5 @@
 function [] = optSave(prepath,name,batchtype,batchscen, ...
-    batchloc,batchc)
+    batchloc,batchc,Aparams)
 
 %clearvars -except name prepath batchtype scen loc c
 
@@ -36,7 +36,8 @@ else %save single structure
     else
         stru.(name) = optStruct;
     end
-    save([prepath name '.mat'], '-struct','stru','-v7.3')
+    nameext = strcat(prepath, name,'.mat');
+    save(nameext, '-struct','stru','-v7.3')
 end
 
 end

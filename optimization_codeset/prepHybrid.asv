@@ -10,9 +10,10 @@ if input1
     disp('ERROR - Using Trent data but task 2 prepHybrid ran')
     return
 end
+input2 = isfield(data,'wind'); %Task 2 data
 
 %get current data
-%data.curr.vmag = (data.curr.u.^2 + data.curr.v.^2).^0.5; %velocity magnitude
+data.curr.vmag = (data.curr.u.^2 + data.curr.v.^2).^0.5; %velocity magnitude
 data.curr.vmag = data.curr.vmag';
 data.curr.vmag(data.curr.vmag>4) = nan; %Remove any non-physical current speeds
 
@@ -63,8 +64,7 @@ Tp = data.wave.Tp; %[s]
 
 opt.wave.wavepower_ts = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     Hs.^2.*Tp./1000; %[kW/m] %timeseries of wavepower
-%opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseries
-opt.wave.L = data.wave.L;
+opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseries
 
 %Clean Time series
 [data.wind.time, ind_wi] = unique(data.wind.time); %need a time series without duplicates
@@ -75,9 +75,9 @@ converted_time_inso = data.solar.time;
 converted_time_wave = data.wave.time;
 
 [data.curr.time, ind_c] = unique(data.curr.time);
-%curr_vec = datevec(data.curr.time);
-converted_time_curr = data.curr.time;
-%converted_time_curr.TimeZone = 'UTC'; %verified the time zone on the HYCOM user group
+curr_vec = datevec(data.curr.time);
+converted_time_curr = datetime(curr_vec);
+converted_time_curr.TimeZone = 'UTC'; %verified the time zone on the HYCOM user group
 
 
 %temporary clean hour spaced time series for each resource
@@ -233,7 +233,11 @@ if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
     else
         wint_clean_mo = 11; %november
     end
-    dv = datevec(data.solar.time);
+    if input1
+        dv = datevec(data.met.time);
+    elseif input2
+        dv = datevec(data.solar.time);
+    end
     data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 & dv(:,4) == 0);
     if inso.cleanstrat == 4 %every other winter
         data.wint_clean_ind = data.wint_clean_ind(2:2:end);

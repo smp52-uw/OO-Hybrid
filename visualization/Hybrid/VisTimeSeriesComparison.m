@@ -5,32 +5,32 @@ addpath(genpath("C:\Users\smpal\Documents\OO-Hybrid-Research\NAVFAC_ReportResult
 addpath(genpath("C:\Users\smpal\Documents\OO-Hybrid-Research\WECLCMResults\5D_NoMC"))
 
 %Figure 1: Bering Sea - LC=3
-temp2D = load('BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025');
-optStruct{1} = temp2D.BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025(2);
-titlestr{1} = "Optimal single generator";
-
-temp6D = load('BerSea_PD6_LC3_FFA_PSALG_09252025');
-optStruct{2} = temp6D.BerSea_PD6_LC3_FFA_PSALG_09252025(2,1,1);
-titlestr{2} = "Standard hybrid";
-
-
-temp6DLCM = load('BerSea_PD6_AllLC_FFAOpt_Low1010MassCostWEC_09302025');
-optStruct{3} = temp6DLCM.BerSea_PD6_AllLC_FFAOpt_Low1010MassCostWEC_09302025(2);
-titlestr{3} = "Low WEC mass and cost hybrid";
-
-% %Figure 2: MidAtlSB - LC=5
-% temp2D = load('MidAtlSB_PD2PM2_AllLC_BF500_HotelPerFull_07302025');
-% optStruct{1} = temp2D.MidAtlSB_PD2PM2_AllLC_BF500_HotelPerFull_07302025(3);
+% temp2D = load('BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025');
+% optStruct{1} = temp2D.BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025(2);
 % titlestr{1} = "Optimal single generator";
 % 
-% temp6D = load('MidAtlSB_PD6_LC5_FFA_PSALG_09232025');
-% optStruct{2} = temp6D.MidAtlSB_PD6_LC5_FFA_PSALG_09232025(2,1,1,2);
-% titlestr{2} = "Standard hybrid";
+% temp6D = load('BerSea_PD6_LC3_FFA_PSALG_09252025');
+% optStruct{2} = temp6D.BerSea_PD6_LC3_FFA_PSALG_09252025(2,1,1);
+% titlestr{2} = "Base hybrid";
 % 
 % 
-% temp5D = load('MidAtlSB_PD5PM2_AllLC_FFAOpt_10032025');
-% optStruct{3} = temp5D.MidAtlSB_PD5PM2_AllLC_FFAOpt_10032025(3);
-% titlestr{3} = "Low surface expression hybrid";
+% temp6DLCM = load('BerSea_PD6_AllLC_FFAOpt_Low1010MassCostWEC_09302025');
+% optStruct{3} = temp6DLCM.BerSea_PD6_AllLC_FFAOpt_Low1010MassCostWEC_09302025(2);
+% titlestr{3} = "Low WEC mass and cost hybrid";
+
+% %Figure 2: MidAtlSB - LC=5
+temp2D = load('MidAtlSB_PD2PM2_AllLC_BF500_HotelPerFull_07302025');
+optStruct{1} = temp2D.MidAtlSB_PD2PM2_AllLC_BF500_HotelPerFull_07302025(3);
+titlestr{1} = "Optimal single generator";
+
+temp6D = load('MidAtlSB_PD6_LC5_FFA_PSALG_09232025');
+optStruct{2} = temp6D.MidAtlSB_PD6_LC5_FFA_PSALG_09232025(2,1,1,2);
+titlestr{2} = "Base hybrid";
+
+
+temp5D = load('MidAtlSB_PD5PM2_AllLC_FFAOpt_10032025');
+optStruct{3} = temp5D.MidAtlSB_PD5PM2_AllLC_FFAOpt_10032025(3);
+titlestr{3} = "Low surface expression hybrid";
 
 %% Figure
 figure
@@ -67,8 +67,8 @@ cs = 0; cwi = 0; cwa = 0; cc = 0;
 for s = 1:szst
 
     out = optStruct{s}.output.min;
-    tend = 24*60;
-    tstart = 1;
+    tend = 24*90;
+    tstart = 250*24;
     t = tstart:1:tstart+tend;
 
     ax(s) = nexttile(s); %load
@@ -79,7 +79,7 @@ for s = 1:szst
         yl = ylabel([{'L(t)'},{'[kW]'}],'Interpreter','latex','rotation',0,'HorizontalAlignment','center','FontSize',fs);
         set(yl,'Units','inches');
         ypos = get(yl,'Position');
-        ypos(1) = ypos(1)*2.9; %left
+        ypos(1) = ypos(1)*3.1; %left (2.9 for fig 1, 3.1 for fig 2)
         ypos(2) = ypos(2)*0.3; %height
         set(yl,'Position',ypos)
     end
@@ -134,45 +134,21 @@ for s = 1:szst
     set(gca,'TickLabelInterpreter','latex','fontsize',fs)
 
 
-    ax(s+9) = nexttile(s+9); %wave
-    if sum(out.Pwave) > 0
-        plot(t,out.Pwave(tstart:tstart+tend)./1000,'LineWidth',1.5,'Color',col2D{3}(1,:))
-        cwa = cwa + 1;
-        maxWA(cwa) = max(out.Pwave(tstart:tstart+tend)./1000);
-        grid on
-
-    else
-        text(.5,.5,'No WEC','Units','Normalized', ...
-            'VerticalAlignment','middle',"horizontalAlignment",'center','FontWeight','normal', ...
-            'FontSize',fs,'Interpreter','latex');
-        box on
-    end
-    if s == 1
-        yl4 = ylabel([{'$P_{\mathrm{wave}}(t)$'},{'[kW]'}],'Interpreter','latex','rotation',0,'HorizontalAlignment','center','FontSize',fs);
-        set(yl4,'Units','inches');
-        ypos4 = get(yl4,'Position');
-        ypos4(1) = ypos(1);
-        ypos4(2) = ypos(2);
-        set(yl4,'Position',ypos4)
-    end
-    set(gca,'TickLabelInterpreter','latex','fontsize',fs)
-
-    % ax(s+9) = nexttile(s+9); %current
-    % xlim([tstart,tstart+tend])
-    % if out.kWc{1} > 0.005
-    %     plot(t,out.Pcurr(tstart:tstart+tend)./1000,'LineWidth',1.5,'Color',col2D{4}(1,:))
-    %     cc = cc + 1;
-    %     maxCC(cc) = max(out.Pcurr(tstart:tstart+tend)./1000);
+    % ax(s+9) = nexttile(s+9); %wave
+    % if sum(out.Pwave) > 0
+    %     plot(t,out.Pwave(tstart:tstart+tend)./1000,'LineWidth',1.5,'Color',col2D{3}(1,:))
+    %     cwa = cwa + 1;
+    %     maxWA(cwa) = max(out.Pwave(tstart:tstart+tend)./1000);
     %     grid on
     % 
     % else
-    %     text(.5,.5,'No Current Turbine','Units','Normalized', ...
+    %     text(.5,.5,'No WEC','Units','Normalized', ...
     %         'VerticalAlignment','middle',"horizontalAlignment",'center','FontWeight','normal', ...
     %         'FontSize',fs,'Interpreter','latex');
     %     box on
     % end
     % if s == 1
-    %     yl4 = ylabel([{'$P_{\mathrm{current}}(t)$'},{'[kW]'}],'Interpreter','latex','rotation',0,'HorizontalAlignment','center','FontSize',fs);
+    %     yl4 = ylabel([{'$P_{\mathrm{wave}}(t)$'},{'[kW]'}],'Interpreter','latex','rotation',0,'HorizontalAlignment','center','FontSize',fs);
     %     set(yl4,'Units','inches');
     %     ypos4 = get(yl4,'Position');
     %     ypos4(1) = ypos(1);
@@ -180,6 +156,30 @@ for s = 1:szst
     %     set(yl4,'Position',ypos4)
     % end
     % set(gca,'TickLabelInterpreter','latex','fontsize',fs)
+
+    ax(s+9) = nexttile(s+9); %current
+    xlim([tstart,tstart+tend])
+    if out.kWc{1} > 0.005
+        plot(t,out.Pcurr(tstart:tstart+tend)./1000,'LineWidth',1.5,'Color',col2D{4}(1,:))
+        cc = cc + 1;
+        maxCC(cc) = max(out.Pcurr(tstart:tstart+tend)./1000);
+        grid on
+
+    else
+        text(.5,.5,'No Current Turbine','Units','Normalized', ...
+            'VerticalAlignment','middle',"horizontalAlignment",'center','FontWeight','normal', ...
+            'FontSize',fs,'Interpreter','latex');
+        box on
+    end
+    if s == 1
+        yl4 = ylabel([{'$P_{\mathrm{current}}(t)$'},{'[kW]'}],'Interpreter','latex','rotation',0,'HorizontalAlignment','center','FontSize',fs);
+        set(yl4,'Units','inches');
+        ypos4 = get(yl4,'Position');
+        ypos4(1) = ypos(1);
+        ypos4(2) = ypos(2);
+        set(yl4,'Position',ypos4)
+    end
+    set(gca,'TickLabelInterpreter','latex','fontsize',fs)
 
     ax(s+12) = nexttile(s+12); %storage
     xlim([tstart,tstart+tend])
@@ -223,5 +223,5 @@ linkaxes([ax(1),ax(4),ax(7),ax(10),ax(16)],'x')
 ylim(ax(4),[0,max(maxPV)])
 ylim(ax(7),[0,max(maxWI)])
 ylim(ax(1),[0,max(out.L(tstart:tstart+tend)./1000)])
-%ylim(ax(10),[0,max(maxCC)])
-ylim(ax(10),[0,max(maxWA)])
+ylim(ax(10),[0,max(maxCC)])
+%ylim(ax(10),[0,max(maxWA)])

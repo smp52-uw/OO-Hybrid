@@ -123,6 +123,7 @@ fbi1 = 1; %fresh battery index
 batt_L2 = zeros(1,length(time)); %battery L (degradation) timeseries
 fbi2 = 1; %fresh battery index
 eff_t = zeros(1,length(swso)); %[~] efficiency
+Pdieson = true; %switch to turn the diesel generator on or off depending on if the run/oil limit has been exceeded
 %surv = 1;
 charging = false;
 runtime = zeros(1,nvi); %[h], amount of time spent running
@@ -242,7 +243,7 @@ for t = 1:(length(time))
     Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t) + Pcurr(t); %total renewable power
     %Prenew(t) = 0; %test Configuration - only solar
     %Calculate state of charge
-    if ~charging %generator off
+    if ~charging || ~Pdieson %generator off
         if buoy1 == 1
             S1(t+1) = dt*(Prenew(t)-uc.draw(t)) + S1(t) - sd1;
             if t < length(time)
@@ -266,7 +267,7 @@ for t = 1:(length(time))
                 S2(t+1) = (Smax*1000) - cf2;
             end
         end
-    else %generator on
+    elseif charging && Pdieson %generator on
         Pdies(t) = kW_dies*1000;
         if buoy1 == 1
             S1(t+1) = dt*(Pdies(t)+Prenew(t) - uc.draw(t)) + S1(t) - sd1; %[Wh]
@@ -299,10 +300,11 @@ for t = 1:(length(time))
         if runtime(1,int_id) >= 250 || dies_vol(1,int_id) >= 800 %Brian set the maximums (250,800)
                 %runtime(1,int_id)
                 %dies_vol(1,int_id)
-                surv = 0;
-                cost = inf;
+                % surv = 0;
+                % cost = inf;
+                Pdieson = false; %alternate method where you just turn off the diesl generator for the rest of the 2 year block
                 %disp('Option not viable due to fuel volume or runtime')
-                return
+                %return
         end
     end
     Ptot(t) = Prenew(t) + Pdies(t); %total power
@@ -366,6 +368,7 @@ for t = 1:(length(time))
             end
         end
         buoy1 = 1 - buoy1; %switch buoy case
+        Pdieson = true; %switch the diesel generator back on
     end
 end
 
@@ -688,7 +691,8 @@ surv = sum(L == uc.draw)/(length(L));
 
 if isnan(Pmooring)
     disp('Ahh - the platform is too big')
-    cost = inf;
+    %cost = inf;
+    cost = cost*(opt.failsurv/surv);
 end
 
 end

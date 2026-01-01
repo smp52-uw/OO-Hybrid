@@ -36,7 +36,7 @@ elseif opt.allscenuses %run all dimensions for a location
 elseif opt.ffasens %firefly algorithm sensitivity run
     disp(['Firefly algorithm sensitivity for the ' loc ...
         ' location beginning now.'])
-    multStruct = doFFAsens(prepath,name,batchtype);
+    multStruct = doFFAsens(prepath,name,batchtype,Aparams);
     disp('Firefly algorithm sensitivity complete')
 elseif opt.allloads
     multStruct = doAllLoad1Loc(prepath,name,batchtype);

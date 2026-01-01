@@ -19,11 +19,11 @@ pmtext = {"Wind","Solar","Wave","Current"};
 
 temp2D = load('PISCES_PD2PM2_AllLC_FFAOpt_HotelPerFull_08172025');
 optStruct2D{1} = temp2D.PISCES_PD2PM2_AllLC_FFAOpt_HotelPerFull_08172025(2);
-titlestr{1} = [{"PISCES: "},{"Next-gen OO and UUV"}];
+titlestr{1} = [{"PISCES: "},{"Observing + UUV Recharge"}];
 
 temp2D = load('BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025');
 optStruct2D{2} = temp2D.BerSea_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025(2);
-titlestr{2} = [{"Bering Sea: "},{"Next-gen OO and UUV"}];
+titlestr{2} = [{"Bering Sea: "},{"Observing + UUV Recharge"}];
 
 temp2D = load('PacWave_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025');
 optStruct2D{3} = temp2D.PacWave_PD2PM1_AllLC_FFAOpt_HotelPerFull_08162025(3);
@@ -114,32 +114,30 @@ for tind = 1:max(size(optStruct2D))
     costdata = costdata ./1000;
     %plot
     
-    ax(tind) = nexttile();
-    set(ax,'defaulttextinterpreter','latex','fontsize',10)
+    ax(tind) = nexttile(tind);
+    set(ax(tind),'defaulttextinterpreter','latex','fontsize',9)
     hold on
     
-    X = categorical({'Power CapEx','Storage CapEx','Mooring CapEx','Repairs OpEx'});
-    X = reordercats(X,{'Power CapEx','Storage CapEx','Mooring CapEx','Repairs OpEx'});
+    X = categorical({'Gen. CapEx','Storage CapEx','Mooring CapEx','Repairs OpEx'});
+    X = reordercats(X,{'Gen. CapEx','Storage CapEx','Mooring CapEx','Repairs OpEx'});
     h = bar(X, costdata, 'FaceColor','flat');
     set(h,'BarWidth',groupOffset);
 
-    set(gca, 'XTickLabel',X,'FontSize',10, 'TickLabelInterpreter', 'latex');
+    set(gca, 'XTickLabel',X,'FontSize',9, 'TickLabelInterpreter', 'latex');
     h(1).CData = col2D{optStruct2D{tind}.opt.pm};
     h(2).CData = col6D;
-
+    title(titlestr{tind},'interpreter','latex','FontSize',9)
         
     hold off
     grid on
     box on
-
-    title(titlestr{tind},'interpreter','latex','fontsize',10)
 
     if tind == 1
         ylabel('Cost [\$ 1000]')
     end
 
     sgleg = pmtext{optStruct2D{tind}.opt.pm};
-    lgd = legend(sgleg, "Hybrid",'location','northeast','Interpreter','Latex','fontsize',10);
+    lgd = legend(sgleg, "Hybrid",'location','northeast','Interpreter','Latex','fontsize',9);
     lgd.ItemTokenSize = [10, 20];
 end
 

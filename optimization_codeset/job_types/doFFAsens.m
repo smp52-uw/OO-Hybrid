@@ -1,7 +1,13 @@
-function [multStruct] = doFFAsens(prepath,name,batchtype)
+function [multStruct] = doFFAsens(prepath,name,batchtype,Aparams)
 optInputs %load inputs
 data = load(loc,'data');
 data = data.('data');
+
+%reset gamma values if they exist
+if ~isempty(Aparams)
+    opt.ffa.sens{3} = Aparams(1);
+    opt.ffa.sens{5} = Aparams(2);
+end
 
 opt.S1 = length(opt.ffa.sens{1});
 opt.S2 = length(opt.ffa.sens{2});
@@ -29,6 +35,12 @@ for p = 1:opt.S1
                 
                         tTot = tic;
                         disp('Next point in FFA sensitivity starting now')
+                        disp(opt.ffa.max)
+                        disp(opt.ffa.pop)
+                        disp(opt.ffa.gamma)
+                        disp(opt.ffa.beta0)
+                        disp(opt.ffa.alpha)
+                        disp(opt.ffa.adamp)
                 
                         [multStruct(p,q,r,s,u,v).output,multStruct(p,q,r,s,u,v).opt] = ...
                         optRun(opt,data,atmo,batt,econ,uc(c),bc,inso,turb,cturb, wave,dies);
@@ -48,7 +60,8 @@ for p = 1:opt.S1
                         multStruct(p,q,r,s,u,v).comptime = num2str(round(toc(tTot),2)); %seconds
 
                         stru.(name) = multStruct;
-                        save([prepath name '.mat'], '-struct','stru','-v7.3')
+                        nameext = strcat(prepath, name,'.mat');
+                        save(nameext, '-struct','stru','-v7.3')
                     end
                 end
             end
