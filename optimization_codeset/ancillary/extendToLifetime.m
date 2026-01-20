@@ -37,11 +37,18 @@ tEnd(1) = tEnd(1) + y;
 %t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
 
 % Ignore Leap Year
-t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
-a_out = [a_in; zeros(etime(tEnd,tStart)/(60*60)-length(a_in),1)];
-for i = orig_l+1:length(a_out)
-    t_out(i) = t_out(i-1) + 1/24;
-    a_out(i) = a_out(i - 8760); %a year earlier
+if etime(tEnd,tStart)/(60*60)-length(t_in) > 0
+    %need to extend
+    t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
+    a_out = [a_in; zeros(etime(tEnd,tStart)/(60*60)-length(a_in),1)];
+    for i = orig_l+1:length(a_out)
+        t_out(i) = t_out(i-1) + 1/24;
+        a_out(i) = a_out(i - 8760); %a year earlier
+    end
+else
+    disp('not extended')
+    a_out = a_in;
+    t_out = t_in;
 end
 
 % % Account for leap year

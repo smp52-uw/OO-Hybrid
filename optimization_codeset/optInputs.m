@@ -22,7 +22,18 @@ opt.timeadj = 0; %shift in the data time series
 div_wave_cost = 1; %constant to divide wave cost by
 econ.wave.mass_mult = 1; %constant to divide wave mass by
 opt.failsurv = 100; %multiplier used to adjust the cost of points that fail the persistence constraint
+opt.ice = 'slow'; %options are 'fast','slow',or 'none'
+opt.monthstart = 7; %July start
 
+opt.singlepoint = 1; %run a single point for time series comparison
+if opt.singlepoint == 1
+    opt.wind.kWsg = 0.56;
+    opt.inso.kWsg = 1.38;
+    opt.wave.kWsg = 1;
+    opt.dies.kWsg = 0;
+    opt.curr.kWsg = 0;
+    opt.Smaxsg = 6.9;
+end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
 % % opt.bf.M = kwtemp(50);
@@ -33,7 +44,7 @@ opt.failsurv = 100; %multiplier used to adjust the cost of points that fail the 
 opt.bf.M = 8; %[kW] max kW in grid
 opt.bf.N = 500; %[kWh] max Smax in grid
 
-opt.pltdebug = 1;
+opt.pltdebug = 1; %generate resource plots in prepHybrid
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
@@ -71,7 +82,7 @@ opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'BerSea';
+loc = 'PacWave';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
@@ -344,11 +355,13 @@ inso.cleanlim = 20;         %[mo] maximum limit for cleaning
 %wave energy parameters
 wave.method = 2;            %1: divide by B, 2: 3d interpolation, 3: Trevor PM
 wave.B_func_n = 1000;       %number of points in B(Gr) function
-wave.Hs_ra = 4;             %[m], rated wave height
-wave.Tp_ra = 9;            %[s], rated peak period
+wave.Hs_ra = 3.5;           %[m], rated wave height (changed from 4 to 3.5 1/19 SPalmer)
+wave.Tp_ra = 9;             %[s], rated peak period
 wave.eta_ct = 0.6;          %[~] wec efficiency
-wave.house = 0.10;          %percent of rated power as house load
+wave.house = 0.0;           %percent of rated power as house load (changed from 0.1 to 0 on 1/19 SPalmer)
 wave.kW_max = 17;           %[kW] maximum limit for wec-sim output
+wave.CIR = 0.02;            %ratio of cutin to rated power (based on ratio for wind)
+wave.deep = false;          %whether to use deep water power or not
 % wave.wsr = 'struct3m_opt';  %wec sim run
 % wave.wsHs = 3;              %[m] wec sim Hs
 %diesel parameters
@@ -399,11 +412,11 @@ end
 atmo.rho_a = 1.225;         %[kg/m^3] density of air
 atmo.rho_w = 1025;          %[kg/m^3] density of water
 atmo.g = 9.81;              %[m/s^2]
-%atmo.h = 4;                 %[m]
-atmo.zo = 0.2;             %[mm]
+%atmo.h = 4;                %[m]
+atmo.zo = 0.2;              %[mm]
 atmo.dyn_h = true;          %toggle dynamic hub height
 atmo.soil = 35;             %[%/year]
-%atmo.clean = 0.5;           %heavy rain cleans X amt of soil
+%atmo.clean = 0.5;          %heavy rain cleans X amt of soil
 
 %% USE CASES
 %short term instrumentation  - Not Used for Hybrid Analysis

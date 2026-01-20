@@ -33,9 +33,7 @@ if opt.pltdebug %diagnostic plot of input data for Task 2 locations (raw data)
     title('Wind Speed')
 
     ax(3) = nexttile; %current
-    temptime = datetime(data.curr.time,'ConvertFrom','datenum');
-    temptime.TimeZone = "UTC";
-    plot(temptime,data.curr.vmag(:,1),'linewidth',1.5,'color',col(3,:))
+    plot(data.curr.time,data.curr.vmag(:,1),'linewidth',1.5,'color',col(3,:))
     ylabel('[m/s]')
     title('Surface Current Speed')
 
@@ -54,58 +52,83 @@ if opt.pltdebug %diagnostic plot of input data for Task 2 locations (raw data)
     linkaxes(ax,'x')
 end
 
+%length of the time series originally
+data.wind.lt = length(data.wind.time);
+data.solar.lt = length(data.solar.time);
+data.wave.lt = length(data.wave.time);
+data.curr.lt = length(data.curr.time);
+data.temperature.lt = length(data.temperature.time);
+
+%Clean Time series
+[data.wind.time, data.wind.indu] = unique(data.wind.time); %need a time series without duplicates
+[data.solar.time, data.solar.indu] = unique(data.solar.time);
+[data.wave.time, data.wave.indu] = unique(data.wave.time);
+[data.curr.time, data.curr.indu] = unique(data.curr.time);
+[data.temperature.time, data.temperature.indu] = unique(data.temperature.time);
+
+%cut data to match start time
+strnm = fieldnames(data); %all fields in data
+datafields = {'wind','solar','curr','wave','temperature'};
+for fn = 1:length(strnm)
+    if sum(strcmp(strnm{fn},datafields)) %make sure this is one of the time series structures
+        if month(data.(strnm{fn}).time(1))~= opt.monthstart
+            %find first index where the date matches the beginning of the month
+            indstart = find(month(data.(strnm{fn}).time) == opt.monthstart & day(data.(strnm{fn}).time) == 1 & hour(data.(strnm{fn}).time) == 0,1,'first');
+            indend = find(month(data.(strnm{fn}).time) == opt.monthstart & day(data.(strnm{fn}).time) == 1 & hour(data.(strnm{fn}).time) == 0,1,'last') - 1;
+        else
+            indstart = 1;
+            indend = find(month(data.(strnm{fn}).time) == month(data.(strnm{fn}).time(1)) & day(data.(strnm{fn}).time) == day(data.(strnm{fn}).time(1)) & hour(data.(strnm{fn}).time) == hour(data.(strnm{fn}).time(1)),1,'last') - 1;
+        end
+    
+        varnm = fieldnames(data.(strnm{fn}));
+        timeN = find(strcmp(varnm,'time'));
+        data.(strnm{fn}).(varnm{timeN}) = data.(strnm{fn}).(varnm{timeN})(indstart:indend);
+        for vn = 1:length(varnm)
+            if ~strcmp(varnm{vn},'time') && ~strcmp(varnm{vn},'indu') && length(data.(strnm{fn}).(varnm{vn})) == data.(strnm{fn}).lt
+                if min(size(data.(strnm{fn}).(varnm{vn}))) == 1 %vector
+                    data.(strnm{fn}).(varnm{vn}) = data.(strnm{fn}).(varnm{vn})(data.(strnm{fn}).indu); %remove non unique values
+                    data.(strnm{fn}).(varnm{vn}) = data.(strnm{fn}).(varnm{vn})(indstart:indend); %cut to correct start
+                else %matrix of current speeds
+                    data.(strnm{fn}).(varnm{vn}) = data.(strnm{fn}).(varnm{vn})(data.(strnm{fn}).indu,:); %remove non unique values
+                    data.(strnm{fn}).(varnm{vn}) = data.(strnm{fn}).(varnm{vn})(indstart:indend,:); %cut to correct start
+                end
+            end
+        end
+    end
+end
+    
+%temporary clean hour spaced time series for each resource
+regwave_time = [dateshift(data.wave.time(1),'end','hour'):hours(1):dateshift(data.wave.time(end),'end','hour')]'; 
+regwind_time = [dateshift(data.wind.time(1),'end','hour'):hours(1):dateshift(data.wind.time(end),'end','hour')]'; 
+reginso_time = [dateshift(data.solar.time(1),'end','hour'):hours(1):dateshift(data.solar.time(end),'end','hour')]'; 
+regcurr_time = [dateshift(data.curr.time(1),'end','hour'):hours(1):dateshift(data.curr.time(end),'end','hour')]'; 
+regtemp_time = [dateshift(data.temperature.time(1),'end','hour'):hours(1):dateshift(data.temperature.time(end),'end','hour')]'; 
+
 %Get wave data
 opt.wave.wavepower_ra = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     (wave.Hs_ra)^2*(wave.Tp_ra); %[W], wave power at rated
 %extract data
 Hs = data.wave.Hs; %[m]
 Tp = data.wave.Tp; %[s]
-
+%opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength ts - this isn't used anymore
 opt.wave.wavepower_ts = (1/(16*4*pi))*atmo.rho_w*atmo.g^2* ...
     Hs.^2.*Tp./1000; %[kW/m] %timeseries of wavepower
-%opt.wave.L = atmo.g.*Tp.^2/(2*pi); %wavelength timeseries
-opt.wave.L = data.wave.L;
-
-%Clean Time series
-[data.wind.time, ind_wi] = unique(data.wind.time); %need a time series without duplicates
-[data.solar.time, ind_in] = unique(data.solar.time);
-[data.wave.time, ind_wa] = unique(data.wave.time);
-converted_time_wind = data.wind.time;
-converted_time_inso = data.solar.time;
-converted_time_wave = data.wave.time;
-
-[data.curr.time, ind_c] = unique(data.curr.time);
-%curr_vec = datevec(data.curr.time);
-converted_time_curr = data.curr.time;
-%converted_time_curr.TimeZone = 'UTC'; %verified the time zone on the HYCOM user group
-
-
-%temporary clean hour spaced time series for each resource
-regwave_time = [dateshift(converted_time_wave(1),'end','hour'):hours(1):dateshift(converted_time_wave(end),'end','hour')]'; 
-regwind_time = [dateshift(converted_time_wind(1),'end','hour'):hours(1):dateshift(converted_time_wind(end),'end','hour')]'; 
-reginso_time = [dateshift(converted_time_inso(1),'end','hour'):hours(1):dateshift(converted_time_inso(end),'end','hour')]'; 
-regcurr_time = [dateshift(converted_time_curr(1),'end','hour'):hours(1):dateshift(converted_time_curr(end),'end','hour')]'; 
-
-time_start = min([regwave_time(1),regwind_time(1), reginso_time(1), regcurr_time(1)]); %earliest time start
-year1 = year(time_start(1)); %starting year for cleaned/aligned time series
-time_final = datetime([year1 01 01]):hours(1):datetime([year1+uc.lifetime 01 01]); %cleaned/aligned time series
-time_final = time_final(1:end-1)'; %need one less than the entire time series so it ends at midnight 12/31
-
+opt.wave.P = data.wave.P./1000; %[kW/m] timeseries of intermediate depth wavepower
+opt.wave.Pra = data.wave.Pra; %[kw/m]
 
 %% Fill big gaps
 num_d = size(data.curr.vmag); 
 
 bad_wind = sum(isnan(data.wind.U));
-data.wind.U  = interp1(converted_time_wind,data.wind.U(ind_wi),regwind_time,'nearest');
+data.wind.U  = interp1(data.wind.time,data.wind.U,regwind_time,'nearest'); %shift to clean time series
 if bad_wind > 24
     data.wind.U = fillmiss_phaseavg(data.wind.U, regwin_time);
 end
-data.wind.U = fillmissing(data.wind.U,'nearest');
-disp('extend wind')
+data.wind.U = fillmissing(data.wind.U,'nearest'); %fill short outages
 [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U,datenum(regwind_time),uc.lifetime); %make time series data adequately long
 
 bad_solar = sum(isnan(data.solar.swso));
-data.solar.swso  = interp1(converted_time_inso,data.solar.swso(ind_in),reginso_time,'nearest');
+data.solar.swso  = interp1(data.solar.time,data.solar.swso,reginso_time,'nearest');
 if bad_solar > 24
     data.solar.swso = fillmiss_phaseavg(data.solar.swso, reginso_time);
 end
@@ -115,12 +138,11 @@ if swso_neg_count > 0
     disp('removing negative solar data')
     data.solar.swso(data.solar.swso < 0) = 0; %remove any negative swso points
 end
-disp('extend solar')
 [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
  
 for i = 1:min(num_d)
     bad_curr = sum(isnan(data.curr.vmag(:,i)));
-    data.curr.speed(:,i) = interp1(converted_time_curr,data.curr.vmag(ind_c,i),regcurr_time,'nearest','extrap');
+    data.curr.speed(:,i) = interp1(data.curr.time,data.curr.vmag(:,i),regcurr_time,'nearest','extrap');
     if bad_curr > 24
         data.curr.speed(:,i) = fillmiss_phaseavg(data.curr.speed(:,i), regcurr_time);
     end
@@ -128,53 +150,71 @@ for i = 1:min(num_d)
 end
 
 bad_wave = sum(isnan(Hs));
-opt.wave.wavepower_ts = interp1(converted_time_wave,opt.wave.wavepower_ts(ind_wa),regwave_time,'nearest');
-opt.wave.Hs  = interp1(converted_time_wave,Hs(ind_wa),regwave_time,'nearest');
-opt.wave.Tp  = interp1(converted_time_wave,Tp(ind_wa),regwave_time,'nearest');
-opt.wave.L  = interp1(converted_time_wave,opt.wave.L(ind_wa),regwave_time,'nearest');
+opt.wave.wavepower_ts = interp1(data.wave.time,opt.wave.wavepower_ts,regwave_time,'nearest');
+opt.wave.Hs  = interp1(data.wave.time,Hs,regwave_time,'nearest');
+opt.wave.Tp  = interp1(data.wave.time,Tp,regwave_time,'nearest');
+%opt.wave.L  = interp1(data.wave.time,opt.wave.L,regwave_time,'nearest');
+opt.wave.P = interp1(data.wave.time,opt.wave.P,regwave_time,'nearest');
 if bad_wave > 24
     opt.wave.wavepower_ts = fillmiss_phaseavg(opt.wave.wavepower_ts, regwave_time);
     nanwave = isnan(opt.wave.wavepower_ts);
     opt.wave.Hs = fillmiss_phaseavg(opt.wave.Hs, regwave_time);
     opt.wave.Tp  = fillmiss_phaseavg(opt.wave.Tp, regwave_time);
-    opt.wave.L = fillmiss_phaseavg(opt.wave.L, regwave_time);
+    %opt.wave.L = fillmiss_phaseavg(opt.wave.L, regwave_time);
+    opt.wave.P = fillmiss_phaseavg(opt.wave.P,regwave_time);
 else
     nanwave = [];
 end
 opt.wave.wavepower_ts = fillmissing(opt.wave.wavepower_ts,'nearest');
 opt.wave.Hs = fillmissing(opt.wave.Hs,'nearest');
 opt.wave.Tp = fillmissing(opt.wave.Tp,'nearest');
-opt.wave.L = fillmissing(opt.wave.L,'nearest');
+%opt.wave.L = fillmissing(opt.wave.L,'nearest');
+opt.wave.P = fillmissing(opt.wave.P,'nearest');
 
 %extend wavepower, time, hs, tp and wavelength timeseries
-disp('extend wave')
 [opt.wave.wavepower_ts,opt.wave.time] =  ...
     extendToLifetime(opt.wave.wavepower_ts,datenum(regwave_time),uc.lifetime);
 [opt.wave.Hs] = extendToLifetime(opt.wave.Hs,datenum(regwave_time),uc.lifetime);
 [opt.wave.Tp] = extendToLifetime(opt.wave.Tp,datenum(regwave_time),uc.lifetime);
-[opt.wave.L] = extendToLifetime(opt.wave.L,datenum(regwave_time),uc.lifetime);
+%[opt.wave.L] = extendToLifetime(opt.wave.L,datenum(regwave_time),uc.lifetime);
+[opt.wave.P] = extendToLifetime(opt.wave.P,datenum(regwave_time),uc.lifetime);
 
 %extend current speed, and time to life
-disp('extend current')
 [data.curr.speed6(:,1),data.curr.time] = extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
 for i=2:num_d(2)
     [data.curr.speed6(:,i)] = extendToLifetime(data.curr.speed(:,i),datenum(regcurr_time),uc.lifetime);
 end
+
+% temperature
+bad_temp = sum(isnan(data.temperature.T2mw));
+data.temperature.T2mw  = interp1(data.temperature.time,data.temperature.T2mw,regtemp_time,'nearest');
+data.temperature.Tss  = interp1(data.temperature.time,data.temperature.Tss,regtemp_time,'nearest');
+if bad_temp > 24
+    data.temperature.T2mw = fillmiss_phaseavg(data.temperature.T2mw, regtemp_time);
+    data.temperature.Tss = fillmiss_phaseavg(data.temperature.Tss, regtemp_time);
+end
+data.temperature.T2mw = fillmissing(data.temperature.T2mw,'nearest');
+data.temperature.Tss = fillmissing(data.temperature.Tss,'nearest');
+[data.temperature.T2mw,data.temperature.time] = extendToLifetime(data.temperature.T2mw,datenum(regtemp_time),uc.lifetime); %make time series data adequately long
+[data.temperature.Tss,data.temperature.time] = extendToLifetime(data.temperature.Tss,datenum(regtemp_time),uc.lifetime); %make time series data adequately long
 %% Make Clean time series
-if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1)
+if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(1) && opt.wave.time(1) == data.temperature.time(1)
     if opt.timeadj > 1
-        opt.wave.time = opt.wave.time(opt.timeadj:end); %jump forward 2 months
+        opt.wave.time = opt.wave.time(opt.timeadj:end); %jump forward by the time adjustement
         data.wind.time = data.wind.time(opt.timeadj:end);
-        data.solar.time = data.wind.time(opt.timeadj:end);
+        data.solar.time = data.solar.time(opt.timeadj:end);
+        data.temperature.time = data.temperature.time(opt.timeadj:end);
 
         [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U(opt.timeadj:end),datenum(data.wind.time),uc.lifetime); %make time series data adequately long
         [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso(opt.timeadj:end),datenum(data.solar.time),uc.lifetime); %make time series data adequately long
-
+        [data.temperature.T2mw,data.temperature.time] = extendToLifetime(data.temperature.T2mw(opt.timeadj:end),datenum(data.temperature.time),uc.lifetime); %make time series data adequately long
+        [data.temperature.Tss,data.temperature.time] = extendToLifetime(data.temperature.Tss(opt.timeadj:end),datenum(data.temperature.time),uc.lifetime); %make time series data adequately long
 
         [opt.wave.wavepower_ts,opt.wave.time] = extendToLifetime(opt.wave.wavepower_ts(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
         [opt.wave.Hs] = extendToLifetime(opt.wave.Hs(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
         [opt.wave.Tp] = extendToLifetime(opt.wave.Tp(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
-        [opt.wave.L] = extendToLifetime(opt.wave.L(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+       % [opt.wave.L] = extendToLifetime(opt.wave.L(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
+        [opt.wave.P] = extendToLifetime(opt.wave.P(opt.timeadj:end),datenum(opt.wave.time),uc.lifetime);
     end
     for i=1:num_d(2) %current data isn't aligned
         data.curr.speed6a(:,i) = align_timeseries(data.wind.time,data.curr.time,data.curr.speed6(:,i),uc);
@@ -194,7 +234,7 @@ end
 if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned data)
     clear ax
     figure(2)
-    tf = tiledlayout(4,1);
+    tf = tiledlayout(5,1);
     title(tf,strcat(data.title," - Processed Data"))
 
     ax(1) = nexttile; %solar
@@ -215,16 +255,40 @@ if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned da
     title('Surface Current Speed')
 
     ax(4) = nexttile; %wave height
-    plot(datetime(data.met.time,'convertfrom','datenum'),opt.wave.wavepower_ts,'linewidth',1.5,'color',col(4,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'),opt.wave.wavepower_ts,'linewidth',1.5,'color',col(4,:),'DisplayName','Deep')
     hold on
     plot(datetime(data.met.time(nanwave),'convertfrom','datenum'),opt.wave.wavepower_ts(nanwave),'kx')
-    ylabel('[W/m]')
+    plot(datetime(data.met.time,'convertfrom','datenum'),opt.wave.P,':','linewidth',1.5,'color',col(1,:),'DisplayName','Intermediate')
+    ylabel('[kW/m]')
     title('Wave Power')
+    xlabel('Time')
+    legend
+
+    ax(5) = nexttile; %temps
+    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.T2mw,'linewidth',1.5,'color',col(6,:))
+    hold on
+    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.Tss,'linewidth',1.5,'color',col(7,:))
+    ylabel('[C]')
+    title('Temperature')
     xlabel('Time')
 
     %linkaxes(ax,'x')
     %xlim([min(data.met.time),max(data.met.time)])
 end
+
+%% apply ice model
+[Iceslow,Icefast] = iceModel(data.temperature.T2mw,data.met.wind_spd,data.met.time);
+if strcmp(opt.ice,'fast')
+    opt.ice_ts = 1 - Icefast; %need to flip the ice model so it is zero when ice occurs
+elseif strcmp(opt.ice,'slow')
+    opt.ice_ts = 1 - Iceslow; %need to flip the ice model so it is zero when ice occurs
+else
+    opt.ice_ts = ones(size(Iceslow)); %all ones makes no ice adjustment
+end
+
+data.swso = data.swso.*opt.ice_ts;
+data.met.wind_spd = data.met.wind_spd.*opt.ice_ts;
+
 %% winter cleaning
 if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
     %winter cleaning (if applicable)
@@ -244,6 +308,13 @@ end
 [opt.curr.F_curr] = Current_Power(cturb,atmo);
 
 %PrepWave
+if ~wave.deep
+    opt.wave.wavepower_ts = opt.wave.P; %use intermediate depth calculation
+    opt.wave.wavepower_ra = opt.wave.Pra; %use intermediate depth calculation
+    disp('Using intermediate water wave power')
+else
+    disp('Using deepwater wave power')
+end
 if wave.method == 1 %divide by B methodology
     disp('Error - Divide by B method chosen')
     

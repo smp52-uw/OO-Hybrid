@@ -53,7 +53,7 @@ if atmo.dyn_h %use log law to adjust wind speed based on rotor height
             ,'log',atmo.zo);
     end
 end
-wavepower = opt.wave.wavepower_ts; %wavepower timeseries
+wavepower = opt.wave.wavepower_ts; %wavepower timeseries [kW]
 if wave.method == 1 %divide by B methodology - OUTDATED    
     disp('ERROR- method set to old divide by B method')
 elseif wave.method == 2 %3d interpolation methodology
@@ -70,7 +70,8 @@ end
 
 %compute wave power timeseries
 Pwave = wave.eta_ct*cw.*wavepower - kW_wave*wave.house; %[kW] 
-Pwave(Pwave<0) = 0; %no negative power
+Pwave_CI = wave.CIR*kW_wave; %cut in power
+Pwave(Pwave<Pwave_CI) = 0; %no negative power, no power below cut in
 Pwave(Pwave>kW_wave) = kW_wave; %no larger than rated power
 Pwave = Pwave*1000; %convert to watts
 if kW_wave < 0.2144

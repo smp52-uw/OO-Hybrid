@@ -73,30 +73,32 @@ end
 % end
 
 %print min values
-results.width = output.min.width;
-results.cw_avg = output.min.cw_avg;
-results.cwr_avg = output.min.cwr_avg;
-results.kWd = output.min.kWd;
-results.kWi = output.min.kWi;
-results.kWwi = output.min.kWwi;
-results.kWwa = output.min.kWwa;
-results.kWc = output.min.kWc;
-results.Smax = output.min.Smax;
-results.cost = output.min.cost;
-results.CapEx = output.min.CapEx;
-results.OpEx = output.min.OpEx;
-results.nvi = output.min.nvi;
-results.CFd = output.min.CFd;
-results.CFi = output.min.CFi;
-results.CFwi = output.min.CFwi;
-results.CFwa = output.min.CFwa;
-results.CFc = output.min.CFc;
-%results.batt_L_max = max(output.min.batt_L);
-results.batt_L1_max = max(output.min.batt_L1);
-results.batt_L2_max = max(output.min.batt_L2);
-results.nfr = output.min.nfr;
-results.noc = output.min.noc;
-results
+if opt.singlepoint ~= 1
+    results.width = output.min.width;
+    results.cw_avg = output.min.cw_avg;
+    results.cwr_avg = output.min.cwr_avg;
+    results.kWd = output.min.kWd;
+    results.kWi = output.min.kWi;
+    results.kWwi = output.min.kWwi;
+    results.kWwa = output.min.kWwa;
+    results.kWc = output.min.kWc;
+    results.Smax = output.min.Smax;
+    results.cost = output.min.cost;
+    results.CapEx = output.min.CapEx;
+    results.OpEx = output.min.OpEx;
+    results.nvi = output.min.nvi;
+    results.CFd = output.min.CFd;
+    results.CFi = output.min.CFi;
+    results.CFwi = output.min.CFwi;
+    results.CFwa = output.min.CFwa;
+    results.CFc = output.min.CFc;
+    %results.batt_L_max = max(output.min.batt_L);
+    results.batt_L1_max = max(output.min.batt_L1);
+    results.batt_L2_max = max(output.min.batt_L2);
+    results.nfr = output.min.nfr;
+    results.noc = output.min.noc;
+    results
+end
 
 end
 

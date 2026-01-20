@@ -105,78 +105,95 @@ if isfield(econ.wave,'costmult_mod')
     econ.wave.costmult = econ.wave.costmult_mod; %cost modifier
 end
 
-%% Economic Model Only
-if strcmp(opt.alg,'EconOnly')
-    disc = 400;
-    discB = 500;
-    kW_dies = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);              %[kW]
-    kW_inso = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);              %[kW]
-    kW_wind = linspace(opt.wind.kW_1,opt.wind.kW_m,disc);              %[kW]
-    kW_wave = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);              %[kW]
-    kW_curr = linspace(opt.curr.kW_1,opt.curr.kW_m,disc);              %[kW]
-    Smax = linspace(opt.Smax_1,opt.Smax_n,discB);                       %[kWh]
-    if opt.pd == 6 %DON'T RUN THIS WITH 500 POINTS - MATLAB WILL GET ANGRY
-        [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(kW_dies,kW_inso,kW_wind, kW_wave, kW_curr, Smax);
-        Kd = reshape(Kd,[disc^6 1]);
-        Ki = reshape(Ki,[disc^6 1]);
-        Kwi = reshape(Kwi,[disc^6 1]);
-        Kwa = reshape(Kwa,[disc^6 1]);
-        Kc = reshape(Kc,[disc^6 1]);
-        S = reshape(S,[disc^6 1]);
-    else%power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
-        if opt.pm == 1
-            [K,S] = ndgrid(kW_wind, Smax);
-            Kwi = reshape(K,[disc*discB 1]);
-            Kd = zeros(size(Kwi));
-            Ki = zeros(size(Kwi));
-            Kwa = zeros(size(Kwi));
-            Kc = zeros(size(Kwi));
-            S = reshape(S,[disc*discB 1]);
-        elseif opt.pm == 2
-            [K,S] = ndgrid(kW_inso, Smax);
-            Ki = reshape(K,[disc*discB 1]);
-            Kd = zeros(size(Ki));
-            Kwi = zeros(size(Ki));
-            Kwa = zeros(size(Ki));
-            Kc = zeros(size(Ki));
-            S = reshape(S,[disc*discB 1]);
-        elseif opt.pm == 3
-            [K,S] = ndgrid(kW_wave, Smax);
-            Kwa = reshape(K,[disc*discB 1]);
-            Kd = zeros(size(Kwa));
-            Ki = zeros(size(Kwa));
-            Kwi = zeros(size(Kwa));
-            Kc = zeros(size(Kwa));
-            S = reshape(S,[disc*discB 1]);
-        elseif opt.pm == 4
-            [K,S] = ndgrid(kW_dies, Smax);
-            Kd = reshape(K,[disc*discB 1]);
-            Ki = zeros(size(Kd));
-            Kwi = zeros(size(Kd));
-            Kwa = zeros(size(Kd));
-            Kc = zeros(size(Kd));
-            S = reshape(S,[disc*discB 1]);
-        else
-            [K,S] = ndgrid(kW_curr, Smax);
-            Kc = reshape(K,[disc*discB 1]);
-            Kd = zeros(size(Kc));
-            Ki = zeros(size(Kc));
-            Kwi = zeros(size(Kc));
-            Kwa = zeros(size(Kc));
-            S = reshape(S,[disc*discB 1]);
-        end
-    end
-    runtime_tot = 250.*ones(length(Kd),1); %max
-    newbatt = zeros(size(Kd)); %minimum
-    nvi = 3.*ones(length(Kd),1);
-    [CapEx,OpEx,cost,costcomp,indPM,mass] = HybridEcon(data,econ,opt,inso,batt,turb,bc,Ki,Kwi,Kwa,Kc,Kd,S,runtime_tot,nvi,newbatt);
+% %% Economic Model Only
+% if strcmp(opt.alg,'EconOnly')
+%     disc = 400;
+%     discB = 500;
+%     kW_dies = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);              %[kW]
+%     kW_inso = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);              %[kW]
+%     kW_wind = linspace(opt.wind.kW_1,opt.wind.kW_m,disc);              %[kW]
+%     kW_wave = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);              %[kW]
+%     kW_curr = linspace(opt.curr.kW_1,opt.curr.kW_m,disc);              %[kW]
+%     Smax = linspace(opt.Smax_1,opt.Smax_n,discB);                       %[kWh]
+%     if opt.pd == 6 %DON'T RUN THIS WITH 500 POINTS - MATLAB WILL GET ANGRY
+%         [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(kW_dies,kW_inso,kW_wind, kW_wave, kW_curr, Smax);
+%         Kd = reshape(Kd,[disc^6 1]);
+%         Ki = reshape(Ki,[disc^6 1]);
+%         Kwi = reshape(Kwi,[disc^6 1]);
+%         Kwa = reshape(Kwa,[disc^6 1]);
+%         Kc = reshape(Kc,[disc^6 1]);
+%         S = reshape(S,[disc^6 1]);
+%     else%power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+%         if opt.pm == 1
+%             [K,S] = ndgrid(kW_wind, Smax);
+%             Kwi = reshape(K,[disc*discB 1]);
+%             Kd = zeros(size(Kwi));
+%             Ki = zeros(size(Kwi));
+%             Kwa = zeros(size(Kwi));
+%             Kc = zeros(size(Kwi));
+%             S = reshape(S,[disc*discB 1]);
+%         elseif opt.pm == 2
+%             [K,S] = ndgrid(kW_inso, Smax);
+%             Ki = reshape(K,[disc*discB 1]);
+%             Kd = zeros(size(Ki));
+%             Kwi = zeros(size(Ki));
+%             Kwa = zeros(size(Ki));
+%             Kc = zeros(size(Ki));
+%             S = reshape(S,[disc*discB 1]);
+%         elseif opt.pm == 3
+%             [K,S] = ndgrid(kW_wave, Smax);
+%             Kwa = reshape(K,[disc*discB 1]);
+%             Kd = zeros(size(Kwa));
+%             Ki = zeros(size(Kwa));
+%             Kwi = zeros(size(Kwa));
+%             Kc = zeros(size(Kwa));
+%             S = reshape(S,[disc*discB 1]);
+%         elseif opt.pm == 4
+%             [K,S] = ndgrid(kW_dies, Smax);
+%             Kd = reshape(K,[disc*discB 1]);
+%             Ki = zeros(size(Kd));
+%             Kwi = zeros(size(Kd));
+%             Kwa = zeros(size(Kd));
+%             Kc = zeros(size(Kd));
+%             S = reshape(S,[disc*discB 1]);
+%         else
+%             [K,S] = ndgrid(kW_curr, Smax);
+%             Kc = reshape(K,[disc*discB 1]);
+%             Kd = zeros(size(Kc));
+%             Ki = zeros(size(Kc));
+%             Kwi = zeros(size(Kc));
+%             Kwa = zeros(size(Kc));
+%             S = reshape(S,[disc*discB 1]);
+%         end
+%     end
+%     runtime_tot = 250.*ones(length(Kd),1); %max
+%     newbatt = zeros(size(Kd)); %minimum
+%     nvi = 3.*ones(length(Kd),1);
+%     [CapEx,OpEx,cost,costcomp,indPM,mass] = HybridEcon(data,econ,opt,inso,batt,turb,bc,Ki,Kwi,Kwa,Kc,Kd,S,runtime_tot,nvi,newbatt);
+% end
+
+%% debugging - this runs one point through the time domain simulation
+if opt.singlepoint == 1
+    opt.fmin = false;
+    GenCoords = [opt.wind.kWsg,opt.inso.kWsg,opt.wave.kWsg, opt.dies.kWsg, opt.curr.kWsg];
+
+    [output.min.cost,output.min.surv,output.min.CapEx,output.min.OpEx,...
+    output.min.kWcost_dies,output.min.kWcost_wave, output.min.kWcost_curr, output.min.kWcost_wind, output.min.Mcost_inso,...
+    output.min.Ecost_inso, output.min.Icost_inso, output.min.Strcost_inso,...
+    output.min.Icost_wave, output.min.Icost_wind, output.min.Scost,output.min.Pmtrl,...
+    output.min.Pinst,output.min.Pmooring, ...
+    output.min.vesselcost,output.min.genrepair, ...
+    output.min.turbrepair, output.min.solarrepair, output.min.wecrepair,...
+    output.min.battreplace,output.min.battencl,output.min.genencl, ...
+    output.min.fuel,output.min.triptime,output.min.runtime, ... 
+    output.min.nvi,output.min.batt_L1,output.min.batt_L2, output.min.batt_lft1, output.min.batt_lft2, ...
+    output.min.nfr,output.min.noc, output.min.nbr,...
+    output.min.dp,output.min.S1, output.min.S2, output.min.Pdies, output.min.Pinso, output.min.Pwind, output.min.Pwave,output.min.Pcurr,...
+    output.min.Ptot, output.min.width,output.min.cw,output.min.D,output.min.L, output.min.F, output.min.eff_t, output.min.pvci] ...
+    = simHybrid(GenCoords,opt.Smaxsg,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
+
+    return
 end
-
-%% debugging - this runs one point if you put a break at 182
-% % % opt.fmin = false;
-% % % GenCoords = [0,0,0,0, opt.curr.kW_m];
-% % % [~,check_s] = simHybrid(GenCoords, opt.Smax_n,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
-
 %% Check Coarse Mesh
 %check to make sure coarse mesh will work
 opt.fmin = false;
