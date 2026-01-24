@@ -27,12 +27,12 @@ opt.monthstart = 7; %July start
 
 opt.singlepoint = 1; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 0.56;
-    opt.inso.kWsg = 1.38;
-    opt.wave.kWsg = 1;
+    opt.wind.kWsg = 1;
+    opt.inso.kWsg = 0;
+    opt.wave.kWsg = 0;
     opt.dies.kWsg = 0;
     opt.curr.kWsg = 0;
-    opt.Smaxsg = 6.9;
+    opt.Smaxsg = 71;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -82,7 +82,7 @@ opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'PacWave';
+loc = 'BerSea';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
@@ -409,11 +409,13 @@ elseif bc == 2 %lfp chemistry
 end
 
 %atmospheric parameters
-atmo.rho_a = 1.225;         %[kg/m^3] density of air
+%atmo.rho_a = 1.225;         %[kg/m^3] density of air
+atmo.rho_a_c = 1.225;         %[kg/m^3] density of air (constant vs time series)
 atmo.rho_w = 1025;          %[kg/m^3] density of water
 atmo.g = 9.81;              %[m/s^2]
 %atmo.h = 4;                %[m]
-atmo.zo = 0.2;              %[mm]
+%atmo.zo = 0.2;              %[mm]
+atmo.zo_c = 0.2;            %[mm] (constant vs time series)
 atmo.dyn_h = true;          %toggle dynamic hub height
 atmo.soil = 35;             %[%/year]
 %atmo.clean = 0.5;          %heavy rain cleans X amt of soil

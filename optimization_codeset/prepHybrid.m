@@ -121,11 +121,21 @@ num_d = size(data.curr.vmag);
 
 bad_wind = sum(isnan(data.wind.U));
 data.wind.U  = interp1(data.wind.time,data.wind.U,regwind_time,'nearest'); %shift to clean time series
+data.wind.z0  = interp1(data.wind.time,data.wind.z0,regwind_time,'nearest'); %shift to clean time series
+data.wind.rho = interp1(data.wind.time,data.wind.rho,regwind_time,'nearest');
 if bad_wind > 24
-    data.wind.U = fillmiss_phaseavg(data.wind.U, regwin_time);
+    data.wind.U = fillmiss_phaseavg(data.wind.U, regwind_time);
+    data.wind.z0 = fillmiss_phaseavg(data.wind.z0,regwind_time);
+    data.wind.rho = fillmiss_phaseavg(data.wind.rho,regwind_time);
 end
+
 data.wind.U = fillmissing(data.wind.U,'nearest'); %fill short outages
+data.wind.z0 = fillmissing(data.wind.z0,'nearest');
+data.wind.rho = fillmissing(data.wind.rho,'nearest');
+
 [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U,datenum(regwind_time),uc.lifetime); %make time series data adequately long
+[data.wind.z0,data.wind.time] = extendToLifetime(data.wind.z0,datenum(regwind_time),uc.lifetime);
+[data.wind.rho,data.wind.time] = extendToLifetime(data.wind.rho,datenum(regwind_time),uc.lifetime);
 
 bad_solar = sum(isnan(data.solar.swso));
 data.solar.swso  = interp1(data.solar.time,data.solar.swso,reginso_time,'nearest');
@@ -206,6 +216,9 @@ if opt.wave.time(1) == data.wind.time(1) && opt.wave.time(1) == data.solar.time(
         data.temperature.time = data.temperature.time(opt.timeadj:end);
 
         [data.wind.U,data.wind.time] = extendToLifetime(data.wind.U(opt.timeadj:end),datenum(data.wind.time),uc.lifetime); %make time series data adequately long
+        [data.wind.z0] = extendToLifetime(data.wind.z0(opt.timeadj:end),datenum(data.wind.time),uc.lifetime); %make time series data adequately long
+        [data.wind.rho] = extendToLifetime(data.wind.rho(opt.timeadj:end),datenum(data.wind.time),uc.lifetime); %make time series data adequately long
+
         [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso(opt.timeadj:end),datenum(data.solar.time),uc.lifetime); %make time series data adequately long
         [data.temperature.T2mw,data.temperature.time] = extendToLifetime(data.temperature.T2mw(opt.timeadj:end),datenum(data.temperature.time),uc.lifetime); %make time series data adequately long
         [data.temperature.Tss,data.temperature.time] = extendToLifetime(data.temperature.Tss(opt.timeadj:end),datenum(data.temperature.time),uc.lifetime); %make time series data adequately long
@@ -275,6 +288,20 @@ if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned da
     %linkaxes(ax,'x')
     %xlim([min(data.met.time),max(data.met.time)])
 end
+
+figure
+plot(data.wind.rho)
+hold on
+yline(atmo.rho_a_c)
+ylabel('Density [kg/m3]')
+title(data.title)
+
+figure
+plot(data.wind.z0.*1000)
+hold on
+yline(atmo.zo_c)
+ylabel('Surface Roughness [mm]')
+title(data.title)
 
 %% apply ice model
 [Iceslow,Icefast] = iceModel(data.temperature.T2mw,data.met.wind_spd,data.met.time);

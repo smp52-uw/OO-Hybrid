@@ -1,7 +1,7 @@
 function [cost,surv,CapEx,OpEx,kWcost_dies, kWcost_wave,kWcost_curr, kWcost_wind,Mcost_inso,Ecost_inso,Icost_inso,...
     Strcost_inso, Icost_wave, Icost_wind, Scost,Pmtrl,Pinst,Pmooring, ...
     vesselcost,genrepair,turbrepair, solarrepair, wecrepair, battreplace,battencl,genencl,fuel, ...
-    triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies,Pinso,Pwind,Pwave,Pcurr,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
+    triptime,runtime,nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,comp_plat_mass,S1,S2,Pdies,Pinso,Pwind,Pwave,Pcurr,Ptot,width,cw,D,L,F,eff_t,pvci] =  ...
     simHybrid(GenCoord, Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb) %#codegen
 
 %% Created by Sarah Palmer Jan 2023 - started from Trent's OO-Tech code
@@ -49,10 +49,18 @@ if atmo.dyn_h %use log law to adjust wind speed based on rotor height
     for i = 1:length(wind)
         wind(i) = adjustHeight(wind(i),data.met.wind_ht, ...
             turb.clearance + ...
-            sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a*pi*turb.ura^3)) ...
-            ,'log',atmo.zo);
+            sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a_c*pi*turb.ura^3)) ...
+            ,'log',atmo.zo_c); 
+        %You could use ERA5 z0 x1000 on to convert from m to mm (data.wind.z0(i).*1000)
+        %ERA5 z0 values are not consistently reasonable so I advise caution
+        %in using those values. The standard value in opt inputs is the the
+        %approximate value for a rough sea
     end
 end
+Pwind_ci = (1/2)*atmo.rho_a_c*turb.uci^3; %cut in power flux [W]
+Pwind_co = (1/2)*atmo.rho_a_c*turb.uco^3; %cut out power flux [W]
+Pwind_ra = (1/2)*atmo.rho_a_c*turb.ura^3; %rated power flux [W]
+
 wavepower = opt.wave.wavepower_ts; %wavepower timeseries [kW]
 if wave.method == 1 %divide by B methodology - OUTDATED    
     disp('ERROR- method set to old divide by B method')
@@ -114,6 +122,7 @@ Ptot = zeros(1,length(time)); %power produced timeseries
 Pdies = zeros(1,length(time));
 Pinso = zeros(1,length(time));
 Pwind = zeros(1,length(time));
+Pflux = zeros(1,length(time));
 Pcurr= zeros(1,length(time));
 Prenew = zeros(1,length(time));
 D = zeros(1,length(time)); %power dumped timeseries
@@ -214,13 +223,14 @@ for t = 1:(length(time))
                 inso.eff*kW_inso*1000*(swso(t)/(inso.rated*1000)); %[W]
         end
     end
-    %find power from wind turbine
+    %find power from wind turbine 
     if kW_wind ~= 0 
-        if wind(t) < turb.uci %below cut out
+        Pflux(t) = (1/2)*data.wind.rho(t).*wind(t).^3;
+        if Pflux(t) < Pwind_ci %below cut in
             Pwind(t) = 0; %[W]
-        elseif turb.uci < wind(t) && wind(t) <= turb.ura %below rated
-            Pwind(t) = kW_wind*1000*wind(t)^3/turb.ura^3; %[W]
-        elseif turb.ura < wind(t) && wind(t) <= turb.uco %above rated
+        elseif Pwind_ci < Pflux(t) && Pflux(t) <= Pwind_ra %below rated
+            Pwind(t) = kW_wind*1000*data.wind.rho(t).*wind(t)^3/(atmo.rho_a_c.*turb.ura^3); %[W]
+        elseif Pwind_ra < Pflux(t) && Pflux(t) <= Pwind_co %above rated
             Pwind(t) = kW_wind*1000; %[W]
         else %above cut out
             Pwind(t) = 0; %[W]
@@ -449,6 +459,12 @@ end
 comp_plat_mass = mass_solar + mass_solar_E + mass_solar_S + mass_wind + mass_dies + ...
         mass_diesencl + mass_fuel + mass_batt + mass_battencl + mass_wec; %total mass of componenets on the platform
 
+%add instrumentation mass
+if isfield(uc.loaddata(uc.loadcase),'mass')
+    comp_plat_mass = comp_plat_mass + uc.loaddata(uc.loadcase).mass;
+else
+    disp('No instrumentation mass given - 0kg assumed')
+end
 %% Economic Optimization
 if opt.tar ==3 %economic
     %% Costs

@@ -17,7 +17,7 @@ opt.p_dev.b_size = calcDeviceVal('lfp_vol',[],econ.battsize_n);
 [uc.loaddata, loadseries] = GenerateLoadCases_v4(data); %updated to even hour loads
 uc.draw = loadseries.L(uc.loadcase,:);
 if opt.pltdebug
-    figure(3)
+    figure
     hold on
     plot(uc.draw(1:8760),'linewidth',1.5)
     yline(mean(uc.draw),'--','linewidth',1.5)

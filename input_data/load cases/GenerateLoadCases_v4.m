@@ -2,6 +2,8 @@
 %July 20, 2022
 %Edits: Sarah Palmer 2/6/2023
 %Edits: SM Palmer  6/27/2023 - even hour load values
+%Edits: SM Palmer 1-21-26 - changing the constant load to 322 W
+%Edits: SM Palmer 1-21-26 - adding the mass from the load case
 
 %Description: Generate time-resolved load cases
 
@@ -26,6 +28,7 @@ load_case(1).duration = hours(17);  %intermittent load duration - updated to be 
 load_case(1).L_intermittent = ((6400/17)+90)/0.75; %intermittent load [W] - updated to have same energy
 %384 W average onboard charger load + 90 W hotel load / 75% wireless transfer efficiency
 load_case(1).interval = days(7);   %intermittent load repetition rate
+load_case(1).mass = 90; % [kg] mass based on estimate from Brian
 
 %case 2:high-frequency recharge UUV
 load_case(2).name = 'High-frequency Recharge UUV';
@@ -43,6 +46,7 @@ load_case(3).L_constant = 322;  %constant load [W]  %actual load will be control
 load_case(3).L_intermittent = load_case(1).L_intermittent; %intermittent load [W]   %add in high-capacity UUV
 load_case(3).interval = load_case(1).interval;      %intermittent load repetition rate
 load_case(3).duration = load_case(1).duration;      %intermittent load duration
+load_case(3).mass = 180; % [kg] mass based on UUV mass + AMP mass (estimates from Brian and Chris)
 
 %case 4: high-frequency radar
 load_case(4).name = 'High-frequency Radar';
@@ -51,8 +55,9 @@ load_case(4).L_intermittent = 0; %intermittent load [W]
 
 %case 5: 200W
 load_case(5).name = 'Trent OO';
-load_case(5).L_constant = 200;  %constant load [W]
+load_case(5).L_constant = load_case(3).L_constant;  %constant load [W] (updated SPalmer)
 load_case(5).L_intermittent = 0; %intermittent load [W]
+load_case(5).mass = 90; %[kg] based on AMP mass estimate from Chris
 %% Initialization
 t = [0:dt:dt*(T-1)]';  %initialize time series
 
