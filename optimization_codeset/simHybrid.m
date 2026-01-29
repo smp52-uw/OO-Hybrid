@@ -50,10 +50,11 @@ if atmo.dyn_h %use log law to adjust wind speed based on rotor height
         wind(i) = adjustHeight(wind(i),data.met.wind_ht, ...
             turb.clearance + ...
             sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a_c*pi*turb.ura^3)) ...
-            ,'log',atmo.zo_c); 
-        %You could use ERA5 z0 x1000 on to convert from m to mm (data.wind.z0(i).*1000)
-        %ERA5 z0 values are not consistently reasonable so I advise caution
-        %in using those values. The standard value in opt inputs is the the
+            ,'log',(data.wind.z0(i).*1000)); 
+        %You use ERA5 z0 x1000 on to convert from m to mm
+        %(data.wind.z0(i).*1000) or atmo.zo_c
+        %ERA5 z0 values can be orders of magnitude off when close to shore. 
+        %The standard value in opt inputs is the the
         %approximate value for a rough sea
     end
 end
@@ -709,7 +710,7 @@ surv = sum(L == uc.draw)/(length(L));
 if isnan(Pmooring)
     disp('Ahh - the platform is too big')
     %cost = inf;
-    cost = cost*(opt.failsurv/surv);
+    cost = opt.failsurv/surv;
 end
 
 end

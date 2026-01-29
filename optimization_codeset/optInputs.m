@@ -21,18 +21,18 @@ opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
 opt.timeadj = 0; %shift in the data time series
 div_wave_cost = 1; %constant to divide wave cost by
 econ.wave.mass_mult = 1; %constant to divide wave mass by
-opt.failsurv = 100; %multiplier used to adjust the cost of points that fail the persistence constraint
+opt.failsurv = 4E8; %cost adjustment for failed surv cases (max cost in space for our locs is ~3.7E6 so this will be well above it)
 opt.ice = 'slow'; %options are 'fast','slow',or 'none'
 opt.monthstart = 7; %July start
 
 opt.singlepoint = 1; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 1;
-    opt.inso.kWsg = 0;
-    opt.wave.kWsg = 0;
-    opt.dies.kWsg = 0;
-    opt.curr.kWsg = 0;
-    opt.Smaxsg = 71;
+    opt.wind.kWsg = 8;
+    opt.inso.kWsg = 8;
+    opt.wave.kWsg = 8;
+    opt.dies.kWsg = 8;
+    opt.curr.kWsg = 8;
+    opt.Smaxsg = 500;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -82,7 +82,7 @@ opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'BerSea';
+loc = 'MidAtlSB';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};

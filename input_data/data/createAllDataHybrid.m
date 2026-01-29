@@ -6,7 +6,7 @@
 %differently (1/8/25)
 
 %location
-site_case = 4;
+site_case = 3;
 
 switch site_case
     case 1
@@ -61,4 +61,4 @@ data.curr.time = current.time;
 
 data.temperature = temperature;
 
-save(loc,"data")
+save(locout,"data")
