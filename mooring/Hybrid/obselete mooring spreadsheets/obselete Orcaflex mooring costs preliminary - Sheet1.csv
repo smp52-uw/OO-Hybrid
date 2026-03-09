@@ -1,0 +1,247 @@
+OUTPUT Filename,Site,Buoy Size,Total mass,Waves,Current,Main mooring length,Chain Length,Max Tension,Max Anchor Fx,Max Anchor Fz,Min Clearance,% time submerged,Chain cost,Tether Cost,Anchor weight required,,Anchor cost,total mooring cost
+PW_buoyM_mass1645_wavesMax_currAve,PacWave,Medium,1645,Max,Average,75,40,9390.030273,8529.780273,2886.340088,-5.291898044,0.245799328,1148.294,953.5827,8318.827673,28,15400,18501.8767
+PW_buoyM_mass2045_wavesMax_currAve,PacWave,Medium,2045,Max,Average,75,40,9553.943359,8829.740234,2896.179688,-5.608893928,0.304368699,1148.294,953.5827,8590.763612,29,15700,18801.8767
+PW_buoyM_mass2545_wavesMax_currAve,PacWave,Medium,2545,Max,Average,75,40,9226.588867,8329.436523,2790.733643,-6.005547571,0.388862218,1148.294,953.5827,8117.186244,27,15100,18201.8767
+PW_buoyM_mass3545_wavesMax_currAve,PacWave,Medium,3545,Max,Average,75,40,9466.047852,8673.637695,2871.523926,-8.622563325,0.534805569,1148.294,953.5827,8444.853594,28,15400,18501.8767
+PW_buoyM_mass4545_wavesMax_currAve,PacWave,Medium,4545,Max,Average,75,40,12271.19629,11559.60938,3312.412109,-9.476252327,0.795967355,1148.294,953.5827,11139.031,37,20100,23201.8767
+PW_buoyM_mass1645_wavesAve_currMax,PacWave,Medium,1645,Average,Max,75,40,1985.508057,1576.884155,37.7298317,0.436141943,0,1148.294,953.5827,1426.415898,5,2500,5601.8767
+PW_buoyM_mass2045_wavesAve_currMax,PacWave,Medium,2045,Average,Max,75,40,2294.364502,1831.635498,192.2953491,0.339853255,0,1148.294,953.5827,1690.234634,6,3800,6901.8767
+PW_buoyM_mass2545_wavesAve_currMax,PacWave,Medium,2545,Average,Max,75,40,2708.354248,2242.125488,378.0930481,0.27991674,0,1148.294,953.5827,2101.114556,7,4100,7201.8767
+PW_buoyM_mass3545_wavesAve_currMax,PacWave,Medium,3545,Average,Max,75,40,3428.888184,2908.666748,685.31073,0.130255786,0,1148.294,953.5827,2769.530992,9,4700,7801.8767
+PW_buoyM_mass4545_wavesAve_currMax,PacWave,Medium,4545,Average,Max,75,40,4147.239258,3591.841797,946.6365967,-0.11359152,0.006721075,1148.294,953.5827,3442.588051,11,6300,9401.8767
+WT_buoyM_mass1645_wavesMax_currAve,WETS,Medium,1645,Max,Average,55,40,8367.482422,7734.583008,2260.309814,-4.952625197,0.408545367,1148.294,763.29398,7463.054687,25,13500,16411.58798
+WT_buoyM_mass2045_wavesMax_currAve,WETS,Medium,2045,Max,Average,55,40,10164.12402,9610.078125,2697.852539,-4.94782366,0.348055689,1148.294,763.29398,9247.859501,31,17300,20211.58798
+WT_buoyM_mass2545_wavesMax_currAve,WETS,Medium,2545,Max,Average,55,40,10272.03125,9691.780273,2685.292969,-4.574996527,0.424867979,1148.294,763.29398,9318.502681,31,17300,20211.58798
+WT_buoyM_mass3545_wavesMax_currAve,WETS,Medium,3545,Max,Average,55,40,9279.978516,8689.694336,2580.59082,-6.778890045,0.563610178,1148.294,763.29398,8393.889963,28,15400,18311.58798
+WT_buoyM_mass4545_wavesMax_currAve,WETS,Medium,4545,Max,Average,55,40,11042.60449,10482.84375,2722.258545,-7.363864239,0.793086894,1148.294,763.29398,10038.13682,33,17900,20811.58798
+WT_buoyM_mass1645_wavesAve_currMax,WETS,Medium,1645,Average,Max,55,40,774.2819214,515.0916748,9.826310158,0.389973577,0,1148.294,763.29398,465.3793885,2,1600,4511.58798
+WT_buoyM_mass2045_wavesAve_currMax,WETS,Medium,2045,Average,Max,55,40,899.3703613,616.1734009,10.69463825,0.328433945,0,1148.294,763.29398,556.4672768,2,1600,4511.58798
+WT_buoyM_mass2545_wavesAve_currMax,WETS,Medium,2545,Average,Max,55,40,1041.48877,735.0523071,11.59514236,0.241229953,0,1148.294,763.29398,663.5656225,2,1600,4511.58798
+WT_buoyM_mass3545_wavesAve_currMax,WETS,Medium,3545,Average,Max,55,40,1257.901367,947.3029175,13.07687855,0.120662187,0,1148.294,763.29398,854.7544657,3,1900,4811.58798
+WT_buoyM_mass4545_wavesAve_currMax,WETS,Medium,4545,Average,Max,55,40,1462.862183,1166.621582,14.45885658,-0.061151897,0.014882381,1148.294,763.29398,1052.276477,4,2200,5111.58798
+MA_buoyM_mass1645_wavesMax_currAve,Mid Atlantic,Medium,1645,Max,Average,85,40,13066.02637,12616.36426,3312.570313,-2.868211772,0.309169467,1148.294,1048.72706,12089.30055,40,22000,25197.02106
+MA_buoyM_mass2045_wavesMax_currAve,Mid Atlantic,Medium,2045,Max,Average,85,40,13162.30176,12690.57324,3249.416504,-3.551124364,0.302448392,1148.294,1048.72706,12141.83229,40,22000,25197.02106
+MA_buoyM_mass2545_wavesMax_currAve,Mid Atlantic,Medium,2545,Max,Average,85,40,18149.86914,17847.21484,3805.697998,-5.174554181,0.397983677,1148.294,1048.72706,16903.73649,56,30800,33997.02106
+MA_buoyM_mass3545_wavesMax_currAve,Mid Atlantic,Medium,3545,Max,Average,85,40,20191.40039,19810.36523,4276.778809,-9.825367996,0.562169947,1148.294,1048.72706,18774.90029,63,34900,38097.02106
+MA_buoyM_mass4545_wavesMax_currAve,Mid Atlantic,Medium,4545,Max,Average,85,40,21417.65625,20959.49414,4320.773926,-7.130470758,0.73643783,1148.294,1048.72706,19818.08711,66,36800,39997.02106
+MA_buoyM_mass1645_wavesAve_currMax,Mid Atlantic,Medium,1645,Average,Max,85,40,5310.276367,5171.989258,1047.726074,0.335626637,0,1148.294,1048.72706,4886.181562,16,8800,11997.02106
+MA_buoyM_mass2045_wavesAve_currMax,Mid Atlantic,Medium,2045,Average,Max,85,40,5999.738281,5862.350586,1292.825806,0.29936377,0,1148.294,1048.72706,5562.052888,19,10700,13897.02106
+MA_buoyM_mass2545_wavesAve_currMax,Mid Atlantic,Medium,2545,Average,Max,85,40,6944.030273,6773.068848,1591.702271,0.190692336,0,1148.294,1048.72706,6448.158179,21,11300,14497.02106
+MA_buoyM_mass3545_wavesAve_currMax,Mid Atlantic,Medium,3545,Average,Max,85,40,8816.782227,8580.385742,2083.105225,0.047404472,0,1148.294,1048.72706,8183.764914,27,15100,18297.02106
+MA_buoyM_mass4545_wavesAve_currMax,Mid Atlantic,Medium,4545,Average,Max,85,40,10646.31543,10405.71582,2493.10791,-0.171649314,0.062890062,1148.294,1048.72706,9917.270324,33,17900,21097.02106
+PS_buoyM_mass1645_wavesMax_currAve,PISCES,Medium,1645,Max,Average,300,40,1763.744,985.2986,13.33078,-0.81339,0.014882,1148.294,3094.3308,888.9772605,3,1900,7142.6248
+PS_buoyM_mass2045_wavesMax_currAve,PISCES,Medium,2045,Max,Average,300,40,1734.466,978.3383,13.28566,-0.92427,0.029285,1148.294,3094.3308,882.7084157,3,1900,7142.6248
+PS_buoyM_mass2545_wavesMax_currAve,PISCES,Medium,2545,Max,Average,300,40,1767.925,972.2902,13.25098,-1.18376,0.041767,1148.294,3094.3308,877.2621681,3,1900,7142.6248
+PS_buoyM_mass3545_wavesMax_currAve,PISCES,Medium,3545,Max,Average,300,40,1800.881,1014.751,13.52472,-1.5754,0.206913,1148.294,3094.3308,915.5044563,3,1900,7142.6248
+PS_buoyM_mass4545_wavesMax_currAve,PISCES,Medium,4545,Max,Average,300,40,2366.731,1438.351,16.02723,-1.82929,0.409506,1148.294,3094.3308,1296.968141,4,2200,7442.6248
+PS_buoyM_mass1645_wavesAve_currMax,PISCES,Medium,1645,Average,Max,300,40,1014.046,494.9844,9.65736,0.473078,0,1148.294,3094.3308,447.260947,1,300,5542.6248
+PS_buoyM_mass2045_wavesAve_currMax,PISCES,Medium,2045,Average,Max,300,40,1082.838,557.937,10.19695,0.419647,0,1148.294,3094.3308,503.9892248,2,1600,6842.6248
+PS_buoyM_mass2545_wavesAve_currMax,PISCES,Medium,2545,Average,Max,300,40,1174.467,629.9623,10.77931,0.342378,0,1148.294,3094.3308,568.885289,2,1600,6842.6248
+PS_buoyM_mass3545_wavesAve_currMax,PISCES,Medium,3545,Average,Max,300,40,1314.221,753.5813,11.7209,0.201295,0,1148.294,3094.3308,680.2551633,2,1600,6842.6248
+PS_buoyM_mass4545_wavesAve_currMax,PISCES,Medium,4545,Average,Max,300,40,1469.679,910.5692,12.83216,0.073661,0,1148.294,3094.3308,821.6684942,3,1900,7142.6248
+HU_buoyM_mass1645_wavesMax_currAve,Hueneme,Medium,1645,Max,Average,200,40,0,0,0,0,#DIV/0!,1148.294,2142.8872,0,0,0,4291.1812
+HU_buoyM_mass2045_wavesMax_currAve,Hueneme,Medium,2045,Max,Average,200,40,7110.708496,5656.197754,1583.143555,-2.620343392,0.282285166,1148.294,2142.8872,5441.943692,18,10400,14691.1812
+HU_buoyM_mass2545_wavesMax_currAve,Hueneme,Medium,2545,Max,Average,200,40,4510.822754,3732.43042,724.1509399,-5.545070876,0.352856457,1148.294,2142.8872,3518.990565,12,6600,10891.1812
+HU_buoyM_mass3545_wavesMax_currAve,Hueneme,Medium,3545,Max,Average,200,40,4859.469238,4014.911621,867.9194336,-6.717911353,0.551608257,1148.294,2142.8872,3805.316818,13,6900,11191.1812
+HU_buoyM_mass4545_wavesMax_currAve,Hueneme,Medium,4545,Max,Average,200,40,5266.893555,4407.161621,933.2091675,-6.421458043,0.730676908,1148.294,2142.8872,4172.70515,14,8200,12491.1812
+HU_buoyM_mass1645_wavesAve_currMax,Hueneme,Medium,1645,Average,Max,200,40,525.5142822,233.3226776,7.083468914,0.51369851,0,1148.294,2142.8872,211.3961155,1,300,4591.1812
+HU_buoyM_mass2045_wavesAve_currMax,Hueneme,Medium,2045,Average,Max,200,40,590.0430908,280.2747192,7.578892708,0.463847661,0,1148.294,2142.8872,253.7267626,1,300,4591.1812
+HU_buoyM_mass2545_wavesAve_currMax,Hueneme,Medium,2545,Average,Max,200,40,667.2348022,346.6807861,8.233525276,0.399487154,0,1148.294,2142.8872,313.5862593,1,300,4591.1812
+HU_buoyM_mass3545_wavesAve_currMax,Hueneme,Medium,3545,Average,Max,200,40,828.9953613,476.1418762,9.465537071,0.263657835,0,1148.294,2142.8872,430.2746278,1,300,4591.1812
+HU_buoyM_mass4545_wavesAve_currMax,Hueneme,Medium,4545,Average,Max,200,40,957.2623291,586.6463013,10.42233944,0.127512213,0,1148.294,2142.8872,529.855296,2,1600,5891.1812
+BE_buoyM_mass1645_wavesMax_currAve,Bering,Medium,1645,Max,Average,65,40,6043.315918,5485.400879,1736.901245,-2.056639115,0.199711954,1148.294,858.43834,5322.92787,18,10400,13406.73234
+BE_buoyM_mass2045_wavesMax_currAve,Bering,Medium,2045,Max,Average,65,40,9343.648438,8515.880859,2868.109863,-4.713459938,0.24243879,1148.294,858.43834,8302.231166,28,15400,18406.73234
+BE_buoyM_mass2545_wavesMax_currAve,Bering,Medium,2545,Max,Average,65,40,9742.213867,9094.564453,2862.04834,-5.341009298,0.32981277,1148.294,858.43834,8821.220823,29,15700,18706.73234
+BE_buoyM_mass3545_wavesMax_currAve,Bering,Medium,3545,Max,Average,65,40,9630.195313,8975.654297,2797.836426,-7.007960135,0.456553048,1148.294,858.43834,8699.861972,29,15700,18706.73234
+BE_buoyM_mass4545_wavesMax_currAve,Bering,Medium,4545,Max,Average,65,40,9618.380859,8877.135742,2833.117188,-6.311653691,0.700432069,1148.294,858.43834,8619.205203,29,15700,18706.73234
+BE_buoyM_mass1645_wavesAve_currMax,Bering,Medium,1645,Average,Max,65,40,558.8291626,343.0054626,8.322558403,0.313764929,0,1148.294,858.43834,310.3014231,1,300,3306.73234
+BE_buoyM_mass2045_wavesAve_currMax,Bering,Medium,2045,Average,Max,65,40,610.3563843,378.1639099,8.591698647,0.276056848,0,1148.294,858.43834,341.9764016,1,300,3306.73234
+BE_buoyM_mass2545_wavesAve_currMax,Bering,Medium,2545,Average,Max,65,40,623.8913574,400.2826843,8.839764595,0.134995004,0,1148.294,858.43834,361.9213688,1,300,3306.73234
+BE_buoyM_mass3545_wavesAve_currMax,Bering,Medium,3545,Average,Max,65,40,856.9594116,612.9703979,10.73428631,0.029061759,0,1148.294,858.43834,553.5960494,2,1600,4606.73234
+BE_buoyM_mass4545_wavesAve_currMax,Bering,Medium,4545,Average,Max,65,40,990.5065918,700.2783813,11.32192039,-0.121769592,0.037445991,1148.294,858.43834,632.2354882,2,1600,4606.73234
+SF_buoyM_mass1645_wavesMax_currAve,SFOMF,Medium,1645,Max,Average,245,40,11101.38477,9339.760742,2914.042969,-3.804390471,0.240518483,1148.294,2571.03682,9053.389719,30,17000,21719.33082
+SF_buoyM_mass2045_wavesMax_currAve,SFOMF,Medium,2045,Max,Average,245,40,11326.1416,9809.580078,3058.363281,-3.23179843,0.281805089,1148.294,2571.03682,9508.294472,32,17600,22319.33082
+SF_buoyM_mass2545_wavesMax_currAve,SFOMF,Medium,2545,Max,Average,245,40,11212.52148,9704.795898,3014.882568,-3.543115065,0.372539606,1148.294,2571.03682,9404.298073,31,17300,22019.33082
+SF_buoyM_mass3545_wavesMax_currAve,SFOMF,Medium,3545,Max,Average,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+SF_buoyM_mass4545_wavesMax_currAve,SFOMF,Medium,4545,Max,Average,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+SF_buoyM_mass1645_wavesAve_currMax,SFOMF,Medium,1645,Average,Max,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+SF_buoyM_mass2045_wavesAve_currMax,SFOMF,Medium,2045,Average,Max,245,40,4990.703613,4193.878906,1265.543579,0.412949146,0,1148.294,2571.03682,4055.630109,14,8200,12919.33082
+SF_buoyM_mass2545_wavesAve_currMax,SFOMF,Medium,2545,Average,Max,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+SF_buoyM_mass3545_wavesAve_currMax,SFOMF,Medium,3545,Average,Max,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+SF_buoyM_mass4545_wavesAve_currMax,SFOMF,Medium,4545,Average,Max,245,40,0,0,0,0,#DIV/0!,1148.294,2571.03682,0,0,0,4719.33082
+PW_buoyS_mass205_wavesMax_currAve,PacWave,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass255_wavesMax_currAve,PacWave,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass318_wavesMax_currAve,PacWave,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass443_wavesMax_currAve,PacWave,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass568_wavesMax_currAve,PacWave,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass205_wavesAve_currMax,PacWave,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass255_wavesAve_currMax,PacWave,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass318_wavesAve_currMax,PacWave,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass443_wavesAve_currMax,PacWave,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyS_mass568_wavesAve_currMax,PacWave,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass205_wavesMax_currAve,WETS,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass255_wavesMax_currAve,WETS,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass318_wavesMax_currAve,WETS,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass443_wavesMax_currAve,WETS,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass568_wavesMax_currAve,WETS,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass205_wavesAve_currMax,WETS,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass255_wavesAve_currMax,WETS,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass318_wavesAve_currMax,WETS,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass443_wavesAve_currMax,WETS,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyS_mass568_wavesAve_currMax,WETS,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass205_wavesMax_currAve,Mid Atlantic,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass255_wavesMax_currAve,Mid Atlantic,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass318_wavesMax_currAve,Mid Atlantic,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass443_wavesMax_currAve,Mid Atlantic,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass568_wavesMax_currAve,Mid Atlantic,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass205_wavesAve_currMax,Mid Atlantic,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass255_wavesAve_currMax,Mid Atlantic,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass318_wavesAve_currMax,Mid Atlantic,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass443_wavesAve_currMax,Mid Atlantic,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyS_mass568_wavesAve_currMax,Mid Atlantic,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass205_wavesMax_currAve,PISCES,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass255_wavesMax_currAve,PISCES,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass318_wavesMax_currAve,PISCES,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass443_wavesMax_currAve,PISCES,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass568_wavesMax_currAve,PISCES,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass205_wavesAve_currMax,PISCES,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass255_wavesAve_currMax,PISCES,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass318_wavesAve_currMax,PISCES,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass443_wavesAve_currMax,PISCES,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyS_mass568_wavesAve_currMax,PISCES,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass205_wavesMax_currAve,Hueneme,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass255_wavesMax_currAve,Hueneme,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass318_wavesMax_currAve,Hueneme,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass443_wavesMax_currAve,Hueneme,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass568_wavesMax_currAve,Hueneme,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass205_wavesAve_currMax,Hueneme,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass255_wavesAve_currMax,Hueneme,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass318_wavesAve_currMax,Hueneme,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass443_wavesAve_currMax,Hueneme,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyS_mass568_wavesAve_currMax,Hueneme,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass205_wavesMax_currAve,Bering,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass255_wavesMax_currAve,Bering,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass318_wavesMax_currAve,Bering,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass443_wavesMax_currAve,Bering,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass568_wavesMax_currAve,Bering,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass205_wavesAve_currMax,Bering,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass255_wavesAve_currMax,Bering,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass318_wavesAve_currMax,Bering,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass443_wavesAve_currMax,Bering,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyS_mass568_wavesAve_currMax,Bering,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass205_wavesMax_currAve,SFOMF,Small,205,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass255_wavesMax_currAve,SFOMF,Small,255,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass318_wavesMax_currAve,SFOMF,Small,318,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass443_wavesMax_currAve,SFOMF,Small,443,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass568_wavesMax_currAve,SFOMF,Small,568,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass205_wavesAve_currMax,SFOMF,Small,205,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass255_wavesAve_currMax,SFOMF,Small,255,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass318_wavesAve_currMax,SFOMF,Small,318,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass443_wavesAve_currMax,SFOMF,Small,443,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyS_mass568_wavesAve_currMax,SFOMF,Small,568,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass5547_wavesMax_currAve,PacWave,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass6896_wavesMax_currAve,PacWave,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass8582_wavesMax_currAve,PacWave,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass11954_wavesMax_currAve,PacWave,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass15327_wavesMax_currAve,PacWave,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass5547_wavesAve_currMax,PacWave,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass6896_wavesAve_currMax,PacWave,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass8582_wavesAve_currMax,PacWave,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass11954_wavesAve_currMax,PacWave,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+PW_buoyL_mass15327_wavesAve_currMax,PacWave,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass5547_wavesMax_currAve,WETS,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass6896_wavesMax_currAve,WETS,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass8582_wavesMax_currAve,WETS,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass11954_wavesMax_currAve,WETS,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass15327_wavesMax_currAve,WETS,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass5547_wavesAve_currMax,WETS,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass6896_wavesAve_currMax,WETS,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass8582_wavesAve_currMax,WETS,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass11954_wavesAve_currMax,WETS,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+WT_buoyL_mass15327_wavesAve_currMax,WETS,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass5547_wavesMax_currAve,Mid Atlantic,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass6896_wavesMax_currAve,Mid Atlantic,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass8582_wavesMax_currAve,Mid Atlantic,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass11954_wavesMax_currAve,Mid Atlantic,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass15327_wavesMax_currAve,Mid Atlantic,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass5547_wavesAve_currMax,Mid Atlantic,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass6896_wavesAve_currMax,Mid Atlantic,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass8582_wavesAve_currMax,Mid Atlantic,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass11954_wavesAve_currMax,Mid Atlantic,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+MA_buoyL_mass15327_wavesAve_currMax,Mid Atlantic,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass5547_wavesMax_currAve,PISCES,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass6896_wavesMax_currAve,PISCES,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass8582_wavesMax_currAve,PISCES,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass11954_wavesMax_currAve,PISCES,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass15327_wavesMax_currAve,PISCES,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass5547_wavesAve_currMax,PISCES,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass6896_wavesAve_currMax,PISCES,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass8582_wavesAve_currMax,PISCES,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass11954_wavesAve_currMax,PISCES,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+PS_buoyL_mass15327_wavesAve_currMax,PISCES,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass5547_wavesMax_currAve,Hueneme,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass6896_wavesMax_currAve,Hueneme,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass8582_wavesMax_currAve,Hueneme,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass11954_wavesMax_currAve,Hueneme,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass15327_wavesMax_currAve,Hueneme,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass5547_wavesAve_currMax,Hueneme,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass6896_wavesAve_currMax,Hueneme,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass8582_wavesAve_currMax,Hueneme,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass11954_wavesAve_currMax,Hueneme,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+HU_buoyL_mass15327_wavesAve_currMax,Hueneme,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass5547_wavesMax_currAve,Bering,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass6896_wavesMax_currAve,Bering,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass8582_wavesMax_currAve,Bering,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass11954_wavesMax_currAve,Bering,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass15327_wavesMax_currAve,Bering,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass5547_wavesAve_currMax,Bering,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass6896_wavesAve_currMax,Bering,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass8582_wavesAve_currMax,Bering,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass11954_wavesAve_currMax,Bering,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+BE_buoyL_mass15327_wavesAve_currMax,Bering,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass5547_wavesMax_currAve,SFOMF,Large,5547,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass6896_wavesMax_currAve,SFOMF,Large,6896,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass8582_wavesMax_currAve,SFOMF,Large,8582,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass11954_wavesMax_currAve,SFOMF,Large,11954,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass15327_wavesMax_currAve,SFOMF,Large,15327,Max,Average,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass5547_wavesAve_currMax,SFOMF,Large,5547,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass6896_wavesAve_currMax,SFOMF,Large,6896,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass8582_wavesAve_currMax,SFOMF,Large,8582,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass11954_wavesAve_currMax,SFOMF,Large,11954,Average,Max,,,,,,,,0,240,,,0,1240
+SF_buoyL_mass15327_wavesAve_currMax,SFOMF,Large,15327,Average,Max,,,,,,,,0,240,,,0,1240
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,0.1249190939,,,,,,,,,,,,,
+,,,,,12,,,,,,,,,,,,,
+,,,,,62,,,,,,,,,,,,,
+,,,,,125,,,,,,,,,,,,,
+,,,,,250,,,,,,,,,,,,,
+,,,,,375,,,,,,,,,,,,,
+,,,,,0.1247877759,,,,,,,,,,,,,

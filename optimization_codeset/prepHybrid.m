@@ -278,9 +278,10 @@ if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned da
     legend
 
     ax(5) = nexttile; %temps
-    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.T2mw,'linewidth',1.5,'color',col(6,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.T2mw,'linewidth',1.5,'color',col(6,:),'DisplayName','T2M')
     hold on
-    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.Tss,'linewidth',1.5,'color',col(7,:))
+    plot(datetime(data.met.time,'convertfrom','datenum'),data.temperature.Tss,'linewidth',1.5,'color',col(7,:),'DisplayName','SST')
+    legend
     ylabel('[C]')
     title('Temperature')
     xlabel('Time')
@@ -316,23 +317,24 @@ end
 data.swso = data.swso.*opt.ice_ts;
 data.met.wind_spd = data.met.wind_spd.*opt.ice_ts;
 
-%% winter cleaning
-if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
-    %winter cleaning (if applicable)
-    if data.lat < 0 %southern hemisphere
-        wint_clean_mo = 5; %may
-    else
-        wint_clean_mo = 11; %november
-    end
-    dv = datevec(data.solar.time);
-    data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 & dv(:,4) == 0);
-    if inso.cleanstrat == 4 %every other winter
-        data.wint_clean_ind = data.wint_clean_ind(2:2:end);
-    end
-end
+%% winter cleaning - obselete
+% if inso.cleanstrat == 3 || inso.cleanstrat == 4 %winter cleaning
+%     %winter cleaning (if applicable)
+%     if data.lat < 0 %southern hemisphere
+%         wint_clean_mo = 5; %may
+%     else
+%         wint_clean_mo = 11; %november
+%     end
+%     dv = datevec(data.solar.time);
+%     data.wint_clean_ind = find(dv(:,2) == wint_clean_mo & dv(:,3) == 1 & dv(:,4) == 0);
+%     if inso.cleanstrat == 4 %every other winter
+%         data.wint_clean_ind = data.wint_clean_ind(2:2:end);
+%     end
+% end
 
 %% Get current power
-[opt.curr.F_curr] = Current_Power(cturb,atmo);
+%[opt.curr.F_curr] = Current_Power(cturb,atmo); %old method of calcuating
+%current power - new version is in SimHybrid
 
 %PrepWave
 if ~wave.deep

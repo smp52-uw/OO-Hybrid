@@ -7,20 +7,32 @@ clc
 
 %% load data
 %moordat = readtable("Orcaflex mooring costs preliminary - Sheet1.csv"); %Initial mooring data from Curty (only for medium buoy size)
-moordat = readtable("OrcaFlex Mooring model results - Regular Wave Jan 3rd 2025 results.csv"); %final mooring data from Curty (for SM/MD/LG buoys)
+moordat1 = readtable("OrcaFlex Mooring model results - Regular Wave Jan 3rd 2025 results.csv"); %final mooring data from Curty (for SM/MD/LG buoys) (updated 3/4/26 with anchor count adjustment)
+moordat2 = readtable("OrcaFlex Mooring model results - New Site tests.csv"); %final mooring data from Curty (for SM/MD/LG buoys) (updated 3/4/26 with new site data)
 
 %locations
 locs = {'WETS';'SFOMF';'Hueneme';'PISCES';...
-    'PacWave';'Mid Atlantic';'Bering'};
+    'PacWave';'Mid Atlantic';'Bering';'altWETS';'altPISCES'};
 saveL = {'WETS';'SFOMF';'PortHueneme';'PISCES';...
-    'PacWave';'MidAtlSB';'BerSea'};
+    'PacWave';'MidAtlSB';'BerSea';'altWETS';'altPISCES'};
 buoysz = {'Small';'Medium';'Large'};
 buoydia = [2,4,6];
 
 %% process and save data
 for l = 1:max(size(locs))
+    clear MoorMat
     for b = 1:max(size(buoysz))
-        isL = strcmp(moordat.Site,locs{l}); %find rows of this location
+        if strcmp(locs{l},'altWETS')
+            moordat = moordat2;
+            isL = strcmp(moordat.Site,'WETS'); %find rows of this location
+        elseif strcmp(locs{l},'altPISCES')
+            moordat = moordat2;
+            isL = strcmp(moordat.Site,'PISCES'); %find rows of this location
+        else
+            moordat = moordat1;
+            isL = strcmp(moordat.Site,locs{l}); %find rows of this location
+        end
+
         %indL = find(isL);
         isB = strcmp(moordat.BuoySize,buoysz{b}); %find rows of this size
         %indB = find(isB);
@@ -98,17 +110,18 @@ for l = 1:max(size(locs))
         
     end
 
-    %Find lowest cost mooring cost for a given payload mass
-    [mincost,minind] = min(MoorMat.WorstCase.cost, [], 1); %lowest cost payload (will ignore nan)
-    loopsz = size(MoorMat.WorstCase.cost);
-    for ii = 1:loopsz(2)
-        MoorMat.SimMoor.dia(ii) = MoorMat.WorstCase.dia(minind(ii),ii);
-        MoorMat.SimMoor.mass(ii) = MoorMat.WorstCase.mass(minind(ii),ii);
-        MoorMat.SimMoor.PLmass(ii) = MoorMat.WorstCase.PLmass(minind(ii),ii);
-        MoorMat.SimMoor.cost(ii) = MoorMat.WorstCase.cost(minind(ii),ii);
-        MoorMat.SimMoor.Size(ii) = MoorMat.WorstCase.Size(minind(ii),ii);
-        MoorMat.SimMoor.Sub(ii) = MoorMat.WorstCase.Sub(minind(ii),ii);
-    end
+    %old method of identifying the mooring cost
+    % % %Find lowest cost mooring cost for a given payload mass
+    % % [mincost,minind] = min(MoorMat.WorstCase.cost, [], 1); %lowest cost payload (will ignore nan)
+    % % loopsz = size(MoorMat.WorstCase.cost);
+    % % for ii = 1:loopsz(2)
+    % %     MoorMat.SimMoor.dia(ii) = MoorMat.WorstCase.dia(minind(ii),ii);
+    % %     MoorMat.SimMoor.mass(ii) = MoorMat.WorstCase.mass(minind(ii),ii);
+    % %     MoorMat.SimMoor.PLmass(ii) = MoorMat.WorstCase.PLmass(minind(ii),ii);
+    % %     MoorMat.SimMoor.cost(ii) = MoorMat.WorstCase.cost(minind(ii),ii);
+    % %     MoorMat.SimMoor.Size(ii) = MoorMat.WorstCase.Size(minind(ii),ii);
+    % %     MoorMat.SimMoor.Sub(ii) = MoorMat.WorstCase.Sub(minind(ii),ii);
+    % % end
 
     filenm = strcat(saveL{l},'_Mooring','.mat');
     save(filenm, 'MoorMat')

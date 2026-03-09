@@ -4,6 +4,7 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
+opt.pltdebug = 1; %generate resource plots in prepHybrid
 %% Optimization Algorithm
 opt.ffa.max = 100; %max number of firefly iterations
 opt.ffa.pop = 25; %population size 
@@ -17,7 +18,7 @@ opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, '
 opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
 opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
-opt.drun = 1; %Diesel run method: 1=1 hour, 2=til batt full
+opt.drun = 2; %Diesel run method: 1=1 hour, 2=til batt half full - RUN WITH DRUN 2 FOR HYBRID ONLY!!!!!!!!!
 opt.timeadj = 0; %shift in the data time series
 div_wave_cost = 1; %constant to divide wave cost by
 econ.wave.mass_mult = 1; %constant to divide wave mass by
@@ -27,12 +28,12 @@ opt.monthstart = 7; %July start
 
 opt.singlepoint = 1; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 8;
-    opt.inso.kWsg = 8;
-    opt.wave.kWsg = 8;
-    opt.dies.kWsg = 8;
-    opt.curr.kWsg = 8;
-    opt.Smaxsg = 500;
+    opt.wind.kWsg = 3;
+    opt.inso.kWsg = 1;
+    opt.wave.kWsg = 1;
+    opt.dies.kWsg = 1;
+    opt.curr.kWsg = 1;
+    opt.Smaxsg = 70;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -43,8 +44,6 @@ end
 %%
 opt.bf.M = 8; %[kW] max kW in grid
 opt.bf.N = 500; %[kWh] max Smax in grid
-
-opt.pltdebug = 1; %generate resource plots in prepHybrid
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
@@ -82,11 +81,11 @@ opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'MidAtlSB';
+loc = 'altWETS';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
-task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea'};
+task2loc = {'WETS','PISCES','SFOMF','PortHueneme','PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
 %batch = false;
 if ~exist('batchtype','var')
     batchtype = [];
@@ -211,7 +210,7 @@ end
 %% strings
 opt.locations = {'argBasin';'cosEndurance_wa'; ...
     'cosPioneer';'irmSea';'souOcean';'WETS';'SFOMF';'PortHueneme';'PISCES';...
-    'PacWave';'MidAtlSB';'BerSea'};
+    'PacWave';'MidAtlSB';'BerSea';'altWETS';'altPISCES'};
 %opt.powermodules = {'wind';'inso';'wave';'dies'};
 opt.usecases = {'short term';'long term'};
 opt.wavescens = {'Conservative';'Optimistic Cost';'Optimistic Durability'};
@@ -263,7 +262,6 @@ else
     %% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
     moorfile = strcat(loc,'_Mooring.mat');
     load(moorfile)
-    %NOT SURE WHAT VARIABLES TO LOAD AND HOW THEY SHOULD BE SAVED
     econ.platform.cost = MoorMat.WorstCase.cost;
     econ.platform.payloadmass = MoorMat.WorstCase.PLmass;
     econ.platform.mass = MoorMat.WorstCase.mass; %platform mass + payload mass
@@ -276,7 +274,7 @@ end
 %%
 
 clear cost depth diameter
-econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
+%econ.platform.wf = 5;               %weight factor (of light ship) - not needed for new mooring/platform design
 learningfactor = 100^(log10(1-0.2)/log10(2)); %mass production learning rate (100 assumed number of units, learning rate = 0.2) - from Brian
 econ.platform.steel = 44*learningfactor;           %[$/kg] cost of steel from Geoff Cram and Kerek (APL) [2025]
 econ.platform.t_i = [6 12];         %[h] added h for inst
@@ -336,7 +334,7 @@ cturb.uci = 0.5;              %[m/s]
 cturb.ura = 2;                %[m/s] 
 cturb.uco = 3;                %[m/s] 
 cturb.eta = 0.4*0.7;          %[~] guess (Brian)
-cturb.wf = 96;               %[kg/kW] RM2
+cturb.wf = 96;                %[kg/kW] RM2
 cturb.clearance = 1.5;        % [m] under the water (from Brian)
 
 %solar parameters
@@ -349,8 +347,8 @@ inso.debug = false;          %toggle debugging kW/kWh combo for shooter
 inso.shootdebug = false;    %toggle debugging pvci shooter
 inso.shoottol = 5;          %months
 %inso.ct_eval = false;       %evaluate/compare trips for cleaning
-inso.cleanstrat = 4;        %panel cleaning strategy 1:NC, 2:CT, 3:CTW
-inso.cleanlim = 20;         %[mo] maximum limit for cleaning
+%inso.cleanstrat = 4;        %panel cleaning strategy 1:NC, 2:CT, 3:CTW
+%inso.cleanlim = 20;         %[mo] maximum limit for cleaning
 %inso.nu = 1.01;             %[m/kW]
 %wave energy parameters
 wave.method = 2;            %1: divide by B, 2: 3d interpolation, 3: Trevor PM
@@ -376,7 +374,7 @@ dies.oilint = 250;          %[hours] maintenance interval
 
 dies.kWmax = 8;            %maximum power generation
 dies.kWmin = 1;             %minimum power generation
-dies.bm = 4;                %barge multiplier
+%dies.bm = 4;                %barge multiplier
 % %AGM parameters
 % agm.V = 12;                %[V] Voltage
 % agm.se = 3.3;              %[Ah/kg] specific energy factor
@@ -391,16 +389,16 @@ lfp.V = 12;                 %[V] Voltage
 lfp.se = 8.75;              %[Ah/kg] specific energy factor
 lfp.lc_nom = 18;            %[months] nominal life cycle
 lfp.beta = 1;               %decay exponential for life cycle
-lfp.lc_max = 12*5;          %maximum months of operation
+lfp.lc_max = 12*5;          %maximum months of operation - obselete
 lfp.sdr = 3;                %[%/month] self discharge rate
 %lfp.dyn_lc = true;         %toggle dynamic life cycle
-lfp.dmax = 0;              %maximum depth of discharge
+lfp.dmax = 0;               %maximum depth of discharge
 lfp.cost = 466*1.2;         %[$/kWh] - irena2020electricty 2020->2024 (PPI)
-lfp.lcm = 1;%battery life cycle model, 1:bolun 2:dyn_lc 3:fixed_lc
+lfp.lcm = 1;                %battery life cycle model, 1:bolun 2:dyn_lc 3:fixed_lc
 lfp.T = 15;                 %[C] temperature
 lfp.EoL = 0.2;              %battery end of life
 lfp.rf_os = true;           %toggle using open source rainflow
-lfp.bdi = 2190;              %battery degradation evaluation interaval
+lfp.bdi = 2190;             %battery degradation evaluation interaval
 bc = 2; %battery chemistry 1:AGM 2:LFP (ONLY USE LFP FOR HYBRID)
 if bc == 1 %agm chemistry
     batt = agm;
@@ -430,12 +428,12 @@ uc(1).uptime = .99;             %[%] uptime
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 6;             %[y]
-uc(2).loadcase = 5;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
 uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 
 %sensitivity analaysis
-if ~isfield(opt,'tuning_array') && ~isfield(opt,'tuned_parameter')
+%if ~isfield(opt,'tuning_array') && ~isfield(opt,'tuned_parameter')
 % opt.tuning_array = [100 95 90 85 80 75 70];
 % opt.tuned_parameter = 'wcp'; %wave cutout percentile
 % opt.tuning_array = [1 2 3 4 5 6 7 8 9 10];
@@ -468,22 +466,22 @@ if ~isfield(opt,'tuning_array') && ~isfield(opt,'tuned_parameter')
 % opt.tuned_parameter = 'dep'; %depth modifier
 % opt.tuning_array = linspace(uc(c).lifetime-3,uc(c).lifetime+3,10);
 % opt.tuned_parameter = 'lft'; %lifetime
-    opt.tuning_array = linspace(10,1400,10)*1000;
-    opt.tuned_parameter = 'dtc'; %distance to coast [OPEX]
-end
+    %opt.tuning_array = linspace(10,1400,10)*1000;
+    %opt.tuned_parameter = 'dtc'; %distance to coast [OPEX]
+%end
 
 %opt 2D sens
 % opt.tdsens_ta(1,:) = 0.1:0.04:1.7;
 % opt.tdsens_ta(2,:) = 40:2:120;
 % opt.tdsens_tp{1} = 'btm'; %battery time slope
 % opt.tdsens_tp{2} = 'mbt'; %minimum battery for time added
-opt.tdsens_ta(1,:) = 2:1:7;
-opt.tdsens_ta(2,:) = 6:1:11;
-opt.tdsens_tp{1} = 'hra'; %rated Hs
-opt.tdsens_tp{2} = 'tra'; %rated Tp
+% opt.tdsens_ta(1,:) = 2:1:7;
+% opt.tdsens_ta(2,:) = 6:1:11;
+% opt.tdsens_tp{1} = 'hra'; %rated Hs
+% opt.tdsens_tp{2} = 'tra'; %rated Tp
 
 %optimization parameters
-opt.V = 2;
-opt.bf.M_hros = [2 4 5 1 1.75]; %[kW], high res os
-opt.bf.N_hros = [350 500 500 300 350]; %[kWh], high res os
+% opt.V = 2;
+% opt.bf.M_hros = [2 4 5 1 1.75]; %[kW], high res os
+% opt.bf.N_hros = [350 500 500 300 350]; %[kWh], high res os
 opt.bf.maxworkers = 36; %maximum cores

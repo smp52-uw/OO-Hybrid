@@ -5,23 +5,26 @@
 %More updates to pull in the new summer start data which was processed
 %differently (1/8/25)
 
+%More updates to pull in new WETS and PISCES
+
 %location
-site_case = 3;
+clear locout
+site_case = 9;
 
 switch site_case
     case 1
         loc = 'PacWave';
         cd PacWave\
-    case 2
-        loc = 'WETS';
-        cd WETS\
+    case 2 %Old WETS - do not use, the surface roughness values are wrong
+        % loc = 'WETS';
+        % cd WETS\
     case 3
         loc = 'Mid-Atlantic';
         locout = 'MidAtlSB';
         cd MidAtlSB\
-    case 4
-        loc = 'PISCES';
-        cd PISCES\
+    case 4 %old PISCES - do not use, the surface roughness values are wrong
+        % loc = 'PISCES';
+        % cd PISCES\
     case 5
         loc = 'Port_Hueneme';
         cd Port_Hueneme\
@@ -31,6 +34,12 @@ switch site_case
     case 7
         loc = 'SFOMF';
         cd \SFOMF
+    case 8
+        loc = 'altPISCES';
+        cd altPISCES;
+    case 9
+        loc = 'altWETS';
+        cd altWETS;
 end
 
 if ~exist('locout','var')

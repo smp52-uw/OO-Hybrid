@@ -46,21 +46,34 @@ depth = data.depth; %[m] water depth
 swso = data.swso;
 wind = data.met.wind_spd; %[m/s]
 if atmo.dyn_h %use log law to adjust wind speed based on rotor height
-    for i = 1:length(wind)
-        wind(i) = adjustHeight(wind(i),data.met.wind_ht, ...
-            turb.clearance + ...
-            sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a_c*pi*turb.ura^3)) ...
-            ,'log',(data.wind.z0(i).*1000)); 
-        %You use ERA5 z0 x1000 on to convert from m to mm
-        %(data.wind.z0(i).*1000) or atmo.zo_c
-        %ERA5 z0 values can be orders of magnitude off when close to shore. 
-        %The standard value in opt inputs is the the
-        %approximate value for a rough sea
-    end
+    wind = adjustHeight(wind,data.met.wind_ht, ...
+    turb.clearance + sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a_c*pi*turb.ura^3)) ...
+    ,'log',(data.wind.z0.*1000)); 
+    
+    %You use ERA5 z0 x1000 on to convert from m to mm
+    %(data.wind.z0(i).*1000) or atmo.zo_c
+    %ERA5 z0 values can be orders of magnitude off when close to shore. 
+    %The standard value in opt inputs is the the
+    %approximate value for a rough sea
 end
 Pwind_ci = (1/2)*atmo.rho_a_c*turb.uci^3; %cut in power flux [W]
 Pwind_co = (1/2)*atmo.rho_a_c*turb.uco^3; %cut out power flux [W]
 Pwind_ra = (1/2)*atmo.rho_a_c*turb.ura^3; %rated power flux [W]
+%find power from wind turbine 
+if kW_wind ~= 0 
+    Pflux = (1/2).*data.wind.rho.*wind.^3;
+    Pwind = kW_wind.*1000.*data.wind.rho.*wind.^3./(atmo.rho_a_c.*turb.ura.^3); %[W]
+    ind_wiCI = find(Pflux < Pwind_ci);
+    ind_wiCO = find(Pflux > Pwind_co);
+    ind_wiRA = find(Pflux > Pwind_ra);
+
+    Pwind(ind_wiRA) = kW_wind*1000; %[W] cap at rated power
+    Pwind(ind_wiCI) = 0; %[W] no power below CI
+    Pwind(ind_wiCO) = 0; %[W] no power above CO
+else
+    Pwind = zeros(1,length(time));
+end
+
 
 wavepower = opt.wave.wavepower_ts; %wavepower timeseries [kW]
 if wave.method == 1 %divide by B methodology - OUTDATED    
@@ -92,12 +105,20 @@ t_depth = cturb.clearance + sqrt(1000*2*kW_curr/(cturb.eta*atmo.rho_w*cturb.ura^
 [~,cturb_depth] = min(abs(t_depth - data.curr.depth));
 
 c_speed = data.curr.speed6a(:,cturb_depth); 
-% % [Pcurr_m,kW_testc,c_vel] = Current_Power(cturb,atmo);
-%current_Pmatrix = load('current_Pmatrix.mat');
-% Pcurr_m = current_Pmatrix.Pcurr.P;
-% kW_testc = current_Pmatrix.Pcurr.kW_curr;
-% c_vel = current_Pmatrix.Pcurr.c_vel;
-%F_curr = opt.curr.F_curr;
+
+%Pcurr,kW_curr,c_vel
+if kW_curr ~= 0 
+    ind_cCI = find(c_speed < cturb.uci);
+    ind_cRA = find(c_speed > cturb.ura);
+    ind_cCO = find(c_speed > cturb.uco);
+
+    Pcurr = kW_curr.*1000.*c_speed.^3./cturb.ura.^3; %[W]
+    Pcurr(ind_cRA) = kW_curr.*1000; %[W] limit to rated power
+    Pcurr(ind_cCI) = 0;
+    Pcurr(ind_cCO) = 0;
+else
+    Pcurr = zeros(1,length(time));
+end
 
 %set panel degradation
 eff = (1-((inso.deg/100)/8760)*(1:1:length(swso)));
@@ -110,22 +131,30 @@ elseif econ.inso.scen == 2 %human cleaning
     %d_soil_eff = (atmo.soil/100)/8760; %change in soil deg per hour
 end
 soil_eff = 1; %starting soil efficiency
-t2 = tic;
+%find solar efficiency
+eff_t = eff.*soil_eff.*inso.eff;
+eff_t = eff_t'; %transpose for vector calc
+%find power from panel
+if kW_inso ~= 0
+    Pinso = eff_t./inso.eff.*kW_inso.*1000.*(swso./(inso.rated.*1000)); %[W]
+    ind_insoRa = find(Pinso >= (eff_t./inso.eff.*kW_inso.*1000)); %indices with power above rated
+    Pinso(ind_insoRa) = eff_t(ind_insoRa)./inso.eff.*kW_inso.*1000;
+else %no solar panel
+    Pinso = zeros(1,length(time));
+end
+
 
 %This is the battery min SoC for non-constant load cases
 hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval); %needs to be able to achieve the hotel load for half the interval
 meanL = mean(uc.draw); %mean load for this load case
 
+t2 = tic;
 %initialize diagnostic variables
 S1 = zeros(1,length(time)); %battery level timeseries
 S2 = zeros(1,length(time)); %battery level timeseries
 Ptot = zeros(1,length(time)); %power produced timeseries
-Pdies = zeros(1,length(time));
-Pinso = zeros(1,length(time));
-Pwind = zeros(1,length(time));
-Pflux = zeros(1,length(time));
-Pcurr= zeros(1,length(time));
-Prenew = zeros(1,length(time));
+Pdies = zeros(1,length(time)); %diesel timesieres populated based on charge trigger
+Prenew = zeros(1,length(time)); %total renewable power time series
 D = zeros(1,length(time)); %power dumped timeseries
 L = uc.draw; %power to load time series
 F = zeros(1,length(time)); %failure series
@@ -133,7 +162,6 @@ batt_L1 = zeros(1,length(time)); %battery L (degradation) timeseries
 fbi1 = 1; %fresh battery index
 batt_L2 = zeros(1,length(time)); %battery L (degradation) timeseries
 fbi2 = 1; %fresh battery index
-eff_t = zeros(1,length(swso)); %[~] efficiency
 Pdieson = true; %switch to turn the diesel generator on or off depending on if the run/oil limit has been exceeded
 %surv = 1;
 charging = false;
@@ -147,7 +175,7 @@ else
     disp('Error - battery 1 should start at sea')
 end
 newbatt = 0; %number of new batteries that have to be bought
-clear clean_ind batt_lft1
+clear clean_ind batt_lft1 batt_lft2
 %clean_ind = zeros(length(swso),1);
 
 %% run simulation
@@ -195,83 +223,52 @@ for t = 1:(length(time))
 
     %Calculate state of charge for buoy on shore
     if buoy1 == 1 %buoy 1 = 1 means buoy 2 is on shore
-        S2(t+1) = S2(t)-sd2;
-        if S2(t+1) > (Smax*1000) - cf2
-            S2(t+1) = (Smax*1000) - cf2;
-        end
+        %S2(t+1) = S2(t)-sd2;
+        S2(t+1) = min([S2(t)-sd2, (Smax*1000) - cf2]);
+        % if S2(t+1) > (Smax*1000) - cf2
+        %     S2(t+1) = (Smax*1000) - cf2;
+        % end
     else
-        S1(t+1) = S1(t)-sd1;
-        if S1(t+1) > (Smax*1000) - cf1
-            S1(t+1) = (Smax*1000) - cf1;
-        end
+        %S1(t+1) = S1(t)-sd1;
+        S1(t+1) = min([S1(t)-sd1,(Smax*1000) - cf1]);
+        % if S1(t+1) > (Smax*1000) - cf1
+        %     S1(t+1) = (Smax*1000) - cf1;
+        % end
     end
 
     %Calc Renewable Power
-    %find solar efficiency
-    soil_eff = soil_eff - d_soil_eff;
-    if soil_eff < 0 
-        soil_eff = 0; %no negative efficiency
-    end
-    %soil_eff = (1-(atmo.soil/100)/8760*rem(t,inso.pvci*(365/12)*24));
-    %soil_eff = (1-soil_eff)*rain(t) + soil_eff; %rainfall clean
-    eff_t(t) = eff(t)*soil_eff*inso.eff;
-    %find power from panel
-    if kW_inso ~= 0
-        if swso(t) > inso.rated*1000 %rated irradiance
-            Pinso(t) = eff_t(t)/inso.eff*kW_inso*1000; %[W]
-        else %sub rated irradiance
-            Pinso(t) = eff_t(t)/ ...
-                inso.eff*kW_inso*1000*(swso(t)/(inso.rated*1000)); %[W]
-        end
-    end
-    %find power from wind turbine 
-    if kW_wind ~= 0 
-        Pflux(t) = (1/2)*data.wind.rho(t).*wind(t).^3;
-        if Pflux(t) < Pwind_ci %below cut in
-            Pwind(t) = 0; %[W]
-        elseif Pwind_ci < Pflux(t) && Pflux(t) <= Pwind_ra %below rated
-            Pwind(t) = kW_wind*1000*data.wind.rho(t).*wind(t)^3/(atmo.rho_a_c.*turb.ura^3); %[W]
-        elseif Pwind_ra < Pflux(t) && Pflux(t) <= Pwind_co %above rated
-            Pwind(t) = kW_wind*1000; %[W]
-        else %above cut out
-            Pwind(t) = 0; %[W]
-        end
-    end
-    %Pcurr,kW_curr,c_vel
-    if kW_curr ~= 0 
-        %Pcurr(t) = interp2(kW_testc,c_vel,Pcurr_m,kW_curr,c_speed(t));
-        %Pcurr(t) = F_curr(kW_curr,c_speed(t));
-        if c_speed(t) < cturb.uci %below cut out
-            Pcurr(t) = 0; %[W]
-        elseif cturb.uci < c_speed(t) && c_speed(t) <= cturb.ura %below rated
-            Pcurr(t) = kW_curr.*1000.*c_speed(t).^3./cturb.ura.^3; %[W]
-        elseif cturb.ura < c_speed(t) && c_speed(t) <= cturb.uco %above rated
-            Pcurr(t) = kW_curr.*1000; %[W]
-        else %above cut out
-            Pcurr(t) = 0; %[W]
-        end
-    end
-
     Prenew(t) = Pwave(t) + Pwind(t) + Pinso(t) + Pcurr(t); %total renewable power
     %Prenew(t) = 0; %test Configuration - only solar
     %Calculate state of charge
     if ~charging || ~Pdieson %generator off
         if buoy1 == 1
             S1(t+1) = dt*(Prenew(t)-uc.draw(t)) + S1(t) - sd1;
-            if t < length(time)
-                if S1(t+1) < uc.draw(t+1)*dt && kW_dies ~= 0 %if not enough power to run for the next hour
-                    charging = true; %turn diesel generator on for the next hour
+            if t < length(time) && Pdieson %no need to check if the diesel gen over the limits
+                if L(t) > meanL %if load is higher than the mean
+                    if S1(t+1) < hotelper && kW_dies ~= 0 %if not enough power to survive the hotel
+                        charging = true; %turn diesel generator on for the next hour
+                    end
+                else %not higher than mean
+                    if S1(t+1) < uc.draw(t+1)*dt && kW_dies ~= 0 %if not enough power to run for the next hour
+                        charging = true; %turn diesel generator on for the next hour
+                    end
                 end
             end
-            if S1(t+1) >= (Smax*1000) - cf1
+            if S1(t+1) >= (Smax*1000) - cf1 %check for over full battery
                 D(t) = S1(t+1) - ((Smax*1000) - cf1); %[Wh]
                 S1(t+1) = (Smax*1000) - cf1;
             end
         else
             S2(t+1) = dt*(Prenew(t)-uc.draw(t)) + S2(t) - sd2;
-            if t < length(time)
-                if S2(t+1) < uc.draw(t+1)*dt && kW_dies ~= 0 %if not enough power to run for the next hour
-                    charging = true; %turn diesel generator on for the next hour
+            if t < length(time) && Pdieson
+                if L(t) > meanL %if load is higher than the mean
+                    if S2(t+1) < hotelper && kW_dies ~= 0 %if not enough power to survive the hotel
+                        charging = true; %turn diesel generator on for the next hour
+                    end
+                else  %not higher than mean
+                    if S2(t+1) < uc.draw(t+1)*dt && kW_dies ~= 0 %if not enough power to run for the next hour
+                        charging = true; %turn diesel generator on for the next hour
+                    end
                 end
             end
             if S2(t+1) >= (Smax*1000) - cf2
@@ -286,18 +283,18 @@ for t = 1:(length(time))
             if S1(t+1) >= (Smax*1000 - cf1)
                 D(t) = S1(t+1) - (Smax*1000 - cf1); %[Wh]
                 S1(t+1) = Smax*1000 - cf1;
-                if opt.drun == 2
-                    charging = false; %turn off gen when battery is full
-                end
+            end
+            if opt.drun == 2 && S1(t+1) >= (Smax*1000 - cf1)/2 %turn off when battery is half full
+                charging = false; %turn off gen when battery is full
             end
         else
             S2(t+1) = dt*(Pdies(t)+Prenew(t) - uc.draw(t)) + S2(t) - sd2; %[Wh]
             if S2(t+1) >= (Smax*1000 - cf2)
                 D(t) = S2(t+1) - (Smax*1000 - cf2); %[Wh]
                 S2(t+1) = Smax*1000 - cf2;
-                if opt.drun == 2
-                    charging = false; %turn off gen when battery is full
-                end
+            end
+            if opt.drun == 2 && S2(t+1) >= (Smax*1000 - cf2)/2 %turn off when battery is half full
+                charging = false; %turn off gen when battery is full
             end
         end
         if opt.drun == 1
@@ -321,42 +318,35 @@ for t = 1:(length(time))
     end
     Ptot(t) = Prenew(t) + Pdies(t); %total power
     if buoy1 == 1
-        if L(t) > meanL %if load is higher than the mean
-            if S1(t+1) < hotelper
-                S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
-                L(t) = 0; %load drops to zero
-                F(t) = 1; %failure tracker
-                if S1(t+1) >= (Smax*1000) - cf1 %check that we aren't overcharging the battery
-                    D(t) = S1(t+1) - ((Smax*1000) - cf1); %[Wh]
-                    S1(t+1) = (Smax*1000) - cf1;
-                end
+        if L(t) > meanL && S1(t+1) < hotelper %if load is higher than the mean
+            S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
+            L(t) = 0; %load drops to zero
+            F(t) = 1; %failure tracker
+            if S1(t+1) >= (Smax*1000) - cf1 %check that we aren't overcharging the battery
+                D(t) = S1(t+1) - ((Smax*1000) - cf1); %[Wh]
+                S1(t+1) = (Smax*1000) - cf1;
             end
-        else
-            if S1(t+1) <= Smax*batt.dmax*1000 %bottomed out
-                S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
-                L(t) = 0; %load drops to zero
-                F(t) = 1; %failure tracker
-            end
+        elseif S1(t+1) <= Smax*batt.dmax*1000 %bottomed out
+            S1(t+1) = dt*Ptot(t) + S1(t) - sd1;
+            L(t) = 0; %load drops to zero
+            F(t) = 1; %failure tracker
         end
     else %buoy2
-        if L(t) > meanL %if load is higher than the mean
-            if S2(t+1) < hotelper
-                S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
-                L(t) = 0; %load drops to zero
-                F(t) = 1; %failure trackerEoL
-                if S2(t+1) >= (Smax*1000) - cf2 %check that we aren't overcharging the battery
-                    D(t) = S2(t+1) - ((Smax*1000) - cf2); %[Wh]
-                    S2(t+1) = (Smax*1000) - cf2;
-                end
+        if L(t) > meanL && S2(t+1) < hotelper %if load is higher than the mean
+            S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
+            L(t) = 0; %load drops to zero
+            F(t) = 1; %failure trackerEoL
+            if S2(t+1) >= (Smax*1000) - cf2 %check that we aren't overcharging the battery
+                D(t) = S2(t+1) - ((Smax*1000) - cf2); %[Wh]
+                S2(t+1) = (Smax*1000) - cf2;
             end
-        else
-            if S2(t+1) <= Smax*batt.dmax*1000 %bottomed out
-                S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
-                L(t) = 0; %load drops to zero
-                F(t) = 1; %failure trackerEoL
-            end
+        elseif S2(t+1) <= Smax*batt.dmax*1000 %bottomed out
+            S2(t+1) = dt*Ptot(t) + S2(t) - sd2;
+            L(t) = 0; %load drops to zero
+            F(t) = 1; %failure trackerEoL
         end
     end
+
     if t == T/nvi || t == 2*T/nvi %if maintenance interval
         if buoy1 == 1 %buoy 1 going to shore
             S2(t+1) = (Smax*1000) - cf2; %buoy 2 charged up
@@ -418,6 +408,9 @@ noc = ceil(runtime_tot/dies.oilint-1); %number of oil changes
 %Changing to a constant of vessel/life * lifetime
 if nvi < (nbr-newbatt)
     disp('Warning Battery will die')
+    surv = sum(L == uc.draw)/(length(L));
+    cost = opt.failsurv/surv;
+    return
 elseif nvi < nfr
     disp('Warning Fuel will run out')
 elseif nvi < noc
@@ -583,9 +576,12 @@ if opt.tar ==3 %economic
         % for m = 1:length(indMoor)
         %     Buoy_Mass(m,1) = tempmass(m,indMoor(m));
         % end
-        for m = 1:length(indPM)
+        for m = 1:length(indPM) %this is only a loop from the Hybrid Econ code which worked with matrices (length of indPM should always be 1)
             Buoy_Mass(m,1) = tempmass(m,indPM(m)) - comp_plat_mass(m);
             Pmooring(m,1) = tempPmooring(m,indPM(m));
+            if length(indPM) > 2
+                disp('WARNING: somehow the mooring cost is a vector')
+            end
         end
     end
     Pmtrl = 2*Buoy_Mass*econ.platform.steel;  %platform material cost - UPDATED BASED ON INFO FROM DEREK
