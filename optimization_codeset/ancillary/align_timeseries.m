@@ -9,6 +9,7 @@ function [data_out] = align_timeseries(reg_time,t_in,a_in,uc)
         if ind == 1 %if the first data point is the first time step in the alighned TS then no adjustment to data needed
             data_out = a_in;
         else
+            disp('alignTimeSeries: adjusting start time')
             time_vec = datevec(t_in);
             start_i = find(time_vec(:,2) == reg_vec(2) & time_vec(:,3) == reg_vec(3) & time_vec(:,4) == reg_vec(4)); %index to start replicating
             %start_i = find(time_vec(2) == reg_vec(2) && time_vec(3) == reg_vec(3) && time_vec(4) == reg_vec(4)); %index to start replicating
@@ -17,6 +18,7 @@ function [data_out] = align_timeseries(reg_time,t_in,a_in,uc)
             data_out = data_out(1:length(reg_time));
         end
     else %input data is early
+        disp('alignTimeSeries: adjusting start time')
         ind = find(reg_time(1) == t_in,1,'first');
         data_out = a_in(ind:end); %chop off the beginning
         [data_out] = extendToLifetime(data_out,datenum(t_in(ind:end)),uc.lifetime);

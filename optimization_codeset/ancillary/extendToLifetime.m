@@ -38,6 +38,7 @@ tEnd(1) = tEnd(1) + y;
 
 % Ignore Leap Year
 if etime(tEnd,tStart)/(60*60)-length(t_in) > 0
+    disp('Extending to Lifetime')
     %need to extend
     t_out = [t_in; zeros(etime(tEnd,tStart)/(60*60)-length(t_in),1)];
     a_out = [a_in; zeros(etime(tEnd,tStart)/(60*60)-length(a_in),1)];
@@ -46,7 +47,7 @@ if etime(tEnd,tStart)/(60*60)-length(t_in) > 0
         a_out(i) = a_out(i - 8760); %a year earlier
     end
 else
-    disp('not extended')
+    %disp('not extended')
     a_out = a_in;
     t_out = t_in;
 end

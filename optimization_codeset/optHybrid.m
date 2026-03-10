@@ -7,7 +7,6 @@ function [output,opt] = optHybrid(opt,data,atmo,batt,econ,uc,bc,dies,inso,turb,c
 %set Smax mesh 
 opt.Smax_1 = 1;
 opt.Smax_n = opt.bf.N; %[kWh]
-%opt.Smax_n = 19; %for test
 
 %set kW mesh - Dies
 opt.dies.kW_1 = 0; %min size zero for hybrid sim
@@ -45,32 +44,33 @@ if ~opt.highresobj
     opt.wave.kW_m = opt.bf.M; %[kW]
     %opt.wave.kW_m = 3; %[kW]
 else
-    opt.bf.loc_ind = find(contains(opt.locations,data.loc, ...
-        'IgnoreCase',false));
-    opt.wave.kW_m = opt.bf.M_hros(opt.bf.loc_ind);
-    opt.Smax_n = opt.bf.N_hros(opt.bf.loc_ind);
+    disp('error do not use highresobj')
+    % opt.bf.loc_ind = find(contains(opt.locations,data.loc, ...
+    %     'IgnoreCase',false));
+    % opt.wave.kW_m = opt.bf.M_hros(opt.bf.loc_ind);
+    % opt.Smax_n = opt.bf.N_hros(opt.bf.loc_ind);
 end
 
-%% Sensitivity and Modifiers
+%% Sensitivity and Modifiers - obselete
 %set sensitivity modifiers to 1 if absent and to value if existing
-if ~isfield(wave,'cw_mod')
-    wave.cw_mod = 1; %capture width modifier
-end
-%set sensitivity modifiers to value if existing
-if isfield(data,'depth_mod')
-    data.depth = data.depth_mod; %depth modifier
-end
-if isfield(data,'dist_mod')
-    data.dist = data.dist_mod; %dist to coast modifier
-end
-if isfield(econ.vessel,'tmt_enf') && ...
-        (opt.sens || opt.tdsens || opt.senssm) && ...
-        isequal(opt.tuned_parameter,'tmt')
-    econ.vessel.t_mosv = econ.vessel.tmt_enf; %osv maintenance time
-    econ.vessel.t_ms = econ.vessel.tmt_enf; %spec maintenance time
-end
+% if ~isfield(wave,'cw_mod')
+%     wave.cw_mod = 1; %capture width modifier
+% end
+% %set sensitivity modifiers to value if existing
+% if isfield(data,'depth_mod')
+%     data.depth = data.depth_mod; %depth modifier
+% end
+% if isfield(data,'dist_mod')
+%     data.dist = data.dist_mod; %dist to coast modifier
+% end
+% if isfield(econ.vessel,'tmt_enf') && ...
+%         (opt.sens || opt.tdsens || opt.senssm) && ...
+%         isequal(opt.tuned_parameter,'tmt')
+%     econ.vessel.t_mosv = econ.vessel.tmt_enf; %osv maintenance time
+%     econ.vessel.t_ms = econ.vessel.tmt_enf; %spec maintenance time
+% end
 
-% Commenting out the lambda adjustments cause the maintenance shceudle
+%% Commenting out the lambda adjustments cause the maintenance shceudle
 % strategy doesn't consider unplanned failures
 % %set econ scenario
 % switch econ.wind.scen
@@ -101,11 +101,11 @@ end
 % if isfield(econ.wave,'lambda_mod')
 %     econ.wave.lambda = econ.wave.lambda_mod; %lamdba modifier
 % end
-if isfield(econ.wave,'costmult_mod')
-    econ.wave.costmult = econ.wave.costmult_mod; %cost modifier
-end
+% if isfield(econ.wave,'costmult_mod')
+%     econ.wave.costmult = econ.wave.costmult_mod; %cost modifier
+% end
 
-% %% Economic Model Only
+% %% Economic Model Only - obselete
 % if strcmp(opt.alg,'EconOnly')
 %     disc = 400;
 %     discB = 500;
@@ -194,26 +194,26 @@ if opt.singlepoint == 1
 
     return
 end
-%% Check Coarse Mesh
+%% Check Coarse Mesh - obselete
 %check to make sure coarse mesh will work
-opt.fmin = false;
-check_s = 0;
-while ~check_s
-    GenCoords = [opt.wind.kW_m/2,opt.inso.kW_m/2,opt.wave.kW_m/2, opt.dies.kW_m/2, opt.curr.kW_m/2];
-    [~,check_s] = simHybrid(GenCoords, opt.Smax_n/2,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
-%     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)\
-    %checks = surv -> if surv<uc.uptime
-    if check_s < uc.uptime
-        disp('Adjusting maximum values for coarse mesh')
-        opt.Smax_n = 2*opt.Smax_n; 
-        opt.wind.kW_m = 2*opt.wind.kW_m;
-        opt.curr.kW_m = 2*opt.curr.kW_m;
-        opt.wave.kW_m = 2*opt.wave.kW_m;
-        if opt.wave.kW_m > wave.kW_max %no larger than max wec-sim value
-            opt.wave.kW_m = wave.kW_max;
-        end
-    end
-end
+% opt.fmin = false;
+% check_s = 0;
+% while ~check_s
+%     GenCoords = [opt.wind.kW_m/2,opt.inso.kW_m/2,opt.wave.kW_m/2, opt.dies.kW_m/2, opt.curr.kW_m/2];
+%     [~,check_s] = simHybrid(GenCoords, opt.Smax_n/2,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
+% %     simHybrid(kW_dies, kW_inso, kW_wind, kW_wave,Smax,opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb)\
+%     %checks = surv -> if surv<uc.uptime
+%     if check_s < uc.uptime
+%         disp('Adjusting maximum values for coarse mesh')
+%         opt.Smax_n = 2*opt.Smax_n; 
+%         opt.wind.kW_m = 2*opt.wind.kW_m;
+%         opt.curr.kW_m = 2*opt.curr.kW_m;
+%         opt.wave.kW_m = 2*opt.wave.kW_m;
+%         if opt.wave.kW_m > wave.kW_max %no larger than max wec-sim value
+%             opt.wave.kW_m = wave.kW_max;
+%         end
+%     end
+% end
 
 
 %% Run Simulation - Telescope
@@ -222,8 +222,8 @@ if isempty(gcp('nocreate')) %no parallel pool running
     cores = feature('numcores'); %find number of cofes
     if cores > 10 %only start if using HPC
         parpool(cores);
-    else %- use this if you want to stop the parallel pool from starting
-        opt.bf.maxworkers = 0;
+    % else %- use this if you want to stop the parallel pool from starting
+    %     opt.bf.maxworkers = 0;
     end
 end
 
@@ -257,49 +257,49 @@ else
                     [opt] = telescope2_opt(opt,tel_i,output); %get arrays of kW and S for this grid
                 end
             end
-            if opt.pd == 6
-                [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.curr.kW{tel_i}, opt.Smax{tel_i});
-                Kd = reshape(Kd,[j*k*l*m*n*o 1]);
-                Ki = reshape(Ki,[j*k*l*m*n*o 1]);
-                Kwi = reshape(Kwi,[j*k*l*m*n*o 1]);
-                Kwa = reshape(Kwa,[j*k*l*m*n*o 1]);
-                Kc = reshape(Kc,[j*k*l*m*n*o 1]);
-                S = reshape(S,[j*k*l*m*n*o 1]);
-                sim_run = ones(length(S),1);
-                C_temp = zeros(j*k*l*m*n*o,1);
-                S_temp = zeros(j*k*l*m*n*o,1);
-                X(tel_i,:) = zeros(j*k*l*m*n*o,1);
-            elseif opt.pd == 5
-                if opt.pm == 4 %No Dies
-                    [Ki,Kwi,Kwa,Kc,S] = ndgrid(opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.curr.kW{tel_i}, opt.Smax{tel_i});
-                    j = 1;
-                    %Kd = reshape(Kd,[k*l*m*n*o 1]);
-                    Ki = reshape(Ki,[k*l*m*n*o 1]);
-                    Kwi = reshape(Kwi,[k*l*m*n*o 1]);
-                    Kwa = reshape(Kwa,[k*l*m*n*o 1]);
-                    Kc = reshape(Kc,[k*l*m*n*o 1]);
-                    S = reshape(S,[k*l*m*n*o 1]);
-                    sim_run = ones(length(S),1);
-                    C_temp = zeros(k*l*m*n*o,1);
-                    S_temp = zeros(k*l*m*n*o,1);
-                    X(tel_i,:) = zeros(k*l*m*n*o,1);
-                    Kd = zeros(length(S),1);
-                elseif opt.pm == 5 %No Current
-                    [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
-                    o = 1;
-                    Kd = reshape(Kd,[j*k*l*m*n 1]);
-                    Ki = reshape(Ki,[j*k*l*m*n 1]);
-                    Kwi = reshape(Kwi,[j*k*l*m*n 1]);
-                    Kwa = reshape(Kwa,[j*k*l*m*n 1]);
-                    S = reshape(S,[j*k*l*m*n 1]);
-                    sim_run = ones(length(S),1);
-                    C_temp = zeros(j*k*l*m*n, 1);
-                    S_temp = zeros(j*k*l*m*n, 1);
-                    X(tel_i,:) = zeros(j*k*l*m*n, 1);
-                    Kc = zeros(length(S),1);
-                end
+            % if opt.pd == 6 - commenting out because this should only be used with 2D optimization
+            %     [Kd,Ki,Kwi,Kwa,Kc,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.curr.kW{tel_i}, opt.Smax{tel_i});
+            %     Kd = reshape(Kd,[j*k*l*m*n*o 1]);
+            %     Ki = reshape(Ki,[j*k*l*m*n*o 1]);
+            %     Kwi = reshape(Kwi,[j*k*l*m*n*o 1]);
+            %     Kwa = reshape(Kwa,[j*k*l*m*n*o 1]);
+            %     Kc = reshape(Kc,[j*k*l*m*n*o 1]);
+            %     S = reshape(S,[j*k*l*m*n*o 1]);
+            %     sim_run = ones(length(S),1);
+            %     C_temp = zeros(j*k*l*m*n*o,1);
+            %     S_temp = zeros(j*k*l*m*n*o,1);
+            %     X(tel_i,:) = zeros(j*k*l*m*n*o,1);
+            % elseif opt.pd == 5
+            %     if opt.pm == 4 %No Dies
+            %         [Ki,Kwi,Kwa,Kc,S] = ndgrid(opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.curr.kW{tel_i}, opt.Smax{tel_i});
+            %         j = 1;
+            %         %Kd = reshape(Kd,[k*l*m*n*o 1]);
+            %         Ki = reshape(Ki,[k*l*m*n*o 1]);
+            %         Kwi = reshape(Kwi,[k*l*m*n*o 1]);
+            %         Kwa = reshape(Kwa,[k*l*m*n*o 1]);
+            %         Kc = reshape(Kc,[k*l*m*n*o 1]);
+            %         S = reshape(S,[k*l*m*n*o 1]);
+            %         sim_run = ones(length(S),1);
+            %         C_temp = zeros(k*l*m*n*o,1);
+            %         S_temp = zeros(k*l*m*n*o,1);
+            %         X(tel_i,:) = zeros(k*l*m*n*o,1);
+            %         Kd = zeros(length(S),1);
+            %     elseif opt.pm == 5 %No Current
+            %         [Kd,Ki,Kwi,Kwa,S] = ndgrid(opt.dies.kW{tel_i},opt.inso.kW{tel_i},opt.wind.kW{tel_i}, opt.wave.kW{tel_i}, opt.Smax{tel_i});
+            %         o = 1;
+            %         Kd = reshape(Kd,[j*k*l*m*n 1]);
+            %         Ki = reshape(Ki,[j*k*l*m*n 1]);
+            %         Kwi = reshape(Kwi,[j*k*l*m*n 1]);
+            %         Kwa = reshape(Kwa,[j*k*l*m*n 1]);
+            %         S = reshape(S,[j*k*l*m*n 1]);
+            %         sim_run = ones(length(S),1);
+            %         C_temp = zeros(j*k*l*m*n, 1);
+            %         S_temp = zeros(j*k*l*m*n, 1);
+            %         X(tel_i,:) = zeros(j*k*l*m*n, 1);
+            %         Kc = zeros(length(S),1);
+            %     end
                 
-            elseif opt.pd == 2
+            if opt.pd == 2
                 %1:Wi 2:In 3:Wa 4:Di 5:Cu
                 if opt.pm == 4
                     opt.Gr{tel_i} = opt.dies.kW{tel_i};
@@ -375,34 +375,34 @@ else
                     Kc = zeros(length(S),1);
                 end
             end
-        elseif all(opt.alg == 'per')
-            if tel_i == 1 %can't send output to function before output is defined
-                %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
-                [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,[]); %get arrays of kW and S for this grid
-            else
-                %S_in = S_temp; %surv from previous iteration
-                [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,output); %get arrays of kW and S for this grid
-            end
-            j = opt.bf.j;
-            k = opt.bf.k;
-            l = opt.bf.l;
-            m = opt.bf.m;
-            n = opt.bf.n;
-            o = opt.bf.o;
-        elseif all(opt.alg == 'p2t')
-            if tel_i == 1 %can't send output to function before output is defined
-                %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
-                [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,[],[]); %get arrays of kW and S for this grid
-            else
-                %S_in = S_temp; %surv from previous iteration
-                [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,output,temp_min_cost); %get arrays of kW and S for this grid
-            end
-            j = opt.bf.j;
-            k = opt.bf.k;
-            l = opt.bf.l;
-            m = opt.bf.m;
-            n = opt.bf.n;
-            o = opt.bf.o;
+        % elseif all(opt.alg == 'per') - obselete optimization
+        %     if tel_i == 1 %can't send output to function before output is defined
+        %         %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
+        %         [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,[]); %get arrays of kW and S for this grid
+        %     else
+        %         %S_in = S_temp; %surv from previous iteration
+        %         [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = persistence_opt_v2(opt,tel_i,output); %get arrays of kW and S for this grid
+        %     end
+        %     j = opt.bf.j;
+        %     k = opt.bf.k;
+        %     l = opt.bf.l;
+        %     m = opt.bf.m;
+        %     n = opt.bf.n;
+        %     o = opt.bf.o;
+        % elseif all(opt.alg == 'p2t') - obselete optimization
+        %     if tel_i == 1 %can't send output to function before output is defined
+        %         %X = zeros(opt.tel_max, opt.bf.j*opt.bf.k*opt.bf.l*opt.bf.m*opt.bf.n*((2^(opt.tel_max-1))^opt.pd));
+        %         [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,[],[]); %get arrays of kW and S for this grid
+        %     else
+        %         %S_in = S_temp; %surv from previous iteration
+        %         [opt,Kd, Ki, Kwi, Kwa, Kc, S, C_temp, S_temp,X,sim_run] = per3_tel2(opt,tel_i,output,temp_min_cost); %get arrays of kW and S for this grid
+        %     end
+        %     j = opt.bf.j;
+        %     k = opt.bf.k;
+        %     l = opt.bf.l;
+        %     m = opt.bf.m;
+        %     n = opt.bf.n;
+        %     o = opt.bf.o;
         end
     
     
@@ -412,7 +412,6 @@ else
         disp(['Optimization Iteration: ',num2str(tel_i)])
         disp(['Populating grid values: j=' num2str(j) ', k=' num2str(k) ', l=' num2str(l) ', m=' num2str(m) ', n=' num2str(n) ', o=' num2str(o)])
         sim_length = length(S);
-        %sim_length = 10; %test case
         parfor (i = 1:sim_length,opt.bf.maxworkers)
             if sim_run(i) == 1 %only run points where the sim_run variable is true (used for persistence opt)
                 %Call Hybrid Sim function
@@ -542,18 +541,19 @@ MinGenCoords = [output.min.kWwi{end}, output.min.kWi{end}, output.min.kWwa{end},
     output.min.Ptot, output.min.width,output.min.cw,output.min.D,output.min.L, output.min.F, output.min.eff_t, output.min.pvci] ...
     = simHybrid(MinGenCoords, output.min.Smax{end}, ...
     opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
+
 %nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies
-output.min.batt_dyn_lc1 = batt.lc_nom*(output.min.Smax{end}/ ...
-    (output.min.Smax{end} - (min(output.min.S1)/1000)))^batt.beta;
-output.min.batt_dyn_lc2 = batt.lc_nom*(output.min.Smax{end}/ ...
-    (output.min.Smax{end} - (min(output.min.S2)/1000)))^batt.beta;
+% output.min.batt_dyn_lc1 = batt.lc_nom*(output.min.Smax{end}/ ...
+%     (output.min.Smax{end} - (min(output.min.S1)/1000)))^batt.beta;
+% output.min.batt_dyn_lc2 = batt.lc_nom*(output.min.Smax{end}/ ...
+%     (output.min.Smax{end} - (min(output.min.S2)/1000)))^batt.beta;
 output.min.CFd = mean(output.min.Pdies)/(1000*output.min.kWd{end});
 output.min.CFi = mean(output.min.Pinso)/(1000*output.min.kWi{end});
 output.min.CFwi = mean(output.min.Pwind)/(1000*output.min.kWwi{end});
 output.min.CFwa = mean(output.min.Pwave)/(1000*output.min.kWwa{end});
 output.min.CFc = mean(output.min.Pcurr)/(1000*output.min.kWc{end});
-output.min.rotor_h = turb.clearance + ... 
-    sqrt(1000*2*output.min.kWwi{end}/(turb.eta*atmo.rho_a*pi*turb.ura^3)); %rotor height
+% output.min.rotor_h = turb.clearance + ... 
+%     sqrt(1000*2*output.min.kWwi{end}/(turb.eta*atmo.rho_a*pi*turb.ura^3)); %rotor height
 %sqrt(1000*2*kW_wind/(turb.eta*atmo.rho_a*pi*turb.ura^3))
 output.min.cw_avg = mean(output.min.cw); %average capture width
 output.min.cwr_avg = mean(output.min.cw_avg/output.min.width); %average cwr

@@ -75,9 +75,9 @@ for fn = 1:length(strnm)
             %find first index where the date matches the beginning of the month
             indstart = find(month(data.(strnm{fn}).time) == opt.monthstart & day(data.(strnm{fn}).time) == 1 & hour(data.(strnm{fn}).time) == 0,1,'first');
             indend = find(month(data.(strnm{fn}).time) == opt.monthstart & day(data.(strnm{fn}).time) == 1 & hour(data.(strnm{fn}).time) == 0,1,'last') - 1;
-        else
+        else %should only be active for current data
             indstart = 1;
-            indend = find(month(data.(strnm{fn}).time) == month(data.(strnm{fn}).time(1)) & day(data.(strnm{fn}).time) == day(data.(strnm{fn}).time(1)) & hour(data.(strnm{fn}).time) == hour(data.(strnm{fn}).time(1)),1,'last') - 1;
+            indend = find(month(data.(strnm{fn}).time) == month(data.(strnm{fn}).time(1)) & day(data.(strnm{fn}).time) == day(data.(strnm{fn}).time(1)) & hour(data.(strnm{fn}).time) == hour(data.(strnm{fn}).time(1)),1,'last');
         end
     
         varnm = fieldnames(data.(strnm{fn}));
@@ -119,6 +119,7 @@ opt.wave.Pra = data.wave.Pra; %[kw/m]
 %% Fill big gaps
 num_d = size(data.curr.vmag); 
 
+disp('Starting Wind')
 bad_wind = sum(isnan(data.wind.U));
 data.wind.U  = interp1(data.wind.time,data.wind.U,regwind_time,'nearest'); %shift to clean time series
 data.wind.z0  = interp1(data.wind.time,data.wind.z0,regwind_time,'nearest'); %shift to clean time series
@@ -137,6 +138,7 @@ data.wind.rho = fillmissing(data.wind.rho,'nearest');
 [data.wind.z0,data.wind.time] = extendToLifetime(data.wind.z0,datenum(regwind_time),uc.lifetime);
 [data.wind.rho,data.wind.time] = extendToLifetime(data.wind.rho,datenum(regwind_time),uc.lifetime);
 
+disp('Starting Solar')
 bad_solar = sum(isnan(data.solar.swso));
 data.solar.swso  = interp1(data.solar.time,data.solar.swso,reginso_time,'nearest');
 if bad_solar > 24
@@ -150,6 +152,7 @@ if swso_neg_count > 0
 end
 [data.solar.swso,data.solar.time] = extendToLifetime(data.solar.swso,datenum(reginso_time),uc.lifetime); %make time series data adequately long
  
+disp('Starting Current')
 for i = 1:min(num_d)
     bad_curr = sum(isnan(data.curr.vmag(:,i)));
     data.curr.speed(:,i) = interp1(data.curr.time,data.curr.vmag(:,i),regcurr_time,'nearest','extrap');
@@ -158,7 +161,13 @@ for i = 1:min(num_d)
     end
     data.curr.speed(:,i) = fillmissing(data.curr.speed(:,i),'nearest');
 end
+%extend current speed, and time to life
+[data.curr.speed6(:,1),data.curr.time] = extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
+for i=2:num_d(2)
+    [data.curr.speed6(:,i)] = extendToLifetime(data.curr.speed(:,i),datenum(regcurr_time),uc.lifetime);
+end
 
+disp('Starting Wave')
 bad_wave = sum(isnan(Hs));
 opt.wave.wavepower_ts = interp1(data.wave.time,opt.wave.wavepower_ts,regwave_time,'nearest');
 opt.wave.Hs  = interp1(data.wave.time,Hs,regwave_time,'nearest');
@@ -189,12 +198,7 @@ opt.wave.P = fillmissing(opt.wave.P,'nearest');
 %[opt.wave.L] = extendToLifetime(opt.wave.L,datenum(regwave_time),uc.lifetime);
 [opt.wave.P] = extendToLifetime(opt.wave.P,datenum(regwave_time),uc.lifetime);
 
-%extend current speed, and time to life
-[data.curr.speed6(:,1),data.curr.time] = extendToLifetime(data.curr.speed(:,1),datenum(regcurr_time),uc.lifetime);
-for i=2:num_d(2)
-    [data.curr.speed6(:,i)] = extendToLifetime(data.curr.speed(:,i),datenum(regcurr_time),uc.lifetime);
-end
-
+disp('Starting Temperature')
 % temperature
 bad_temp = sum(isnan(data.temperature.T2mw));
 data.temperature.T2mw  = interp1(data.temperature.time,data.temperature.T2mw,regtemp_time,'nearest');
@@ -290,20 +294,21 @@ if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned da
     %xlim([min(data.met.time),max(data.met.time)])
 end
 
-figure
-plot(data.wind.rho)
-hold on
-yline(atmo.rho_a_c)
-ylabel('Density [kg/m3]')
-title(data.title)
-
-figure
-plot(data.wind.z0.*1000)
-hold on
-yline(atmo.zo_c)
-ylabel('Surface Roughness [mm]')
-title(data.title)
-
+if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned data)
+    figure
+    plot(data.wind.rho)
+    hold on
+    yline(atmo.rho_a_c)
+    ylabel('Density [kg/m3]')
+    title(data.title)
+    
+    figure
+    plot(data.wind.z0.*1000)
+    hold on
+    yline(atmo.zo_c)
+    ylabel('Surface Roughness [mm]')
+    title(data.title)
+end
 %% apply ice model
 [Iceslow,Icefast] = iceModel(data.temperature.T2mw,data.met.wind_spd,data.met.time);
 if strcmp(opt.ice,'fast')

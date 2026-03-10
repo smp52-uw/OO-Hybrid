@@ -7,7 +7,7 @@ if sum(isnan(a_in)) == length(a_in)
     disp('All nan')
     a_out = a_in;
 elseif length(t_start) == 1
-    disp('Outage occurs during a leap year')
+    disp('Error: Outage occurs during a leap year - no fill missing')
     a_out = a_in;
 else
     ly = find(day(t_in) == 29 & month(t_in) == 2); %leap day

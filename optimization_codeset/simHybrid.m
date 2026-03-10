@@ -406,7 +406,7 @@ end
 noc = ceil(runtime_tot/dies.oilint-1); %number of oil changes
 
 %Changing to a constant of vessel/life * lifetime
-if nvi < (nbr-newbatt)
+if nvi < nbr
     disp('Warning Battery will die')
     surv = sum(L == uc.draw)/(length(L));
     cost = opt.failsurv/surv;
