@@ -194,9 +194,9 @@ if opt.singlepoint == 1
 
     return
 end
+opt.fmin = false;
 %% Check Coarse Mesh - obselete
 %check to make sure coarse mesh will work
-% opt.fmin = false;
 % check_s = 0;
 % while ~check_s
 %     GenCoords = [opt.wind.kW_m/2,opt.inso.kW_m/2,opt.wave.kW_m/2, opt.dies.kW_m/2, opt.curr.kW_m/2];
@@ -422,7 +422,9 @@ else
                 
             end
             if S_temp(i) < uc.uptime %update obj val X - if sim_run skipped this i then the surv will fail and cost = inf
-                X(tel_i,i) = inf;
+                %X(tel_i,i) = inf;
+                X(tel_i,i) = opt.failsurv/S_temp(i);
+
             else
                 X(tel_i,i) = C_temp(i);
             end
@@ -542,6 +544,10 @@ MinGenCoords = [output.min.kWwi{end}, output.min.kWi{end}, output.min.kWwa{end},
     = simHybrid(MinGenCoords, output.min.Smax{end}, ...
     opt,data,atmo,batt,econ,uc,bc,dies,inso,wave,turb,cturb);
 
+if output.min.surv < uc.uptime
+    output.min.failcost = output.min.cost;
+    output.min.cost = inf; %overwriting so we know when all failures occur
+end
 %nvi,batt_L1,batt_L2, batt_lft1,batt_lft2, nfr,noc,nbr,dp,S1,S2,Pdies
 % output.min.batt_dyn_lc1 = batt.lc_nom*(output.min.Smax{end}/ ...
 %     (output.min.Smax{end} - (min(output.min.S1)/1000)))^batt.beta;
