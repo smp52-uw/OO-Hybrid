@@ -5,8 +5,12 @@ data = data.('data');
 
 %reset gamma values if they exist
 if ~isempty(Aparams)
-    opt.ffa.sens{3} = Aparams(1);
-    opt.ffa.sens{5} = Aparams(2);
+    opt.ffa.sens{1} = Aparams(1);
+    opt.ffa.sens{2} = Aparams(2);
+    opt.ffa.sens{3} = Aparams(3);
+    opt.ffa.sens{4} = Aparams(4);
+    opt.ffa.sens{5} = Aparams(5);
+    opt.ffa.sens{6} = Aparams(6);
 end
 
 opt.S1 = length(opt.ffa.sens{1});

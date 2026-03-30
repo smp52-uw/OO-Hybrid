@@ -1,0 +1,151 @@
+%visualize the output from the hyperparameter sensitivity study on the 2D
+%firefly algorithm
+
+%set the folder with the sensitivity results
+selectedfolder = uigetdir();
+
+fileList = dir(fullfile(selectedfolder,'*.mat'));
+numfiles = max(size(fileList));
+
+% textList = dir(fullfile(selectedfolder,'*.txt'));
+% 
+% for i = 1:numfiles
+%     tmp = split(fileList(i).name,'_');
+%     am = tmp(5);
+%     arraymat(i) = str2double(am{1});
+% end
+% 
+% for j = 1:max(size(textList))
+%     tmp = split(textList(j).name,'_');
+%     ttmp = split(tmp(7),'.');
+%     at = ttmp(1);
+%     at = at{1};
+%     arraytext(j) = str2double(at);
+% end
+% 
+% [C,ia] = setdiff(arraytext,arraymat);
+
+%either load the simplified mat file or load all files
+try
+    load(fullfile(selectedfolder,'SimplifiedResults.mat'))
+    savefile = 0;
+catch
+    disp('No simplified results - loading all files')
+    for i = 1:numfiles
+        tmp = load(fullfile(selectedfolder,fileList(i).name));
+        nm = split(fileList(i).name,'.');
+        nm = nm(1);
+        surv(i) = tmp.(nm{1}).output.min.surv;
+        cost(i) = tmp.(nm{1}).output.min.cost;
+        
+        gen(i) = max([tmp.(nm{1}).output.min.kWwi{1}, tmp.(nm{1}).output.min.kWi{1}, tmp.(nm{1}).output.min.kWwa{1}, tmp.(nm{1}).output.min.kWd{1}, tmp.(nm{1}).output.min.kWc{1}]);
+        smax(i) = tmp.(nm{1}).output.min.Smax{1};
+        ffa(i) = tmp.(nm{1}).opt.ffa;
+    
+        clear tmp
+        savefile = 1;
+    end
+end
+
+%% plots
+[pk,ind] = findpeaks(cost,'MinPeakProminence',2000);
+for i = 1:length(ind)
+    it = string(ffa(ind(i)).max);
+    pop = string(ffa(ind(i)).pop);
+    gamma = string(ffa(ind(i)).gamma);
+    beta = string(ffa(ind(i)).beta0);
+    alpha = string(ffa(ind(i)).alpha);
+    adamp = string(ffa(ind(i)).adamp);
+
+    dispnm(i) = strcat("I: ",it, " P: ",pop," G: ",gamma," B: ",beta," A: ",alpha," Ad: ",adamp);
+end
+
+figure
+tf = tiledlayout(3,1);
+tf.Padding = 'tight';
+tf.TileSpacing = 'tight';
+
+nexttile
+plot(cost,'linewidth',1.2)
+hold on
+for i = 1:length(ind)
+    p(i) = plot(ind(i),pk(i),'o','DisplayName',dispnm(i));
+end
+ylabel('min Cost')
+xlabel('Run Count')
+legend([p],'Location','northoutside','NumColumns',2)
+
+nexttile
+plot(cost/min(cost),'linewidth',1.2)
+ylabel('Fraction of Min Cost')
+xlabel('Run Count')
+
+nexttile
+plot(surv,'linewidth',1.2)
+ylabel('Surv')
+xlabel('Run Count')
+
+figure
+tiledlayout(2,1)
+
+nexttile
+plot(gen,'linewidth',1.2)
+ylabel('Generation [kW]')
+nexttile
+plot(smax,'linewidth',1.2)
+ylabel('Battery [kWh]')
+xlabel('Run Count')
+
+%find really bad points
+x = 1:1:length(cost);
+ind10 = cost/min(cost) > 1.09;
+x10 = x(ind10);
+
+figure
+tf = tiledlayout(5,1);
+tf.Padding = 'tight';
+tf.TileSpacing = 'tight';
+
+ax(1) = nexttile;
+plot(cost,'linewidth',1.2)
+hold on
+for i = 1:length(x10)
+    xline(x10(i),'r','linewidth',1.2)
+end
+ylabel('min Cost')
+grid on
+
+ax(2) = nexttile;
+plot(cost/min(cost),'linewidth',1.2)
+ylabel({'Fraction of', 'Min Cost'})
+grid on
+
+ax(3) = nexttile;
+plot(surv,'linewidth',1.2)
+ylabel('Surv')
+grid on
+
+ax(4) = nexttile;
+plot(gen,'linewidth',1.2)
+hold on
+for i = 1:length(x10)
+    xline(x10(i),'r','linewidth',1.2)
+end
+ylabel({'Generation', '[kW]'})
+grid on
+
+ax(5) = nexttile;
+plot(smax,'linewidth',1.2)
+hold on
+for i = 1:length(x10)
+    xline(x10(i),'r','linewidth',1.2)
+end
+ylabel({'Battery', '[kWh]'})
+xlabel('Run Count')
+grid on
+
+linkaxes(ax,'x')
+
+if savefile
+    save(fullfile(selectedfolder,'SimplifiedResults.mat'),"cost","surv","gen","smax","ffa")
+end

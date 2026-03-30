@@ -1,4 +1,4 @@
-function [Iceslow,Icefast] = iceModel(T,U,time)
+function [Iceslow,Icefast] = iceModel(T,U,time,opt)
 %compute and apply the ice model
 %Inputs
 % T = air temp [C]
@@ -65,77 +65,79 @@ end
 
 
 %Ice figure
-% col = colormap(brewermap(9,'Set2')); %colors
-% 
-% %monthly availability
-% figure
-% tb = tiledlayout(3,2)
-% set(gcf,'Position', [100, 100, 1000, 600])
-% tb.Padding = 'compact';
-% tb.TileSpacing = 'compact';
-% for y = 1:6 %for year indices
-%     nexttile
-%     X = categorical(moyr{y});
-%     X = reordercats(X,moyr{y});
-%     h = bar(X, meanavail{y}, 'FaceColor','flat');
-% end
-% %ice starting
-% figure
-% yyaxis left
-% plot(U,'linewidth',1.2,'color',col(1,:))
-% ylabel('[m/s]')
-% title('Ice Accumulation Indices')
-% 
-% yyaxis right
-% plot(T,'linewidth',1.2,'Color',col(6,:))
-% hold on
-% xline(iceind,'r')
-% ylabel('[C]')
-% xlabel('Time')
-% 
-% %ice models
-% clear ax
-% figure
-% set(gcf,'Position', [100, 100, 1000, 600])
-% tf = tiledlayout(2,2);
-% tf.Padding = 'compact';
-% tf.TileSpacing = 'compact';
-% title(tf,"Ice Modeling")
-% ax(1) = nexttile; %fast melt
-% plot(datetime(time,'convertfrom','datenum'),U,'linewidth',1.2,'color',col(1,:),'DisplayName','Wind Speed')
-% hold on
-% yline(12,'r','DisplayName','Ice Limit')
-% plot(datetime(time,'convertfrom','datenum'),Icefast.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
-% ylabel('[m/s]')
-% title('Ice Fast Melting Model')
-% legend
-% 
-% ax(3) = nexttile(3); %fast melt
-% plot(datetime(time,'convertfrom','datenum'),T,'linewidth',1.2,'Color',col(6,:),'DisplayName','Air Temp')
-% hold on
-% yline(-2,'r','DisplayName','Ice Limit')
-% plot(datetime(time,'convertfrom','datenum'),Icefast.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
-% xlabel('Time')
-% ylabel('[C]')
-% legend
-% 
-% 
-% ax(2) = nexttile(2); %slow melt
-% plot(datetime(time,'convertfrom','datenum'),U,'linewidth',1.2,'color',col(1,:),'DisplayName','Wind Speed')
-% hold on
-% yline(12,'r','DisplayName','Ice Limit')
-% plot(datetime(time,'convertfrom','datenum'),Iceslow.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
-% ylabel('[m/s]')
-% title('Ice Slow Melting Model')
-% legend
-% 
-% ax(4) = nexttile(4); %slow melt
-% plot(datetime(time,'convertfrom','datenum'),T,'linewidth',1.2,'Color',col(6,:),'DisplayName','Air Temp')
-% hold on
-% yline(-2,'r','DisplayName','Ice Limit')
-% plot(datetime(time,'convertfrom','datenum'),Iceslow.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
-% ylabel('[C]')
-% xlabel('Time')
-% legend
-% linkaxes(ax,'x')
+if opt.pltdebug
+    col = colormap(brewermap(9,'Set2')); %colors
+    
+    %monthly availability
+    figure
+    tb = tiledlayout(3,2)
+    set(gcf,'Position', [100, 100, 1000, 600])
+    tb.Padding = 'compact';
+    tb.TileSpacing = 'compact';
+    for y = 1:6 %for year indices
+        nexttile
+        X = categorical(moyr{y});
+        X = reordercats(X,moyr{y});
+        h = bar(X, meanavail{y}, 'FaceColor','flat');
+    end
+    %ice starting
+    figure
+    yyaxis left
+    plot(U,'linewidth',1.2,'color',col(1,:))
+    ylabel('[m/s]')
+    title('Ice Accumulation Indices')
+    
+    yyaxis right
+    plot(T,'linewidth',1.2,'Color',col(6,:))
+    hold on
+    xline(iceind,'r')
+    ylabel('[C]')
+    xlabel('Time')
+    
+    %ice models
+    clear ax
+    figure
+    set(gcf,'Position', [100, 100, 1000, 600])
+    tf = tiledlayout(2,2);
+    tf.Padding = 'compact';
+    tf.TileSpacing = 'compact';
+    title(tf,"Ice Modeling")
+    ax(1) = nexttile; %fast melt
+    plot(datetime(time,'convertfrom','datenum'),U,'linewidth',1.2,'color',col(1,:),'DisplayName','Wind Speed')
+    hold on
+    yline(12,'r','DisplayName','Ice Limit')
+    plot(datetime(time,'convertfrom','datenum'),Icefast.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
+    ylabel('[m/s]')
+    title('Ice Fast Melting Model')
+    legend
+    
+    ax(3) = nexttile(3); %fast melt
+    plot(datetime(time,'convertfrom','datenum'),T,'linewidth',1.2,'Color',col(6,:),'DisplayName','Air Temp')
+    hold on
+    yline(-2,'r','DisplayName','Ice Limit')
+    plot(datetime(time,'convertfrom','datenum'),Icefast.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
+    xlabel('Time')
+    ylabel('[C]')
+    legend
+    
+    
+    ax(2) = nexttile(2); %slow melt
+    plot(datetime(time,'convertfrom','datenum'),U,'linewidth',1.2,'color',col(1,:),'DisplayName','Wind Speed')
+    hold on
+    yline(12,'r','DisplayName','Ice Limit')
+    plot(datetime(time,'convertfrom','datenum'),Iceslow.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
+    ylabel('[m/s]')
+    title('Ice Slow Melting Model')
+    legend
+    
+    ax(4) = nexttile(4); %slow melt
+    plot(datetime(time,'convertfrom','datenum'),T,'linewidth',1.2,'Color',col(6,:),'DisplayName','Air Temp')
+    hold on
+    yline(-2,'r','DisplayName','Ice Limit')
+    plot(datetime(time,'convertfrom','datenum'),Iceslow.*10,'k','linewidth',1.2,'DisplayName','Ice Model')
+    ylabel('[C]')
+    xlabel('Time')
+    legend
+    linkaxes(ax,'x')
+end
 end

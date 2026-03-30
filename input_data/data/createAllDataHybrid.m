@@ -9,7 +9,7 @@
 
 %location
 clear locout
-site_case = 9;
+site_case = 3;
 
 switch site_case
     case 1

@@ -1,0 +1,149 @@
+%you'll need the cmasherImport function added to path or the color map
+%won't generate
+
+selectedfolder = uigetdir();
+
+fileList = dir(fullfile(selectedfolder,'*.mat'));
+numfiles = max(size(fileList));
+
+%separate by location, load case, power module
+for i = 1:numfiles
+    clear optStruct opt 
+    tmp = load(fullfile(selectedfolder,fileList(i).name));
+    nm = split(fileList(i).name,'.');
+    nm = nm(1);
+    optStruct = tmp.(nm{1});
+    
+    opt = optStruct.opt;
+    
+    %adjust cost to thousands
+    cost = optStruct.output.cost{1}/1000;
+    surv = optStruct.output.surv{1};
+    
+    costW = cost;
+   
+    costW(surv<0.99) = nan;
+    %create grid
+    disc = 500;
+    Smax = linspace(opt.Smax_1,opt.Smax_n,500).';
+    Srun = optStruct.output.S_run{1};
+    Smaxmin = optStruct.output.min.Smax{1};
+    if opt.pm == 1
+        kW = linspace(opt.wind.kW_1,opt.wind.kW_m,disc); 
+        kWmin = optStruct.output.min.kWwi{1};
+        kWrun = optStruct.output.Kwi_run{1};
+    elseif opt.pm == 2
+        kW = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);
+        kWmin = optStruct.output.min.kWi{1};
+        kWrun = optStruct.output.Ki_run{1};
+    elseif opt.pm == 3
+        kW = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);
+        kWmin = optStruct.output.min.kWwa{1};
+        kWrun = optStruct.output.Kwa_run{1};
+    elseif opt.pm == 4
+        kW = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);   
+        kWmin = optStruct.output.min.kWd{1};
+        kWrun = optStruct.output.Kd_run{1};
+    else
+        kW = linspace(opt.curr.kW_1,opt.curr.kW_m,disc).'; 
+        kWmin = optStruct.output.min.kWc{1};
+        kWrun = optStruct.output.Kc_run{1};
+    end
+    
+    [kWgrid,Smaxgrid] = ndgrid(kW,Smax);
+
+    %identify the + 2% cost space
+    cost2 = costW;
+    cost2(cost2 > min(cost2)*1.02) = nan;
+
+
+    costgrid2 = reshape(cost2,[disc,500]);
+    survgrid = reshape(surv,[disc,500]);
+    %package output
+    plotdata{i}.costW = costW;
+    plotdata{i}.cost2 = cost2;
+    plotdata{i}.surv = surv;
+    plotdata{i}.kWmin = kWmin;
+    plotdata{i}.kWrun = kWrun;
+    plotdata{i}.Srun = Srun;
+    plotdata{i}.Smaxmin = Smaxmin;
+    plotdata{i}.kWgrid = kWgrid;
+    plotdata{i}.Smaxgrid = Smaxgrid;
+    plotdata{i}.costgrid2 = costgrid2;
+    plotdata{i}.survgrid = survgrid;
+
+    pm(i) = optStruct.opt.pm;
+    loc{i} = optStruct.loc;
+    lc(i) = optStruct.uc.loadcase;
+end
+
+locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
+locdisp =  {'Newport','Mid-Atlantic Shelf Break','Bering Sea','O''ahu','Coastal Washington'};
+loadoptions = [1 3 5];
+
+%Define color options for 2% space
+colors = brewermap(11, 'Set3');
+colpm(1,:) = colors(1,:);
+colpm(2,:) = colors(6,:);
+colpm(3,:) = colors(5,:);
+colpm(4,:) = colors(9,:);
+colpm(5,:) = colors(3,:);
+
+%% Define color options for optimal points
+c1 = brewermap(9,'PuBuGn');
+coptpm(1,:) = c1(end,:);
+
+c2 = brewermap(9,'Oranges');
+coptpm(2,:) = c2(end,:);
+
+c3 = brewermap(9,'PuBu');
+coptpm(3,:) = c3(end,:);
+
+c4 = brewermap(9,'Greys');
+coptpm(4,:) = c4(7,:);
+
+c5 = brewermap(9,'BuPu');
+coptpm(5,:) = c5(end,:);
+
+
+%% plot data
+figure
+tf = tiledlayout(length(locoptions),length(loadoptions));
+tf.Padding = 'compact';
+tf.TileSpacing = 'compact';
+set(gcf,'Units','inches')
+set(gcf, 'Position', [1, 1, 7, 10])
+
+for ll = 1:length(locoptions)
+    for uu = 1:length(loadoptions)
+        indloc = strcmp(loc, locoptions{ll});
+        indload = lc == loadoptions(uu);
+
+        inds = find(indloc & indload);
+        titlestr = strcat(locdisp{ll},", LC = ",string(loadoptions(uu)));
+        ax = nexttile;
+        hold on
+        for i = 1:length(inds)
+            j = inds(i);
+            s = scatter3(plotdata{j}.Srun,plotdata{j}.kWrun,plotdata{j}.cost2,[],colpm(pm(j),:),'filled','SizeData',12);
+            s.MarkerFaceAlpha = 0.3;
+            s.MarkerEdgeAlpha = 0.3;
+            % s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.costgrid2);
+            % s.FaceColor = colpm(pm(j),:);
+            % s.EdgeColor = "none";
+            plot3(plotdata{j}.Smaxmin,plotdata{j}.kWmin,5*max(plotdata{j}.cost2),'o','LineWidth',1.2,'MarkerSize',5,'Color',coptpm(pm(j),:));
+        end
+        view(0,90)
+        xlabel('Storage Capacity [kWh]')
+        ylabel('Rated Power [kW]')
+        ylim([0,8])
+        if loadoptions(uu) == 1
+            xlim([0,50])
+        else
+            xlim([0,300])
+        end
+        title(titlestr)
+        grid on
+    end
+end
+

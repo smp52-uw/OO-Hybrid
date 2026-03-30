@@ -42,6 +42,8 @@ elseif opt.allloads
     multStruct = doAllLoad1Loc(prepath,name,batchtype);
 elseif opt.allpm
     multStruct = doAllPM1Loc(prepath,name,batchtype);
+elseif opt.alllup
+    multStruct = doAllLocUsesPMs(prepath,name,batchtype,Aparams);
 
 %  Line 36-53 obselete from individual pm modules
 % elseif opt.senssm
@@ -77,6 +79,8 @@ else %just one simulation
         data.curr = curr; %add current data to data structure
     elseif any(strcmp(task2loc,loc))
         %load inputs - USED FOR TASK 2 LOCATIONS
+        %datapath = strcat('./input_data/data/',loc,'/');
+
         data = load(loc,'data');
         data = data.('data');
     else

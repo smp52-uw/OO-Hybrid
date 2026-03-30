@@ -429,7 +429,7 @@ mass_curr = 0; %assume the turbine assembly is ballasted to neutral buoyancy (Br
 mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of 1 generator [kg]
 al_plate = 35.24; %[kg/m2] - 1.2" 6061 AL
 gen_vol = econ.dies.volmult*polyval(opt.p_dev.d_size,kW_dies).^3;
-mass_diesencl = 6*(gen_vol^2/3)*al_plate; %[kg]
+mass_diesencl = 6*(gen_vol^(2/3))*al_plate; %[kg]
 dies_dens = 0.85; %[g/cm3] = [kg/L] from a chevron report
 mass_fuel = max(runtime)*lph*dies_dens; %[kg]
 if kW_dies == 0
@@ -505,7 +505,7 @@ if opt.tar ==3 %economic
     
     %dies- costs
     al_cost = 103.92; %$/sqft for 1/2" 6061 AL
-    al_cost = al_cost*0.0929; %convert to $/m2
+    al_cost = al_cost/0.0929; %convert to $/m2
 
     if kW_dies == 0 
         kWcost_dies = 0;
@@ -517,7 +517,7 @@ if opt.tar ==3 %economic
         kWcost_dies = 2*(polyval(opt.p_dev.d_cost,kW_dies)*econ.dies.gcm + econ.dies.autostart); %generator (with spares provisioning: 2)
         %genencl = 2*polyval(opt.p_dev.d_size,kW_dies)^3* ...
         %    (econ.dies.enclcost/econ.dies.enclcap); %generator enclosure
-        genencl = 2*6*(gen_vol^2/3)*al_cost;
+        genencl = 2*6*(gen_vol^(2/3))*al_cost;
         fuel = runtime_tot*lph*econ.dies.fcost; %cost of consumed fuel
         mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of generator
         Icost_dies = 0.1*(kWcost_dies + genencl); %installation
@@ -598,7 +598,7 @@ if opt.tar ==3 %economic
     t_os = 2*t_i/24; %assuming recovery is similar to installation (have to recover and re-deploy)
     vesselcost = C_v*(nvi*(2*triptime + t_os)); %vessel cost
     %Maintenance Costs
-    solarrepair = 1/4*0.5*(Strcost_inso + Icost_inso + Ecost_inso); %solar refurb repair
+    solarrepair = 1/4*0.5*(Strcost_inso + Icost_inso + Ecost_inso)*(nvi); %solar refurb repair
     if solarrepair < 0, solarrepair = 0; end
     
     turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
@@ -614,7 +614,7 @@ if opt.tar ==3 %economic
     if genrepair < 0, genrepair = 0; end
     battreplace = Scost*newbatt/2; %number of battery replacements
     batteryrepair = 1/4*0.5*(Scost + Icost_batt)*nvi; %battery repair
-    mooringrepair = 1/4*0.5*Pmooring; %eventually need a mooring refurb cost
+    mooringrepair = 1/4*0.5*Pmooring*nvi; %eventually need a mooring refurb cost
     
     %Total Cost Calculations
     CapEx = Pmooring + Pinst + Pmtrl + battencl + Scost + Icost_batt + ...

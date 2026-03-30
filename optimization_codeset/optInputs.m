@@ -4,7 +4,7 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
-opt.pltdebug = 0; %generate resource plots in prepHybrid
+opt.pltdebug = 1; %generate resource plots in prepHybrid
 %% Optimization Algorithm
 opt.ffa.max = 100; %max number of firefly iterations
 opt.ffa.pop = 25; %population size 
@@ -16,7 +16,7 @@ opt.ffa.adamp = 0.9;
 opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
-opt.pm = 1; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 2; %Diesel run method: 1=1 hour, 2=til batt half full - RUN WITH DRUN 2 FOR HYBRID ONLY!!!!!!!!!
 opt.timeadj = 0; %shift in the data time series
@@ -47,12 +47,12 @@ opt.bf.N = 500; %[kWh] max Smax in grid
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
-        opt.bf.j = 5; %The inactive dimensions will be reset to 1 in optHybrid
-        opt.bf.k = 5;
-        opt.bf.l = 5;
-        opt.bf.m = 5;
-        opt.bf.n = 5;
-        opt.bf.o = 5;
+        opt.bf.j = 50; %The inactive dimensions will be reset to 1 in optHybrid
+        opt.bf.k = 50;
+        opt.bf.l = 50;
+        opt.bf.m = 50;
+        opt.bf.n = 50;
+        opt.bf.o = 50;
 
         opt.tel_max = 1; %maximum number of telescoping iterations
     else % Obselete Optimization Inputs
@@ -80,8 +80,10 @@ opt.senssm = 0;
 opt.highresobj = 0;
 opt.ffasens = 0;
 opt.allloads = 0;
+opt.allpm = 0;
+opt.alllup = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'BerSea';
+loc = 'altPISCES';
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
@@ -174,6 +176,9 @@ elseif isequal(batchtype,'allloadcases_1loc')
 elseif isequal(batchtype,'allPM_1loc')
     disp('Running all power modules for a single location')
     opt.allpm = 1;
+elseif isequal(batchtype,'alllup')
+    disp('Running all locs, loads, pms')
+    opt.alllup = 1;
 
 elseif strcmp(batchtype,'ffasc') %firefly algorithm sensitivity
     disp('firefly sens')

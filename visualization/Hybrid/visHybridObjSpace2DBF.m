@@ -1,87 +1,117 @@
-function [] = visHybridObjSpace2DBF(optStruct)
+function [] = visHybridObjSpace2DBF()
 
-opt = optStruct.opt;
+%this is going to plot all objective spaces for all results in your folder
+%so like 75 plots will generate...or matlab will crash...tbd
 
-%adjust cost to thousands
-cost = optStruct.output.cost{1}/1000;
-surv = optStruct.output.surv{1};
+%you'll need the cmasherImport function added to path or the color map
+%won't generate
 
-costB = cost;
-costW = cost;
+selectedfolder = uigetdir();
 
-costB(surv<0.99) = 2*max(cost);
-costW(surv<0.99) = nan;
-%create grid
-disc = 500;
-Smax = linspace(opt.Smax_1,opt.Smax_n,500).';
+fileList = dir(fullfile(selectedfolder,'*.mat'));
+numfiles = max(size(fileList));
 
-if opt.pm == 1
-    kW = linspace(opt.wind.kW_1,opt.wind.kW_m,disc); 
-    kWmin = optStruct.output.min.kWwi{1};
-    kWrun = optStruct.output.Kwi_run{1};
-elseif opt.pm == 2
-    kW = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);
-    kWmin = optStruct.output.min.kWi{1};
-    kWrun = optStruct.output.Ki_run{1};
-elseif opt.pm == 3
-    kW = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);
-    kWmin = optStruct.output.min.kWwa{1};
-    kWrun = optStruct.output.Kwa_run{1};
-elseif opt.pm == 4
-    kW = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);   
-    kWmin = optStruct.output.min.kWd{1};
-    kWrun = optStruct.output.Kwd_run{1};
-else
-    kW = linspace(opt.curr.kW_1,opt.curr.kW_m,disc).'; 
-    kWmin = optStruct.output.min.kWc{1};
-    kWrun = optStruct.output.Kc_run{1};
+for i = 1:numfiles
+    clear optStruct
+    tmp = load(fullfile(selectedfolder,fileList(i).name));
+    nm = split(fileList(i).name,'.');
+    nm = nm(1);
+    optStruct = tmp.(nm{1})
+    opt = optStruct.opt;
+    
+    %adjust cost to thousands
+    cost = optStruct.output.cost{1}/1000;
+    surv = optStruct.output.surv{1};
+    
+    costB = cost;
+    costW = cost;
+    
+    costB(surv<0.99) = 2*max(cost);
+    costW(surv<0.99) = nan;
+    %create grid
+    disc = 500;
+    Smax = linspace(opt.Smax_1,opt.Smax_n,500).';
+    
+    if opt.pm == 1
+        kW = linspace(opt.wind.kW_1,opt.wind.kW_m,disc); 
+        kWmin = optStruct.output.min.kWwi{1};
+        kWrun = optStruct.output.Kwi_run{1};
+    elseif opt.pm == 2
+        kW = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);
+        kWmin = optStruct.output.min.kWi{1};
+        kWrun = optStruct.output.Ki_run{1};
+    elseif opt.pm == 3
+        kW = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);
+        kWmin = optStruct.output.min.kWwa{1};
+        kWrun = optStruct.output.Kwa_run{1};
+    elseif opt.pm == 4
+        kW = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);   
+        kWmin = optStruct.output.min.kWd{1};
+        kWrun = optStruct.output.Kd_run{1};
+    else
+        kW = linspace(opt.curr.kW_1,opt.curr.kW_m,disc).'; 
+        kWmin = optStruct.output.min.kWc{1};
+        kWrun = optStruct.output.Kc_run{1};
+    end
+    
+    [kWgrid,Smaxgrid] = ndgrid(kW,Smax);
+    costgridW = reshape(costW,[disc,500]);
+    costgridB = reshape(costB,[disc,500]);
+    survgrid = reshape(surv,[disc,500]);
+
+    titlestr = strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm));
+    collabel = '[$] in thousands';
+    if sum(isnan(costW)) == length(costW)
+        disp('No solution plotting surv')
+        costW = surv;
+        titlestr = strcat("Persistence: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm));
+        collabel = '[~]';
+    end
+    
+    %check min point
+    indM = find(kWgrid == kWmin & Smaxgrid == optStruct.output.min.Smax{1});
+    
+    cMap = cmasherImport('pepper',1000);
+    cMap = flipud(cMap); %switching it to gr -> rd
+   
+    figure %cost figure (white)
+    hold on
+    Srun = optStruct.output.S_run{1};
+    scatter3(Srun,kWrun,costW,[],costW,'filled');
+    colormap(gca, cMap)
+    clim([min(costW), max(costW)]); 
+    pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
+    
+    view(0,90)
+    xlabel('Storage Capacity [kWh]')
+    ylabel('Rated Power [kW]')
+    title(titlestr)
+    c = colorbar;
+    c.Label.String = collabel;
+    
+    grid on
+
+    savefile = fullfile(selectedfolder,strcat("ObjSpace", optStruct.loc,"LC",string(optStruct.uc.loadcase), "PM",string(opt.pm)));
+    print(savefile,'-dpng',"-r600")
 end
 
-[kWgrid,Smaxgrid] = ndgrid(kW,Smax);
-costgridW = reshape(costW,[disc,500]);
-costgridB = reshape(costB,[disc,500]);
-survgrid = reshape(surv,[disc,500]);
-
-%check min point
-indM = find(kWgrid == kWmin & Smaxgrid == optStruct.output.min.Smax{1});
-
-load('appleCMap.mat');
-cMap = flipud(cMap); %switching it to gr -> rd
-cMap = cMap(100:end,:); %cutting off the mostly white colors
-
-figure %cost figure (white)
-hold on
-Srun = optStruct.output.S_run{1};
-scatter3(Srun,kWrun,costW,[],costW,'filled');
-colormap(gca, cMap)
-pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
-
-view(0,90)
-xlabel('Storage Capacity [kWh]')
-ylabel('Rated Power [kW]')
-title(strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm)))
-c = colorbar;
-c.Label.String = '[$] in thousands';
-
-grid on
-
-figure %cost figure (black)
-hold on
-costtr = costgridB.';
-s = surf(Smaxgrid.',kWgrid.',costtr);
-colormap(cMap)
-s.EdgeColor = 'none';
-s.FaceColor = 'flat';
-pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
-
-view(0,90)
-xlabel('Storage Capacity [kWh]')
-ylabel('Rated Power [kW]')
-title(strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm)))
-c = colorbar;
-c.Label.String = '[$] in thousands';
-
-grid on
+% figure %cost figure (black)
+% hold on
+% costtr = costgridB.';
+% s = surf(Smaxgrid.',kWgrid.',costtr);
+% colormap(cMap)
+% s.EdgeColor = 'none';
+% s.FaceColor = 'flat';
+% pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
+% 
+% view(0,90)
+% xlabel('Storage Capacity [kWh]')
+% ylabel('Rated Power [kW]')
+% title(strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm)))
+% c = colorbar;
+% c.Label.String = '[$] in thousands';
+% 
+% grid on
 
 
 % figure %surv figure

@@ -310,7 +310,7 @@ if opt.pltdebug  %diagnostic plot of input data for Task 2 locations (aligned da
     title(data.title)
 end
 %% apply ice model
-[Iceslow,Icefast] = iceModel(data.temperature.T2mw,data.met.wind_spd,data.met.time);
+[Iceslow,Icefast] = iceModel(data.temperature.T2mw,data.met.wind_spd,data.met.time,opt);
 if strcmp(opt.ice,'fast')
     opt.ice_ts = 1 - Icefast; %need to flip the ice model so it is zero when ice occurs
 elseif strcmp(opt.ice,'slow')
@@ -318,6 +318,7 @@ elseif strcmp(opt.ice,'slow')
 else
     opt.ice_ts = ones(size(Iceslow)); %all ones makes no ice adjustment
 end
+%VisiceModel(data,opt)
 
 data.swso = data.swso.*opt.ice_ts;
 data.met.wind_spd = data.met.wind_spd.*opt.ice_ts;
