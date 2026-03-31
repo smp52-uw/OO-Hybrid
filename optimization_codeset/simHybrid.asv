@@ -571,12 +571,11 @@ if opt.tar ==3 %economic
             tempPmtrl(:,b) = 2*(tempmass(:,b)-comp_plat_mass)*econ.platform.steel;
             tempMTRLMOOR(:,b) = tempPmtrl(:,b) + tempPmooring(:,b);
         end
-        %[Pmooring,indMoor] = min(tempPmooring,[],2); %old - find min mooring cost and index of that min
+        %[Pmooring,indMoor] = min(tempPmooring,[],2); %find min mooring cost and index of that min
         [~,indPM] = min(tempMTRLMOOR,[],2); %find index of lowers material + mooring cost
         % for m = 1:length(indMoor)
         %     Buoy_Mass(m,1) = tempmass(m,indMoor(m));
         % end
-        Pmooring = nan(lenght(indPM),1);
         for m = 1:length(indPM) %this is only a loop from the Hybrid Econ code which worked with matrices (length of indPM should always be 1)
             Buoy_Mass(m,1) = tempmass(m,indPM(m)) - comp_plat_mass(m);
             Pmooring(m,1) = tempPmooring(m,indPM(m));
