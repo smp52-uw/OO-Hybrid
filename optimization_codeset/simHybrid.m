@@ -394,26 +394,29 @@ end
 
 time2 = toc(t2);
 
-nbr1 = ceil((12*uc.lifetime/batt_lft1-1)); %number of battery replacements
-nbr2 = ceil((12*uc.lifetime/batt_lft2-1)); %number of battery replacements
+nbr1 = ceil((12*(uc.lifetime/nvi)/batt_lft1-1)); %number of battery replacements
+nbr2 = ceil((12*(uc.lifetime/nvi)/batt_lft2-1)); %number of battery replacements
 nbr = nbr1 + nbr2;
 %% compute number of vessel requirements
 runtime_tot = sum(runtime);
-nfr = ceil(runtime_tot*lph/dies.fmax-1); %number of fuel replacements
+nfr = ceil(max(runtime)*lph/dies.fmax-1); %number of fuel replacements
 if uc.lifetime/nfr > dies.ftmax/12 %fuel will go bad
     nfr = ceil(12*uc.lifetime/dies.ftmax-1);
 end
-noc = ceil(runtime_tot/dies.oilint-1); %number of oil changes
+noc = ceil(max(runtime)/dies.oilint-1); %number of oil changes
 
 %Changing to a constant of vessel/life * lifetime
 if nvi < nbr
     disp('Warning Battery will die')
+    opt.warn.batteryfail = 1;
     surv = sum(L == uc.draw)/(length(L));
     cost = opt.failsurv/surv;
     return
 elseif nvi < nfr
+    opt.warn.fuelrunout = 1;
     disp('Warning Fuel will run out')
 elseif nvi < noc
+    opt.warn.oilrunout = 1;
     disp('Warning oil will run out')
 end
 
@@ -484,8 +487,7 @@ if opt.tar ==3 %economic
     kWcost_wave = 2*econ.wave.costmult*polyval(opt.p_dev.t,kW_wave); %wec
     if kW_wave == 0, kWcost_wave = 0; end
     if kW_wave ~= 0 %no Icost if kW_wave = 0
-        Icost_wave = 2*(econ.wind.installed - (0.5*kWcost_wave)/ ...
-            (kW_wave*econ.wave.costmult))*kW_wave.*econ.wave.costmult; %installation
+        Icost_wave = 2*(econ.wind.installed - 0.5*kWcost_wave/(kW_wave*econ.wave.costmult))*kW_wave*econ.wave.costmult; %installation
         if Icost_wave < 0, Icost_wave = 0; end
     else
         Icost_wave = 0;
@@ -504,14 +506,14 @@ if opt.tar ==3 %economic
     end
     
     %dies- costs
-    al_cost = 103.92; %$/sqft for 1/2" 6061 AL
+    al_cost = 103.92; %$/sqft for 1/2" 6061 AL (2025)
     al_cost = al_cost/0.0929; %convert to $/m2
 
     if kW_dies == 0 
         kWcost_dies = 0;
         genencl = 0;
         fuel = 0;
-        mass_dies = 0;
+        %mass_dies = 0;
         Icost_dies = 0;
     else
         kWcost_dies = 2*(polyval(opt.p_dev.d_cost,kW_dies)*econ.dies.gcm + econ.dies.autostart); %generator (with spares provisioning: 2)
@@ -519,7 +521,7 @@ if opt.tar ==3 %economic
         %    (econ.dies.enclcost/econ.dies.enclcap); %generator enclosure
         genencl = 2*6*(gen_vol^(2/3))*al_cost;
         fuel = runtime_tot*lph*econ.dies.fcost; %cost of consumed fuel
-        mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of generator
+        %mass_dies = polyval(opt.p_dev.d_mass,kW_dies); %mass of generator
         Icost_dies = 0.1*(kWcost_dies + genencl); %installation
     end
     
@@ -573,10 +575,8 @@ if opt.tar ==3 %economic
         end
         %[Pmooring,indMoor] = min(tempPmooring,[],2); %old - find min mooring cost and index of that min
         [~,indPM] = min(tempMTRLMOOR,[],2); %find index of lowers material + mooring cost
-        % for m = 1:length(indMoor)
-        %     Buoy_Mass(m,1) = tempmass(m,indMoor(m));
-        % end
-        Pmooring = nan(lenght(indPM),1);
+
+        Pmooring = nan(length(indPM),1);
         for m = 1:length(indPM) %this is only a loop from the Hybrid Econ code which worked with matrices (length of indPM should always be 1)
             Buoy_Mass(m,1) = tempmass(m,indPM(m)) - comp_plat_mass(m);
             Pmooring(m,1) = tempPmooring(m,indPM(m));

@@ -4,7 +4,7 @@ econ.wave.scen = 1; %scenario indicator 1:C, 2:OC, 3:OD
 econ.inso.scen = 1; %scenario indicator 1:AU, 2:HU (don't use human)
 econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
-opt.pltdebug = 1; %generate resource plots in prepHybrid
+opt.pltdebug = 0; %generate resource plots in prepHybrid
 %% Optimization Algorithm
 opt.ffa.max = 100; %max number of firefly iterations
 opt.ffa.pop = 25; %population size 
@@ -28,12 +28,12 @@ opt.monthstart = 7; %July start
 
 opt.singlepoint = 0; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 3;
-    opt.inso.kWsg = 1;
-    opt.wave.kWsg = 1;
-    opt.dies.kWsg = 1;
-    opt.curr.kWsg = 1;
-    opt.Smaxsg = 70;
+    opt.wind.kWsg = 0;
+    opt.inso.kWsg = 0;
+    opt.wave.kWsg = 0;
+    opt.dies.kWsg = 0;
+    opt.curr.kWsg = 7.9840;
+    opt.Smaxsg = 500;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -47,12 +47,12 @@ opt.bf.N = 500; %[kWh] max Smax in grid
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
-        opt.bf.j = 50; %The inactive dimensions will be reset to 1 in optHybrid
-        opt.bf.k = 50;
-        opt.bf.l = 50;
-        opt.bf.m = 50;
-        opt.bf.n = 50;
-        opt.bf.o = 50;
+        opt.bf.j = 5; %The inactive dimensions will be reset to 1 in optHybrid
+        opt.bf.k = 5;
+        opt.bf.l = 5;
+        opt.bf.m = 5;
+        opt.bf.n = 5;
+        opt.bf.o = 5;
 
         opt.tel_max = 1; %maximum number of telescoping iterations
     else % Obselete Optimization Inputs

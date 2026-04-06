@@ -451,6 +451,11 @@ else
         temp_I = find(X(tel_i,:)==min(X(tel_i,:)))
         if length(temp_I) == 1
             I_min(tel_i) = temp_I;
+        elseif length(temp_I) > 1 && opt.tar == 3
+            if max(S_temp) < 0.99
+                I_min(tel_i) = temp_I(end);
+                disp('No Solution satisfies the persistence requirement - using the last "best" solution for the final run of sim')
+            end
         elseif opt.tar == 1
             C_tot = [];
             gen_vec = [];
