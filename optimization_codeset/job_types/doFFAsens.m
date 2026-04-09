@@ -3,6 +3,12 @@ optInputs %load inputs
 data = load(loc,'data');
 data = data.('data');
 
+
+namepts = split(name,'_');
+arrayID = namepts{4};
+date = namepts{5};
+opt.jobstore = strcat("/gscratch/scrubbed/smp52/local_cluster_jobs/Job",arrayID,date);
+
 %reset gamma values if they exist
 if ~isempty(Aparams)
     opt.ffa.sens{1} = Aparams(1);

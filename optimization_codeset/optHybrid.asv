@@ -218,7 +218,7 @@ opt.fmin = false;
 
 %% Run Simulation - Telescope
 if isfield(opt,'jobstore')
-    hpc = parcluster('Processes');
+    hpc = parcluster();
     hpc.JobStorageLocation = opt.jobstore;
 
     cores = feature('numcores'); %find number of cores

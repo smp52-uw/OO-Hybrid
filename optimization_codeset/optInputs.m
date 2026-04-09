@@ -16,7 +16,7 @@ opt.ffa.adamp = 0.9;
 opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
 opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
-opt.pm = 5; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
+opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 2; %Diesel run method: 1=1 hour, 2=til batt half full - RUN WITH DRUN 2 FOR HYBRID ONLY!!!!!!!!!
 opt.timeadj = 0; %shift in the data time series

@@ -1,6 +1,10 @@
 function [allLUP] = doAllLocUsesPMs(prepath,name,batchtype,Aparams)
 tTot = tic;
 
+namepts = split(name,'_');
+arrayID = namepts{4};
+date = namepts{5};
+opt.jobstore = strcat("/gscratch/scrubbed/local_cluster_jobs/Job",arrayID,date);
 %parse inputs from array job
 if ~isempty(Aparams)
     Aloc = Aparams(1);
