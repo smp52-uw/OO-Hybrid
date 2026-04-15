@@ -109,7 +109,12 @@ for i=1:nPop
    if pop(i).Surv < 0.99
        %pop(i).Cost = inf;
        %pop(i).Cost = pop(i).Cost*(opt.failsurv/pop(i).Surv);
-       pop(i).Cost = opt.failsurv/pop(i).Surv; %failsurv is 4E8
+       %pop(i).Cost = opt.failsurv/pop(i).Surv;
+       if opt.failsurv == 2
+           pop(i).Cost = opt.failsurv*pop(i).Cost/(pop(i).Surv^2);
+       else
+           pop(i).Cost = opt.failsurv/pop(i).Surv; %failsurv is 4E8
+       end    
    end
 
    if pop(i).Cost<=BestSol.Cost
@@ -173,7 +178,12 @@ for it=1:MaxIt
                 if S_temp(j) < 0.99
                     %C_temp(j) = inf;
                     %C_temp(j) = C_temp(j)*(opt.failsurv/S_temp(j));
-                    C_temp(j) = opt.failsurv/S_temp(j); %failsurv is 4E8
+                    %C_temp(j) = opt.failsurv/S_temp(j);
+                   if opt.failsurv == 2
+                       C_temp(j) = opt.failsurv*C_temp(j)/(S_temp(j)^2);
+                   else
+                       C_temp(j) = opt.failsurv/S_temp(j); %failsurv is 4E8
+                   end 
                 end
                 
                 if C_temp(j) <= newpop(i).Cost

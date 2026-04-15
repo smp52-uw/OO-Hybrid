@@ -16,6 +16,19 @@ for i = 1:numfiles
     tmp = load(fullfile(selectedfolder,fileList(i).name));
     nm = split(fileList(i).name,'.');
     nm = nm(1);
+    optStruct = tmp.(nm{1});
+    opt = optStruct.opt;
+
+    loc{i} = optStruct.loc;
+    lc(i) = optStruct.uc.loadcase;
+    pm(i) = opt.pm;
+end
+
+for i = 1:numfiles
+    clear optStruct
+    tmp = load(fullfile(selectedfolder,fileList(i).name));
+    nm = split(fileList(i).name,'.');
+    nm = nm(1);
     optStruct = tmp.(nm{1})
     opt = optStruct.opt;
     

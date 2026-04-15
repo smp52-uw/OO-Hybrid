@@ -25,33 +25,33 @@ for i = 1:numfiles
     costW(surv<0.99) = nan;
     %create grid
     disc = 500;
-    Smax = linspace(opt.Smax_1,opt.Smax_n,2*disc).';
+    Smax = linspace(opt.Smax_1,opt.Smax_n,500).';
     Srun = optStruct.output.S_run{1};
     Smaxmin = optStruct.output.min.Smax{1};
     costmin = optStruct.output.min.cost;
     if opt.pm == 1
-        kW = linspace(opt.wind.kW_1,opt.wind.kW_m,2*disc); 
+        kW = linspace(opt.wind.kW_1,opt.wind.kW_m,disc); 
         kWmin = optStruct.output.min.kWwi{1};
         kWrun = optStruct.output.Kwi_run{1};
     elseif opt.pm == 2
-        kW = linspace(opt.inso.kW_1,opt.inso.kW_m,2*disc);
+        kW = linspace(opt.inso.kW_1,opt.inso.kW_m,disc);
         kWmin = optStruct.output.min.kWi{1};
         kWrun = optStruct.output.Ki_run{1};
     elseif opt.pm == 3
-        kW = linspace(opt.wave.kW_1,opt.wave.kW_m,2*disc);
+        kW = linspace(opt.wave.kW_1,opt.wave.kW_m,disc);
         kWmin = optStruct.output.min.kWwa{1};
         kWrun = optStruct.output.Kwa_run{1};
     elseif opt.pm == 4
-        kW = linspace(opt.dies.kW_1,opt.dies.kW_m,2*disc);   
+        kW = linspace(opt.dies.kW_1,opt.dies.kW_m,disc);   
         kWmin = optStruct.output.min.kWd{1};
         kWrun = optStruct.output.Kd_run{1};
     else
-        kW = linspace(opt.curr.kW_1,opt.curr.kW_m,2*disc).'; 
+        kW = linspace(opt.curr.kW_1,opt.curr.kW_m,disc).'; 
         kWmin = optStruct.output.min.kWc{1};
         kWrun = optStruct.output.Kc_run{1};
     end
     
-    [kWgrid2,Smaxgrid2] = ndgrid(kW,Smax);
+    [kWgrid,Smaxgrid] = ndgrid(kW,Smax);
 
     %identify the + 2% cost space
     cost2 = costW;
@@ -61,8 +61,6 @@ for i = 1:numfiles
     Smaxgrid = reshape(Srun,[disc,500]);
     costgrid2 = reshape(cost2,[disc,500]);
     survgrid = reshape(surv,[disc,500]);
-
-    Vq = interpn(kWgrid,Smaxgrid,costgrid2,kWgrid2,Smaxgrid2,'nearest');
     %package output
     plotdata{i}.costW = costW;
     plotdata{i}.cost2 = cost2;
@@ -76,10 +74,6 @@ for i = 1:numfiles
     plotdata{i}.Smaxgrid = Smaxgrid;
     plotdata{i}.costgrid2 = costgrid2;
     plotdata{i}.survgrid = survgrid;
-
-    plotdata{i}.kWgrid2 = kWgrid2;
-    plotdata{i}.Smaxgrid2 = Smaxgrid2;
-    plotdata{i}.costgridint = Vq;
 
     pm(i) = optStruct.opt.pm;
     loc{i} = optStruct.loc;
@@ -153,7 +147,7 @@ for ll = 1:length(locoptions)
             % s = scatter3(plotdata{j}.Srun,plotdata{j}.kWrun,plotdata{j}.cost2,[],colpm(pm(j),:),'filled','SizeData',12);
             % s.MarkerFaceAlpha = 0.3;
             % s.MarkerEdgeAlpha = 0.3;
-            s = surf(plotdata{j}.Smaxgrid2,plotdata{j}.kWgrid2,plotdata{j}.costgridint);
+            s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.costgrid2);
             %s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.survgrid);
             s.FaceColor = colpm(pm(j),:);
             s.EdgeColor = "none";

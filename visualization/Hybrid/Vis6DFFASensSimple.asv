@@ -29,7 +29,6 @@ numfiles = max(size(fileList));
 try
     load(fullfile(selectedfolder,'SimplifiedResults.mat'))
     savefile = 0;
-    numfiles = numfiles - 1;
 catch
     disp('No simplified results - loading all files')
     for i = 1:numfiles
@@ -55,14 +54,14 @@ for i = 1:numfiles
 end
 indgood = find(bb ~= 1);
 %indgood = 1:1:numfiles;
-[pk,ind] = findpeaks(cost(indgood),'MinPeakProminence',2000);
+[pk,ind] = findpeaks(cost,'MinPeakProminence',2000);
 for i = 1:length(ind)
-    it = string(ffa(indgood(ind(i))).max);
-    pop = string(ffa(indgood(ind(i))).pop);
-    gamma = string(ffa(indgood(ind(i))).gamma);
-    beta = string(ffa(indgood(ind(i))).beta0);
-    alpha = string(ffa(indgood(ind(i))).alpha);
-    adamp = string(ffa(indgood(ind(i))).adamp);
+    it = string(ffa(ind(i)).max);
+    pop = string(ffa(ind(i)).pop);
+    gamma = string(ffa(ind(i)).gamma);
+    beta = string(ffa(ind(i)).beta0);
+    alpha = string(ffa(ind(i)).alpha);
+    adamp = string(ffa(ind(i)).adamp);
 
     dispnm(i) = strcat("I: ",it, " P: ",pop," G: ",gamma," B: ",beta," A: ",alpha," Ad: ",adamp);
 end
@@ -73,7 +72,7 @@ tf.Padding = 'tight';
 tf.TileSpacing = 'tight';
 
 nexttile
-plot(cost(indgood),'linewidth',1.2)
+plot(cost,'linewidth',1.2)
 hold on
 for i = 1:length(ind)
     p(i) = plot(ind(i),pk(i),'o','DisplayName',dispnm(i));
@@ -83,12 +82,12 @@ xlabel('Run Count')
 legend([p],'Location','northoutside','NumColumns',2)
 
 nexttile
-plot(cost(indgood)/min(cost(indgood)),'linewidth',1.2)
+plot(cost/min(cost),'linewidth',1.2)
 ylabel('Fraction of Min Cost')
 xlabel('Run Count')
 
 nexttile
-plot(surv(indgood),'linewidth',1.2)
+plot(surv,'linewidth',1.2)
 ylabel('Surv')
 xlabel('Run Count')
 

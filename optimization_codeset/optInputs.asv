@@ -6,11 +6,11 @@ econ.wind.scen = 2; %scenario indicator 1:OD, 2:C
 
 opt.pltdebug = 0; %generate resource plots in prepHybrid
 %% Optimization Algorithm
-opt.ffa.max = 250; %max number of firefly iterations
-opt.ffa.pop = 75; %population size 
-opt.ffa.gamma = 10;
-opt.ffa.beta0 = 10;
-opt.ffa.alpha = 0.3;
+opt.ffa.max = 100; %max number of firefly iterations
+opt.ffa.pop = 25; %population size 
+opt.ffa.gamma = 1;
+opt.ffa.beta0 = 5;
+opt.ffa.alpha = 0.1;
 opt.ffa.adamp = 0.9;
 
 opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model

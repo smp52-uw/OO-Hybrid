@@ -19,7 +19,7 @@ for i = 1:numfiles
     %adjust cost to thousands
     cost = optStruct.output.cost{1}/1000;
     surv = optStruct.output.surv{1};
-    
+    dsurv = surv - 0.99; %this will be negative for bad points and positive for overdesigned points
     costW = cost;
    
     costW(surv<0.99) = nan;
@@ -60,7 +60,7 @@ for i = 1:numfiles
     kWgrid = reshape(kWrun,[disc,500]);
     Smaxgrid = reshape(Srun,[disc,500]);
     costgrid2 = reshape(cost2,[disc,500]);
-    survgrid = reshape(surv,[disc,500]);
+    survgrid = reshape(dsurv,[disc,500]);
 
     Vq = interpn(kWgrid,Smaxgrid,costgrid2,kWgrid2,Smaxgrid2,'nearest');
     %package output
@@ -90,86 +90,46 @@ locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
 locdisp =  {'Newport','Mid-Atlantic Shelf Break','Bering Sea','O''ahu','Coastal Washington'};
 loadoptions = [1 3 5];
 
-%Define color options for 2% space
-colors = brewermap(11, 'Set3');
-colpm(1,:) = colors(1,:);
-colpm(2,:) = colors(6,:);
-colpm(3,:) = colors(5,:);
-colpm(4,:) = colors(9,:);
-colpm(5,:) = colors(3,:);
 
-%% Define color options for optimal points
-c1 = brewermap(9,'PuBuGn');
-coptpm(1,:) = c1(end,:);
-
-c2 = brewermap(9,'Oranges');
-coptpm(2,:) = c2(end,:);
-
-c3 = brewermap(9,'PuBu');
-coptpm(3,:) = c3(end,:);
-
-c4 = brewermap(9,'Greys');
-coptpm(4,:) = c4(7,:);
-
-c5 = brewermap(9,'BuPu');
-coptpm(5,:) = c5(end,:);
-
+cMap = cmasherImport('prinsenvlag',1000);
 
 %% plot data
-figure
-tf = tiledlayout(length(locoptions),length(loadoptions));
-tf.Padding = 'compact';
-tf.TileSpacing = 'compact';
-set(gcf,'Units','inches')
-set(gcf, 'Position', [1, 1, 7, 10])
+for i = 1:5
+    figure
+    tf = tiledlayout(length(locoptions),length(loadoptions));
+    tf.Padding = 'compact';
+    tf.TileSpacing = 'compact';
+    set(gcf,'Units','inches')
+    set(gcf, 'Position', [1, 1, 7, 10])
+    title(tf,strcat("Power Module",string(i)))
+    
+    for ll = 1:length(locoptions)
+        for uu = 1:length(loadoptions)
+            indloc = strcmp(loc, locoptions{ll});
+            indload = lc == loadoptions(uu);
+            indpm = pm == i;
+            inds = find(indloc & indload & indpm);
+    
+            titlestr = strcat(locdisp{ll},", LC = ",string(loadoptions(uu)));
+            ax = nexttile;
+            j = inds;
 
-for ll = 1:length(locoptions)
-    for uu = 1:length(loadoptions)
-        indloc = strcmp(loc, locoptions{ll});
-        indload = lc == loadoptions(uu);
-
-        inds = find(indloc & indload);
-
-        for i = 1:length(inds)
-            j = inds(i);
-            costpms(i) = plotdata{j}.costmin;
-
-            minSys{ll,uu}.pm(i) = pm(j);
-            minSys{ll,uu}.kW(i) = plotdata{j}.kWmin;
-            minSys{ll,uu}.S(i) = plotdata{j}.Smaxmin;
-            minSys{ll,uu}.cost(i) = plotdata{j}.costmin;
-        end
-        [mincost,indmin] = min(costpms);
-        MIN = inds(indmin);
-        optSys{ll,uu}.kW = plotdata{MIN}.kWmin;
-        optSys{ll,uu}.S = plotdata{MIN}.Smaxmin;
-        optSys{ll,uu}.cost = plotdata{MIN}.costmin;
-
-        titlestr = strcat(locdisp{ll},", LC = ",string(loadoptions(uu)));
-        ax = nexttile;
-        hold on
-        for i = 1:length(inds)
-            j = inds(i);
-            % s = scatter3(plotdata{j}.Srun,plotdata{j}.kWrun,plotdata{j}.cost2,[],colpm(pm(j),:),'filled','SizeData',12);
-            % s.MarkerFaceAlpha = 0.3;
-            % s.MarkerEdgeAlpha = 0.3;
-            s = surf(plotdata{j}.Smaxgrid2,plotdata{j}.kWgrid2,plotdata{j}.costgridint);
-            %s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.survgrid);
-            s.FaceColor = colpm(pm(j),:);
+            s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.survgrid);
+            colormap(gca, cMap)
             s.EdgeColor = "none";
-            plot3(plotdata{j}.Smaxmin,plotdata{j}.kWmin,5*max(plotdata{j}.cost2),'o','LineWidth',1.2,'MarkerSize',5,'Color',coptpm(pm(j),:));
+            hold on
+            plot3(plotdata{j}.Smaxmin,plotdata{j}.kWmin,5*max(plotdata{j}.cost2),'o','LineWidth',1.2,'MarkerSize',5,'Color','k');
+            collabel = '$a_{sim}$ - 0.99';
+            view(0,90)
+            xlabel('Storage Capacity [kWh]')
+            ylabel('Rated Power [kW]')
+            c = colorbar;
+            c.Label.String = collabel;
+            ylim([0,8])
+
+            title(titlestr)
+            grid on
         end
-        view(0,90)
-        xlabel('Storage Capacity [kWh]')
-        ylabel('Rated Power [kW]')
-        ylim([0,8])
-        if loadoptions(uu) == 1
-            xlim([0,50])
-        else
-            xlim([0,300])
-        end
-        title(titlestr)
-        grid on
     end
 end
 

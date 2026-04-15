@@ -96,7 +96,7 @@ Pwave_CI = wave.CIR*kW_wave; %cut in power
 Pwave(Pwave<Pwave_CI) = 0; %no negative power, no power below cut in
 Pwave(Pwave>kW_wave) = kW_wave; %no larger than rated power
 Pwave = Pwave*1000; %convert to watts
-if kW_wave < 0.2144
+if kW_wave < min(opt.wave.B_func(2,:))
     Pwave = zeros(1,length(time));
     %disp('Zero wave power due to WECSIM min')
 end
