@@ -319,7 +319,7 @@ else
     opt.ice_ts = ones(size(Iceslow)); %all ones makes no ice adjustment
 end
 %VisiceModel(data,opt)
-
+data.swso_noice = data.swso;
 data.swso = data.swso.*opt.ice_ts;
 data.met.wind_spd = data.met.wind_spd.*opt.ice_ts;
 

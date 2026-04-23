@@ -83,7 +83,11 @@ elseif wave.method == 2 %3d interpolation methodology
     Hs = opt.wave.Hs; %Hs timeseries
     Tp = opt.wave.Tp; %Tp timeseries
     %find width through rated power conditions
-    width = interp1(opt.wave.B_func(2,:),opt.wave.B_func(1,:),kW_wave); %[m], B
+    if opt.smallwec
+        width = interp1(opt.wave.B_func(2,:),opt.wave.B_func(1,:),kW_wave,'linear',1); %[m], B (use 1 for WECs below the minimum rated power)
+    else
+        width = interp1(opt.wave.B_func(2,:),opt.wave.B_func(1,:),kW_wave); %[m], B
+    end
     if kW_wave == 0 %Set width = 0 for no wave gen (in case the curve cross (0,0))
         width = 0;
     end
@@ -96,7 +100,7 @@ Pwave_CI = wave.CIR*kW_wave; %cut in power
 Pwave(Pwave<Pwave_CI) = 0; %no negative power, no power below cut in
 Pwave(Pwave>kW_wave) = kW_wave; %no larger than rated power
 Pwave = Pwave*1000; %convert to watts
-if kW_wave < min(opt.wave.B_func(2,:))
+if kW_wave < min(opt.wave.B_func(2,:)) && opt.smallwec == 0
     Pwave = zeros(1,length(time));
     %disp('Zero wave power due to WECSIM min')
 end

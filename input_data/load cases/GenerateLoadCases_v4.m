@@ -58,6 +58,7 @@ load_case(5).name = 'Trent OO';
 load_case(5).L_constant = load_case(3).L_constant;  %constant load [W] (updated SPalmer)
 load_case(5).L_intermittent = 0; %intermittent load [W]
 load_case(5).mass = 90; %[kg] based on AMP mass estimate from Chris
+
 %% Initialization
 t = [0:dt:dt*(T-1)]';  %initialize time series
 

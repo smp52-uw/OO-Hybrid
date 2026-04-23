@@ -116,6 +116,8 @@ coptpm(5,:) = c5(end,:);
 
 
 %% plot data
+locoptions = {'BerSea'};
+locdisp = locoptions;
 figure
 tf = tiledlayout(length(locoptions),length(loadoptions));
 tf.Padding = 'compact';
@@ -150,13 +152,13 @@ for ll = 1:length(locoptions)
         hold on
         for i = 1:length(inds)
             j = inds(i);
-            % s = scatter3(plotdata{j}.Srun,plotdata{j}.kWrun,plotdata{j}.cost2,[],colpm(pm(j),:),'filled','SizeData',12);
-            % s.MarkerFaceAlpha = 0.3;
-            % s.MarkerEdgeAlpha = 0.3;
-            s = surf(plotdata{j}.Smaxgrid2,plotdata{j}.kWgrid2,plotdata{j}.costgridint);
+            s = scatter3(plotdata{j}.Srun,plotdata{j}.kWrun,plotdata{j}.cost2,[],colpm(pm(j),:),'filled','SizeData',12);
+            s.MarkerFaceAlpha = 0.3;
+            s.MarkerEdgeAlpha = 0.3;
+            %s = surf(plotdata{j}.Smaxgrid2,plotdata{j}.kWgrid2,plotdata{j}.costgridint);
             %s = surf(plotdata{j}.Smaxgrid,plotdata{j}.kWgrid,plotdata{j}.survgrid);
-            s.FaceColor = colpm(pm(j),:);
-            s.EdgeColor = "none";
+            %s.FaceColor = colpm(pm(j),:);
+            %s.EdgeColor = "none";
             plot3(plotdata{j}.Smaxmin,plotdata{j}.kWmin,5*max(plotdata{j}.cost2),'o','LineWidth',1.2,'MarkerSize',5,'Color',coptpm(pm(j),:));
         end
         view(0,90)
@@ -166,7 +168,7 @@ for ll = 1:length(locoptions)
         if loadoptions(uu) == 1
             xlim([0,50])
         else
-            xlim([0,300])
+            xlim([0,500])
         end
         title(titlestr)
         grid on

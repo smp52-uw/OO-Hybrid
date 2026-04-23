@@ -22,18 +22,19 @@ opt.drun = 2; %Diesel run method: 1=1 hour, 2=til batt half full - RUN WITH DRUN
 opt.timeadj = 0; %shift in the data time series
 div_wave_cost = 1; %constant to divide wave cost by
 econ.wave.mass_mult = 1; %constant to divide wave mass by
-opt.failsurv = 4E8; %cost adjustment for failed surv cases (max cost in space for our locs is ~3.7E6 so this will be well above it)
+opt.failsurv = 4E6; %cost adjustment for failed surv cases (max cost in space for our locs is ~3.7E6 so this will be well above it)
 opt.ice = 'slow'; %options are 'fast','slow',or 'none'
 opt.monthstart = 7; %July start
+opt.smallwec = 1; %1 if you want the WECs smaller than 1 m to be 1 m, 0 if you want there to be no small WECs allowed
 
-opt.singlepoint = 0; %run a single point for time series comparison
+opt.singlepoint = 1; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 2.9;
-    opt.inso.kWsg = 2.9;
-    opt.wave.kWsg = 0.25;
-    opt.dies.kWsg = 0;
-    opt.curr.kWsg = 0;
-    opt.Smaxsg = 68;
+    opt.wind.kWsg = 8;
+    opt.inso.kWsg = 8;
+    opt.wave.kWsg = 8;
+    opt.dies.kWsg = 8;
+    opt.curr.kWsg = 8;
+    opt.Smaxsg = 500;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -439,7 +440,7 @@ uc(1).uptime = .99;             %[%] uptime
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 6;             %[y]
-uc(2).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
 uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 

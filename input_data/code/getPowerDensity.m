@@ -16,7 +16,7 @@ if test1
     tp = dataStruct.wave.peak_wave_period(wave_pts);
     curr_pts = 1:length(dataStruct.curr.time);
     curr_time = dataStruct.curr.time(curr_pts)';
-    c_vel = sqrt(dataStruct.curr.u(curr_pts).^2 + dataStruct.curr.v(curr_pts).^2);
+    c_vel = dataStruct.curr.vmag;
     c_vel = c_vel';
 elseif test2
     wind_pts = 1:length(dataStruct.wind.time);
@@ -26,13 +26,14 @@ elseif test2
     wind_time = datenum(dataStruct.wind.time(wind_pts));
     wave_time = datenum(dataStruct.wave.time(wave_pts));
     solar_time = datenum(dataStruct.solar.time(solar_pts));
-    curr_time = dataStruct.curr.time(curr_pts);
+    curr_time = datenum(dataStruct.curr.time(curr_pts));
     wind = dataStruct.wind.U(wind_pts);
     inso = dataStruct.solar.swso(solar_pts);
     hs = dataStruct.wave.Hs(wave_pts);
     tp = dataStruct.wave.Tp(wave_pts);
-    c_vel = sqrt(dataStruct.curr.u(curr_pts).^2 + dataStruct.curr.v(curr_pts).^2);
+    c_vel = dataStruct.curr.vmag(curr_pts);
     c_vel = c_vel';
+    c_vel = c_vel(:,1);
     c_vel(c_vel>4) = nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

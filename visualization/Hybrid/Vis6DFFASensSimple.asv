@@ -29,6 +29,7 @@ numfiles = max(size(fileList));
 try
     load(fullfile(selectedfolder,'SimplifiedResults.mat'))
     savefile = 0;
+    numfiles = numfiles - 1;
 catch
     disp('No simplified results - loading all files')
     for i = 1:numfiles
@@ -37,34 +38,57 @@ catch
         nm = nm(1);
         surv(i) = tmp.(nm{1}).output.min.surv;
         cost(i) = tmp.(nm{1}).output.min.cost;
+        popbestcost{i} = tmp.(nm{1}).output.popBestCost;
         
         gen(i,:) = [tmp.(nm{1}).output.min.kWwi{1}, tmp.(nm{1}).output.min.kWi{1}, tmp.(nm{1}).output.min.kWwa{1}, tmp.(nm{1}).output.min.kWd{1}, tmp.(nm{1}).output.min.kWc{1}];
         smax(i) = tmp.(nm{1}).output.min.Smax{1};
         ffa(i) = tmp.(nm{1}).opt.ffa;
+        failsurv(i) = tmp.(nm{1}).opt.failsurv;
     
         clear tmp
         savefile = 1;
     end
 end
 
-%% plots
-
+%extract ffa parameters
 for i = 1:numfiles
     bb(i) = ffa(i).beta0;
+    pop(i) = ffa(i).pop;
 end
 indgood = find(bb ~= 1);
 %indgood = 1:1:numfiles;
-[pk,ind] = findpeaks(cost,'MinPeakProminence',2000);
+[pk,ind] = findpeaks(cost(indgood),'MinPeakProminence',2000);
 for i = 1:length(ind)
-    it = string(ffa(ind(i)).max);
-    pop = string(ffa(ind(i)).pop);
-    gamma = string(ffa(ind(i)).gamma);
-    beta = string(ffa(ind(i)).beta0);
-    alpha = string(ffa(ind(i)).alpha);
-    adamp = string(ffa(ind(i)).adamp);
+    it = string(ffa(indgood(ind(i))).max);
+    pop = string(ffa(indgood(ind(i))).pop);
+    gamma = string(ffa(indgood(ind(i))).gamma);
+    beta = string(ffa(indgood(ind(i))).beta0);
+    alpha = string(ffa(indgood(ind(i))).alpha);
+    adamp = string(ffa(indgood(ind(i))).adamp);
 
     dispnm(i) = strcat("I: ",it, " P: ",pop," G: ",gamma," B: ",beta," A: ",alpha," Ad: ",adamp);
 end
+
+%% plots
+popopts = unique(pop);
+for p = 1:length(popopts)
+    indp{p} = find(pop == popopts(p));
+end
+cMapb = cmasherImport('arctic',500);
+cMapb = cMapb(50:end,:);
+cMapo = cmasherImport('sunburst',500);
+cMapo = cMapo(50:end,:);
+
+figure
+hold on
+for i = 1:numfiles
+    if sum(i == indp{1})
+        plot(popbestcost{i},'color')
+    else
+        plot(popbestcost{i})
+end
+ylabel('Population Best Cost')
+xlabel('Iteration')
 
 figure
 tf = tiledlayout(3,1);
@@ -72,22 +96,22 @@ tf.Padding = 'tight';
 tf.TileSpacing = 'tight';
 
 nexttile
-plot(cost,'linewidth',1.2)
+plot(cost(indgood),'linewidth',1.2)
 hold on
 for i = 1:length(ind)
     p(i) = plot(ind(i),pk(i),'o','DisplayName',dispnm(i));
 end
 ylabel('min Cost')
 xlabel('Run Count')
-legend([p],'Location','northoutside','NumColumns',2)
+%legend([p],'Location','northoutside','NumColumns',2)
 
 nexttile
-plot(cost/min(cost),'linewidth',1.2)
+plot(cost(indgood)/min(cost(indgood)),'linewidth',1.2)
 ylabel('Fraction of Min Cost')
 xlabel('Run Count')
 
 nexttile
-plot(surv,'linewidth',1.2)
+plot(surv(indgood),'linewidth',1.2)
 ylabel('Surv')
 xlabel('Run Count')
 
