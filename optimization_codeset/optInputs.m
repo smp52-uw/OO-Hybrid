@@ -13,9 +13,9 @@ opt.ffa.beta0 = 10;
 opt.ffa.alpha = 0.3;
 opt.ffa.adamp = 0.9;
 
-opt.alg = 'ffa'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
+opt.alg = 'tel'; %'tel' -Telescope, 'per' -persistence band, 'to2' -tel 2 box, 'p2t - per to tel, 'ffa'-firefly, "EconOnly" - only economic model
 
-opt.pd = 6; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
+opt.pd = 2; %6 = 6D hybrid sim, 2 = 1 gen + batt, 3 = 2 gen + batt, 5 = pm needs to be the one that's off
 opt.pm = 2; %power module (for 2D sim), 1:Wi 2:In 3:Wa 4:Di 5:Cu 12:Wi+In
 opt.tar = 3; %1 = mass, 2 = gen cap, 3 = economic
 opt.drun = 2; %Diesel run method: 1=1 hour, 2=til batt half full - RUN WITH DRUN 2 FOR HYBRID ONLY!!!!!!!!!
@@ -25,16 +25,16 @@ econ.wave.mass_mult = 1; %constant to divide wave mass by
 opt.failsurv = 4E6; %cost adjustment for failed surv cases (max cost in space for our locs is ~3.7E6 so this will be well above it)
 opt.ice = 'slow'; %options are 'fast','slow',or 'none'
 opt.monthstart = 7; %July start
-opt.smallwec = 1; %1 if you want the WECs smaller than 1 m to be 1 m, 0 if you want there to be no small WECs allowed
+opt.smallwec = 0; %1 if you want the WECs smaller than 1 m to be 1 m, 0 if you want there to be no small WECs allowed
 
-opt.singlepoint = 1; %run a single point for time series comparison
+opt.singlepoint = 0; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 8;
-    opt.inso.kWsg = 8;
-    opt.wave.kWsg = 8;
-    opt.dies.kWsg = 8;
-    opt.curr.kWsg = 8;
-    opt.Smaxsg = 500;
+    opt.wind.kWsg = 0;
+    opt.inso.kWsg = 0.577154308617235;
+    opt.wave.kWsg = 0;
+    opt.dies.kWsg = 0;
+    opt.curr.kWsg = 0;
+    opt.Smaxsg = 10;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -48,12 +48,12 @@ opt.bf.N = 500; %[kWh] max Smax in grid
 %% Non-FFA Optimization Inputs
 if ~strcmp(opt.alg,'ffa')
     if strcmp(opt.alg,'tel') && opt.pd == 2 %Brute force 2D optimization
-        opt.bf.j = 5; %The inactive dimensions will be reset to 1 in optHybrid
-        opt.bf.k = 5;
-        opt.bf.l = 5;
-        opt.bf.m = 5;
-        opt.bf.n = 5;
-        opt.bf.o = 5;
+        opt.bf.j = 500; %The inactive dimensions will be reset to 1 in optHybrid
+        opt.bf.k = 500;
+        opt.bf.l = 500;
+        opt.bf.m = 500;
+        opt.bf.n = 500;
+        opt.bf.o = 500;
 
         opt.tel_max = 1; %maximum number of telescoping iterations
     else % Obselete Optimization Inputs
@@ -85,7 +85,9 @@ opt.allpm = 0;
 opt.alllup = 0;
 opt.fssens = 0;
 c = 2;  %use case 1:ST 2:LT (Only use LT for Hybrid)
-loc = 'BerSea';
+if ~exist('loc','var')
+    loc = 'MidAtlSB';
+end
 %cloc = 'HYCOM_AB_mod_2018'; %ONLY USED FOR INITIAL HYBRID TESTS
 
 trentloc = {'argBasin','souOcean','cosEndurance','irmSea','cosPioneer'};
@@ -272,7 +274,7 @@ if any(strcmp(loc,trentloc)) %if Trent's locations
     end
 else
     %% HYBRID PLATFORM & MOORING - USING INITIAL MOORING MATRIX
-    moorfile = strcat(loc,'_Mooring.mat');
+    moorfile = strcat(loc,'_Mooring.mat')
     load(moorfile)
     econ.platform.cost = MoorMat.WorstCase.cost;
     econ.platform.payloadmass = MoorMat.WorstCase.PLmass;

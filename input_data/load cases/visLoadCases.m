@@ -13,28 +13,38 @@ reltime = data.met.time - data.met.time(1);
 
 
 fst = 10;
-fs = 8;
+fs = 10;
 figure
-set(gcf,'Position', [100, 100, 400, 500])
+set(gcf,'Units','inches')
+set(gcf,'Position', [1, 1, 3.75, 4])
 tf = tiledlayout(3,1);
-tf.Padding = 'compact';
-tf.TileSpacing = 'tight';
+tf.Padding = 'loose';
+tf.TileSpacing = 'compact';
+tf.InnerPosition = [0.17,0.13,0.75,0.8];
 load_case(5).name = 'Constant 322 W';
+load_case(3).name = {'Next-generation Ocean Observing and',' UUV recharge (OO + UUV Recharge)'};
+load_case(1).name = {'High-capacity UUV Recharge',' (UUV Recharge)'};
+tilelabel = {'(a)','(b)','(c)'};
 l = [1 3 5];
 for j = 1:3
     i = l(j);
     ax(j) = nexttile;
     plot(reltime,load_series.L(i,:),'LineWidth',2,'Color','k')
     ylim([0,1000])
-    ylh = ylabel('[W]','FontSize',fs,'Interpreter','latex');
-    title(load_case(i).name,'FontSize',fst,'Interpreter','latex')
+    yl = ylabel({'$L_c$', '[W]'},'FontSize',fs,'Interpreter','latex','VerticalAlignment','middle','Rotation',0);
+    set(yl,'units','normalized')
+    ylp1 = yl.Position;
+    ylp1(1) = ylp1(1)*1.5;
+    set(yl,'position',ylp1)
+    %title(load_case(i).name,'FontSize',fst,'Interpreter','latex')
     xtickformat('h')
-    xlim([reltime(1),reltime(1440)])
+    xlim([reltime(1),reltime(1440/2)])
     grid on
     box on
     ax(j).TickLabelInterpreter = 'latex';
     set(gca,'FontSize',fs)
-    set(ylh,'Rotation',0)
+    text(0.02, 0.85,tilelabel{j},'Units','Normalized', ...
+    'VerticalAlignment','middle','FontSize',fs,'Interpreter','latex')
 end
 xlabel('Time [hr]','FontSize',fs,'Interpreter','latex')
 

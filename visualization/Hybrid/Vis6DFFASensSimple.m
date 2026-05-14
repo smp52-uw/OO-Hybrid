@@ -32,25 +32,37 @@ try
     numfiles = numfiles - 1;
 catch
     disp('No simplified results - loading all files')
-    for i = 1:numfiles
-        tmp = load(fullfile(selectedfolder,fileList(i).name));
-        nm = split(fileList(i).name,'.');
-        nm = nm(1);
-        surv(i) = tmp.(nm{1}).output.min.surv;
-        cost(i) = tmp.(nm{1}).output.min.cost;
-        popbestcost{i} = tmp.(nm{1}).output.popBestCost;
+    i = 1;
+    for j = 1:numfiles
+        try
+            tmp = load(fullfile(selectedfolder,fileList(j).name));
+
+        catch
+            warning(strcat('Problem loading file:',string(fileList(j).name)));
+            tmp = [];
+        end
+        if ~isempty(tmp)
+            nm = split(fileList(j).name,'.');
+            nm = nm(1);
+            surv(i) = tmp.(nm{1}).output.min.surv;
+            cost(i) = tmp.(nm{1}).output.min.cost;
+            popbestcost{i} = tmp.(nm{1}).output.popBestCost;
+            
+            gen(i,:) = [tmp.(nm{1}).output.min.kWwi{1}, tmp.(nm{1}).output.min.kWi{1}, tmp.(nm{1}).output.min.kWwa{1}, tmp.(nm{1}).output.min.kWd{1}, tmp.(nm{1}).output.min.kWc{1}];
+            smax(i) = tmp.(nm{1}).output.min.Smax{1};
+            ffa(i) = tmp.(nm{1}).opt.ffa;
+            failsurv(i) = tmp.(nm{1}).opt.failsurv;
         
-        gen(i,:) = [tmp.(nm{1}).output.min.kWwi{1}, tmp.(nm{1}).output.min.kWi{1}, tmp.(nm{1}).output.min.kWwa{1}, tmp.(nm{1}).output.min.kWd{1}, tmp.(nm{1}).output.min.kWc{1}];
-        smax(i) = tmp.(nm{1}).output.min.Smax{1};
-        ffa(i) = tmp.(nm{1}).opt.ffa;
-        failsurv(i) = tmp.(nm{1}).opt.failsurv;
-    
-        clear tmp
-        savefile = 1;
+            clear tmp
+            savefile = 1;
+            i = i + 1;
+        end
     end
 end
 
 %% extract ffa parameters
+numfiles = max(length(cost)); %updated numfiles in case some where unreadable
+
 for i = 1:numfiles
     bb(i) = ffa(i).beta0;
     popn(i) = ffa(i).pop;
@@ -74,82 +86,113 @@ for i = 1:length(ind)
 end
 
 %% plots
-var = popn;
-opts = unique(var);
-for p = 1:length(opts)
-    indv{p} = find(var == opts(p));
-end
-cMapb = cmasherImport('arctic',300);
-cMapb = cMapb(50:end,:);
-cMapo = cmasherImport('sunburst',300);
-cMapo = cMapo(50:end,:);
-cMapg = cmasherImport('jungle',300);
-cMapg = cMapg(50:end,:);
-
-figure
-hold on
-c = 1; d = 1; e = 1;
-for i = 1:numfiles
-    if sum(i == indv{1})
-        plot(popbestcost{i},'color',cMapb(c,:))
-        c = c + 1;
-    elseif sum(i == indv{2})
-        plot(popbestcost{i},'color',cMapo(d,:))
-        d = d + 1;
-    else
-        plot(popbestcost{i},'color',cMapg(d,:))
-        e = e + 1;
-    end
-end
-ylabel('Population Best Cost')
-xlabel('Iteration')
+% var = popn;
+% opts = unique(var);
+% for p = 1:length(opts)
+%     indv{p} = find(var == opts(p));
+% end
+% cMapb = cmasherImport('arctic',300);
+% cMapb = cMapb(50:end,:);
+% cMapo = cmasherImport('sunburst',300);
+% cMapo = cMapo(50:end,:);
+% cMapg = cmasherImport('jungle',300);
+% cMapg = cMapg(50:end,:);
+% 
+% figure
+% hold on
+% c = 1; d = 1; e = 1;
+% for i = 1:numfiles
+%     if sum(i == indv{1})
+%         plot(popbestcost{i},'color',cMapb(c,:))
+%         c = c + 1;
+%     elseif sum(i == indv{2})
+%         plot(popbestcost{i},'color',cMapo(d,:))
+%         d = d + 1;
+%     else
+%         plot(popbestcost{i},'color',cMapg(d,:))
+%         e = e + 1;
+%     end
+% end
+% ylabel('Population Best Cost')
+% xlabel('Iteration')
 
 %%
-figure
-tf = tiledlayout(3,1);
-tf.Padding = 'tight';
-tf.TileSpacing = 'tight';
+c1 = brewermap(9,'Set3');
+coptpm(1,:) = c1(1,:);
 
-nexttile
-plot(cost(indgood),'linewidth',1.2)
-hold on
-for i = 1:length(ind)
-    p(i) = plot(ind(i),pk(i),'o','DisplayName',dispnm(i));
-end
-ylabel('min Cost')
-xlabel('Run Count')
-%legend([p],'Location','northoutside','NumColumns',2)
+coptpm(2,:) = c1(6,:);
+coptpm(3,:) = c1(5,:);
 
-nexttile
-plot(cost(indgood)/min(cost(indgood)),'linewidth',1.2)
-ylabel('Fraction of Min Cost')
-xlabel('Run Count')
+c4 = brewermap(9,'Set2');
+coptpm(4,:) = c4(8,:);
 
-nexttile
-plot(surv(indgood),'linewidth',1.2)
-ylabel('Surv')
-xlabel('Run Count')
+c5 = brewermap(9,'PRGn');
+coptpm(5,:) = c5(4,:);
+coptpm(6,:) = c4(4,:);
+
+fs = 14;
 
 figure
-tiledlayout(2,1)
+set(gcf,'Units','Inches','Position',[0.5,0.5,10,5])
+tf = tiledlayout(2,2);
+tf.Padding = 'loose';
+tf.TileSpacing = 'loose';
 
-nexttile
+ax(1) = nexttile;
+plot(cost(indgood)/min(cost),'k','linewidth',1.2)
+ylh = ylabel("$\frac{\mathrm{cost}}{\mathrm{min(cost)}}$",'Interpreter','Latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+ax(1).TickLabelInterpreter = 'latex';
+ax(1).FontSize = fs;
+ylim([1,1.2])
+grid on
+box on
+
+ax(2) = nexttile(3);
+plot(surv(indgood),'k','linewidth',1.2)
+xlabel('Sensitivity Iterations','Interpreter','Latex','FontSize',fs)
+ax(2).TickLabelInterpreter = 'latex';
+ax(2).FontSize = fs;
+ylim([0.9,1.1])
+ylh = ylabel('$a_{sim}$','Interpreter','Latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+grid on
+box on
+
+ax(3) = nexttile(2);
 hold on
 for i = 1:5
-    plot(gen(indgood,i),'linewidth',1.2)
+    plot(gen(indgood,i),'linewidth',1.2,'Color',coptpm(i,:))
 end
-legend('Wind','Solar','Wave','Dies','Curr')
-ylabel('Generation [kW]')
-nexttile
-plot(smax(indgood),'linewidth',1.2)
-ylabel('Battery [kWh]')
-xlabel('Run Count')
+legend('Wind','Solar','Wave','Dies','Curr','NumColumns',2,'Interpreter','Latex','FontSize',fs)
+ylh = ylabel({'Generation', '[kW]'},'Interpreter','Latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+ax(3).TickLabelInterpreter = 'latex';
+ax(3).FontSize = fs;
+grid on
+box on
 
-%find really bad points
-x = 1:1:length(cost);
-ind10 = cost/min(cost) > 1.09;
-x10 = x(ind10);
+ax(4) = nexttile(4);
+plot(smax(indgood),'k','linewidth',1.2,'Color',coptpm(6,:))
+hold on
+ylh = ylabel({'Battery', '[kWh]'},'Interpreter','Latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+xlabel('Sensitivity Iterations','Interpreter','Latex','FontSize',fs)
+ax(4).TickLabelInterpreter = 'latex';
+ax(4).FontSize = fs;
+grid on
+box on
+linkaxes(ax,'x')
 
+%% 
 figure
 tf = tiledlayout(5,1);
 tf.Padding = 'tight';

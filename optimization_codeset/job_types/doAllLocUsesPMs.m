@@ -23,10 +23,10 @@ clear allLUP
 allLUP(length(Aloc),length(Apm),length(Aload)) = struct();
 
 for ll = 1:length(Aloc)
-    optInputs %load inputs
     loc = locoptions{Aloc(ll)}; %reset the location
     data = load(loc,'data');
     data = data.('data');
+    optInputs %load inputs
     for pp = 1:length(Apm)
         for uu = 1:length(Aload)
             opt.pm = Apm(pp); %Re-set power module

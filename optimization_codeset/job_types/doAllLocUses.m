@@ -14,6 +14,7 @@ for loc_n = 1:length(opt.locations)
     data = load(loc,loc);
     data = data.(loc);
     data.loc = loc;
+    optInputs
     for c = 1:length(opt.usecases)
         disp(['Optimization at ' char(opt.locations(loc_n)) ...
             ' for ' ...

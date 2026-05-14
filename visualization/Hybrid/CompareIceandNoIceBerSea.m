@@ -41,23 +41,42 @@ end
 [~,ind2DI] = min(costmin);
 optStruct2DI = optStruct(ind2DI);
 
-Ice6D = 'C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\ffa6D_BerSeaLC1_SW0';
+Ice6D = 'C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\FFA6DSensitivity_SW0\ffa6D_BerSeaLC1_SW0';
 optStruct6DI = load(fullfile(Ice6D,'SimplifiedResults.mat'));
 
 %% orgaize data for plotting
-'$\begin{array}{c}Ice\\Single Generator\end{array}$';
-X = categorical({'$\begin{array}{c}No Ice\\Single Generator\end{array}$','$\begin{array}{c}No Ice\\Hybrid\end{array}$','$\begin{array}{c}Ice\\Single Generator\end{array}$','$\begin{array}{c}Ice\\Hybrid\end{array}$'});
-X = reordercats(X,{'$\begin{array}{c}No Ice\\Single Generator\end{array}$','$\begin{array}{c}No Ice\\Hybrid\end{array}$','$\begin{array}{c}Ice\\Single Generator\end{array}$','$\begin{array}{c}Ice\\Hybrid\end{array}$'});
+% X = categorical({'$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Single}\\\mathrm{Gen}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Hybrid}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{Gen}\\\mathrm{Wind}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{Gen}\\\mathrm{Wave}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Hybrid}\end{array}$'});
+% X = reordercats(X,{'$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Single}\\\mathrm{Gen}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Hybrid}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{Gen}\\\mathrm{Wind}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{Gen}\\\mathrm{Wave}\end{array}$',...
+%     '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Hybrid}\end{array}$'});
 
+
+X = categorical({'$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Single}\\\mathrm{Gen}\end{array}$',...
+    '$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Hybrid}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{GenWi}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{GenWa}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Hybrid}\end{array}$'});
+X = reordercats(X,{'$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Single}\\\mathrm{Gen}\end{array}$',...
+    '$\begin{array}{c}\mathrm{No\:Ice}\\\mathrm{Hybrid}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{GenWi}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Single}\\\mathrm{GenWa}\end{array}$',...
+    '$\begin{array}{c}\mathrm{Ice}\\\mathrm{Hybrid}\end{array}$'});
 [~,minNI] = min(optStruct6DNI.cost);
 [~,minI] = min(optStruct6DI.cost);
 
 gen2DNI = [optStruct2DNI.output.min.kWwi{1}, optStruct2DNI.output.min.kWi{1}, optStruct2DNI.output.min.kWwa{1}, optStruct2DNI.output.min.kWd{1}, optStruct2DNI.output.min.kWc{1}];
 gen2DI = [optStruct2DI.output.min.kWwi{1}, optStruct2DI.output.min.kWi{1}, optStruct2DI.output.min.kWwa{1}, optStruct2DI.output.min.kWd{1}, optStruct2DI.output.min.kWc{1}];
+wavegen = [0,0,0.2244,0,0];
 
-gen = [gen2DNI; optStruct6DNI.gen(minNI,:); gen2DI; optStruct6DI.gen(minI,:)];
-smax = [optStruct2DNI.output.min.Smax{1}, optStruct6DNI.smax(minNI), optStruct2DI.output.min.Smax{1},optStruct6DI.smax(minI)];
-cost = [optStruct2DNI.output.min.cost, optStruct6DNI.cost(minNI), optStruct2DI.output.min.cost,optStruct6DI.cost(minI)];
+gen = [gen2DNI; optStruct6DNI.gen(minNI,:); gen2DI; wavegen; optStruct6DI.gen(minI,:)];
+smax = [optStruct2DNI.output.min.Smax{1}, optStruct6DNI.smax(minNI), optStruct2DI.output.min.Smax{1},13, optStruct6DI.smax(minI)];
+cost = [optStruct2DNI.output.min.cost, optStruct6DNI.cost(minNI), optStruct2DI.output.min.cost,2.75E5, optStruct6DI.cost(minI)];
 
 %% plotting
 colors = brewermap(11, 'Set3');
@@ -71,42 +90,70 @@ colors = brewermap(11, 'Set1');
 colc(1,:) = colors(9,:);
 cols(1,:) = colors(8,:);
 
+bw = 0.5;
+fs = 10;
+
 figure
-set(gcf,'Units','Inches','Position', [0.05,0.05,4,6])
-tf = tiledlayout(3,1);
-tf.Padding = 'loose';
+set(gcf,'Units','Inches','Position', [0.05,0.05,4.5,4])
+tf = tiledlayout(3,3);
+tf.Padding = 'compact';
 tf.TileSpacing = 'compact';
 
-ax(1) = nexttile;
-c = bar(X,cost./1000);
-ylabel({'Cost', '[\$1000]'},'Interpreter','latex','Rotation',0,'HorizontalAlignment', 'center')
-set(c, 'FaceColor', 'Flat')
-c.CData = colc(1,:);
-grid on
-box on
-set(gca,'xtick',[])
-ax(1).TickLabelInterpreter = 'latex';
+ax(1) = nexttile(2,[1 2]);
+c = bar(X,cost./1000,bw);
 
-ax(2) = nexttile;
-g = bar(X,gen,'stacked');
-ylabel({'Generation',' [kW]'},'Interpreter','latex','Rotation',0,'HorizontalAlignment', 'center')
-set(g, 'FaceColor', 'Flat')
+ylh = ylabel({'Cost', '[\$1000]'},'Interpreter','latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+set(c, 'FaceColor', 'Flat')
+c(1).CData = colc(1,:);
+
 grid on
 box on
-set(gca,'xtick',[])
+set(gca, 'XTickLabel', []);
+ax(1).TickLabelInterpreter = 'latex';
+ax(1).FontSize = fs;
+ylim([150,300])
+
+ax(2) = nexttile(5,[1 2]);
+hold on
+g = bar(X,gen,bw,'stacked');
+
+
 g(1).CData = colpm(1,:);
 g(2).CData = colpm(2,:);
 g(3).CData = colpm(3,:);
 g(4).CData = colpm(4,:);
 g(5).CData = colpm(5,:);
-ax(2).TickLabelInterpreter = 'latex';
-legend('Wind','Solar','Wave','Diesel','Current','Interpreter','Latex')
 
-ax(3) = nexttile;
-s = bar(X,smax);
-ylabel({'Battery Max',' Capacity [kWh]'},'Interpreter','latex','Rotation',0,'HorizontalAlignment', 'center')
+ylh = ylabel({'Rated','Power',' [kW]'},'Interpreter','latex');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
+set(g, 'FaceColor', 'Flat')
+grid on
+box on
+set(gca, 'XTickLabel', []);
+
+ax(2).TickLabelInterpreter = 'latex';
+ax(2).FontSize = fs;
+lh = legend('Wind','Solar','Wave','','','Interpreter','Latex','FontSize',fs,'NumColumns',3,'Location','NorthEast');
+lh.ItemTokenSize(1) = 10;
+ylim([0,0.8])
+
+ax(3) = nexttile(8,[1 2]);
+s = bar(X,smax,bw);
+xtickangle(0)
+ylh = ylabel({'Battery','Max','Capacity','[kWh]'},'Interpreter','latex','Rotation',0,'HorizontalAlignment', 'center');
+set(ylh,'Rotation',0,'Units','Normalized','Position',[-.23 .5 -1], ...
+    'VerticalAlignment','middle', ...
+    'HorizontalAlignment','center','FontSize',fs)
 set(s, 'FaceColor', 'Flat')
-s.CData = cols(1,:);
+s(1).CData = cols(1,:);
 grid on
 box on
 ax(3).TickLabelInterpreter = 'latex';
+ax(3).FontSize = fs;
+ax(3).XAxis.TickLabelChild.VerticalAlignment = 'middle'
+ylim([0,30])

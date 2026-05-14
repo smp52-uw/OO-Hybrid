@@ -15,11 +15,10 @@ clear allPM1Loc
 allPM1Loc(1,length(task2pm)) = struct();
 
 for ll = 1:length(Aloc)
-    optInputs %load inputs
     loc = locoptions{Aloc(ll)}; %reset the location
     data = load(loc,'data');
     data = data.('data');
-
+    optInputs %load inputs
     for pp = 1:length(Apm)
         for uu = l:length(Aload)
             opt.pm = Apm(pp); %Re-set power module

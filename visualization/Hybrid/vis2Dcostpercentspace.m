@@ -85,7 +85,7 @@ for i = 1:numfiles
     loc{i} = optStruct.loc;
     lc(i) = optStruct.uc.loadcase;
 end
-
+%% 
 locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
 locdisp =  {'Newport','Mid-Atlantic Shelf Break','Bering Sea','O''ahu','Coastal Washington'};
 loadoptions = [1 3 5];
@@ -116,8 +116,8 @@ coptpm(5,:) = c5(end,:);
 
 
 %% plot data
-locoptions = {'BerSea'};
-locdisp = locoptions;
+% % locoptions = {'BerSea'};
+% % locdisp = locoptions;
 figure
 tf = tiledlayout(length(locoptions),length(loadoptions));
 tf.Padding = 'compact';

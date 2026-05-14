@@ -67,9 +67,9 @@ end
 % %adjustments for plotting on map
 maptitles{1} = {'Bering Sea'};
 maptitles{2} = {'Mid-Atlantic','Shelf Break'};
-maptitles{3} = {'Oregon'};
-maptitles{4} = {'Washington'};
-maptitles{5} = {'O''ahu'};
+maptitles{3} = {'Coastal Oregon'};
+maptitles{4} = {'Coastal Washington'};
+maptitles{5} = {'Coastal O''ahu'};
 
 %plot settings
 colb = brewermap(9,'YlGnBu');
@@ -112,7 +112,7 @@ set(ax(1),'LineWidth',10)
 framem off %remove frame
 gridm off %remove grid
 %add point locations and text
-posmod = [1.5 1.1 2.6 2.9 1.35 ; ...
+posmod = [1.5 1.1 3.65 4 1.7 ; ...
           1 1 1 1 1]; %modify text position placement
 for i = 1:l
     %add point locations
@@ -136,7 +136,7 @@ for i = 1:l
     hold on
 end
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yy');
 ylabel({'Wave','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Wave','FontSize',fs,'interpreter','latex')
 ylh = get(ax(1),'ylabel');
@@ -147,7 +147,7 @@ text(-.175,.35,'$$\mathrm{\bigg[\frac{kW}{m}\bigg]}$$', ...
     'Units','Normalized','Interpreter','latex', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'HorizontalAlignment','center','FontSize',fs);
-ylim([0 inf])
+ylim([0 90])
 %hL = legend('show','location','eastoutside','box','off','Units','Inches');
 drawnow
 ax(1).TickLabelInterpreter = 'latex';
@@ -167,7 +167,7 @@ for i = 1:l
     hold on
 end
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yy');
 ylabel({'Wind','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Wind','FontSize',fs,'interpreter','latex')
 ylh = get(ax(2),'ylabel');
@@ -197,7 +197,7 @@ for i = 1:l
     hold on
 end
 %xl = xlabel('Time');
-xtickformat('yyyy');
+xtickformat('MM-yy');
 ylabel({'Solar','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Solar','FontSize',fs,'interpreter','latex')
 ylh = get(ax(3),'ylabel');
@@ -227,7 +227,7 @@ for i = 1:l
     hold on
 end
 xl = xlabel('Time','Interpreter','latex');
-xtickformat('yyyy');
+xtickformat('MM-yy');
 ylabel({'Current','Power','Density'},'FontSize',fs,'interpreter','latex');
 %title('Solar','FontSize',fs,'interpreter','latex')
 ylh = get(ax(4),'ylabel');
@@ -247,6 +247,7 @@ text(1.05,.5,'(e)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs3,'Interpreter','latex')
 grid on
-
+linkaxes(ax,'x')
+xlim([monthlyArray(25),monthlyArray(49)])
 print(datacomp,['G:\My Drive\Hybrid Ocean Observation\OO-Hybrid Paper\DRAFT_ResourceHybrid'],  ...
     '-dpng','-r600')

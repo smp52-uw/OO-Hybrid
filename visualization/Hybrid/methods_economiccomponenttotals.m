@@ -182,7 +182,7 @@ battreplace = Scost.*newbatt/2; %number of battery replacements
 batteryrepair = 1/4*0.5.*(Scost + Icost_batt).*nvi; %battery repair
 %mooringrepair = 1/4*0.5*Pmooring*nvi; %eventually need a mooring refurb cost
 
-%Component Totals
+%Subsystem Totals
 BattTot = battencl + Scost + Icost_batt + battreplace + batteryrepair;
 DiesTot = genencl + kWcost_dies + Icost_dies + fuel + genrepair;
 SolarTot = Icost_inso + Mcost_inso + Ecost_inso + Strcost_inso + solarrepair;
@@ -211,42 +211,44 @@ colb(1,:) = colors2(4,:);
 
 fs = 10; %font size
 figure
-set(gcf,'Unit','Inches','OuterPosition',[0.3,0.3,5,4])
-tf = tiledlayout(1,2);
-tf.Padding = 'compact';
+set(gcf,'Unit','Inches','OuterPosition',[0.3,0.3,3,5])
+tf = tiledlayout(2,1);
+tf.Padding = 'loose';
+tf.TileSpacing = 'loose';
+tf.InnerPosition = [0.37,0.1,0.55,0.67];
 nexttile
 hold on
-plot(Smax./500,BattTot./1000,'linewidth',3,'DisplayName','Battery','color',colb(1,:))
-plot(kW_dies./8,DiesTot./1000,'linewidth',3,'DisplayName','Diesel','color',colpm(4,:))
-plot(kW_inso./8,SolarTot./1000,'linewidth',3,'DisplayName','Solar','color',colpm(2,:))
-plot(kW_wind./8,WindTot./1000,'linewidth',3,'DisplayName','Wind','color',colpm(1,:))
-plot(kW_wave./8,WaveTot./1000,'linewidth',3,'DisplayName','Wave','color',colpm(3,:))
-plot(kW_curr./8,CurrTot./1000,'linewidth',3,'DisplayName','Current','color',colpm(5,:))
+plot(Smax./500,BattTot./1000,'linewidth',2,'DisplayName','Battery','color',colb(1,:))
+plot(kW_dies./8,DiesTot./1000,'linewidth',2,'DisplayName','Diesel','color',colpm(4,:))
+plot(kW_inso./8,SolarTot./1000,'linewidth',2,'DisplayName','Solar','color',colpm(2,:))
+plot(kW_wind./8,WindTot./1000,'linewidth',2,'DisplayName','Wind','color',colpm(1,:))
+plot(kW_wave./8,WaveTot./1000,'linewidth',2,'DisplayName','Wave','color',colpm(3,:))
+plot(kW_curr./8,CurrTot./1000,'linewidth',2,'DisplayName','Current','color',colpm(5,:))
 grid on
 box on
 set(gca,"TickLabelInterpreter",'latex','FontSize',fs)
 xlabel('Fraction of max capacity','Interpreter','latex','FontSize',fs)
-ylabel('Component Cost [\$1000]','Interpreter','latex','FontSize',fs)
-text(0.05, 0.93,'(a)','Units','Normalized', ...
+ylabel({'Subsystem',' Cost',' [\$1000]'},'Interpreter','latex','FontSize',fs,'Rotation',0,'VerticalAlignment','middle','Units','Normalized','Position',[-.43 .5 -1]) %
+text(0.05, 0.9,'(a)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs,'Interpreter','latex')
-lh = legend('Location','NorthOutside','Orientation','Horizontal','Interpreter','Latex','FontSize',fs,'NumColumns',6);
+lh = legend('Location','NorthOutside','Orientation','Horizontal','Interpreter','Latex','FontSize',fs,'NumColumns',2);
 lh.Layout.Tile = 'North';
 lh.ItemTokenSize = [15, 18]; % Makes the lines shorter
 
 nexttile
 hold on
-plot(Smax./500,BattMass,'linewidth',3,'color',colb(1,:))
-plot(kW_dies./8,DiesMass,'linewidth',3,'color',colpm(4,:))
-plot(kW_inso./8,SolarMass,'linewidth',3,'color',colpm(2,:))
-plot(kW_wind./8,WindMass,'linewidth',3,'color',colpm(1,:))
-plot(kW_wave./8,WaveMass,'linewidth',3,'color',colpm(3,:))
-plot(kW_curr./8,CurrMass,'linewidth',3,'color',colpm(5,:))
+plot(Smax./500,BattMass,'linewidth',2,'color',colb(1,:))
+plot(kW_dies./8,DiesMass,'linewidth',2,'color',colpm(4,:))
+plot(kW_inso./8,SolarMass,'linewidth',2,'color',colpm(2,:))
+plot(kW_wind./8,WindMass,'linewidth',2,'color',colpm(1,:))
+plot(kW_wave./8,WaveMass,'linewidth',2,'color',colpm(3,:))
+plot(kW_curr./8,CurrMass,'linewidth',2,'color',colpm(5,:))
 grid on
 box on
 set(gca,"TickLabelInterpreter",'latex','FontSize',fs)
 xlabel('Fraction of max capacity','Interpreter','latex','FontSize',fs)
-ylabel('Component Mass [kg]','Interpreter','latex','FontSize',fs)
-text(0.05, 0.93,'(b)','Units','Normalized', ...
+ylabel({'Subsystem',' Mass',' [kg]'},'Interpreter','latex','FontSize',fs,'Rotation',0,'VerticalAlignment','middle','Units','Normalized','Position',[-.43 .5 -1]) %
+text(0.05, 0.9,'(b)','Units','Normalized', ...
     'VerticalAlignment','middle','FontWeight','normal', ...
     'FontSize',fs,'Interpreter','latex')
