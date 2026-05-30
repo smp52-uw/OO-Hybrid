@@ -87,44 +87,47 @@ for i = 1:numfiles
     cMap = cmasherImport('pepper',1000);
     cMap = flipud(cMap); %switching it to gr -> rd
    
-    figure %cost figure (white)
+    % figure %cost figure (white)
+    % hold on
+    % Srun = optStruct.output.S_run{1};
+    % scatter3(Srun,kWrun,costW,[],costW,'filled');
+    % colormap(gca, cMap)
+    % clim([min(costW), max(costW)]); 
+    % pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
+    % 
+    % view(0,90)
+    % xlabel('Storage Capacity [kWh]')
+    % ylabel('Rated Power [kW]')
+    % title(titlestr)
+    % c = colorbar;
+    % c.Label.String = collabel;
+    % 
+    % grid on
+
+    figure %cost figure (black)
     hold on
-    Srun = optStruct.output.S_run{1};
-    scatter3(Srun,kWrun,costW,[],costW,'filled');
-    colormap(gca, cMap)
-    clim([min(costW), max(costW)]); 
+    costtr = costgridB.';
+    s = surf(Smaxgrid.',kWgrid.',costtr);
+    colormap(cMap)
+    s.EdgeColor = 'none';
+    s.FaceColor = 'flat';
     pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
     
     view(0,90)
     xlabel('Storage Capacity [kWh]')
     ylabel('Rated Power [kW]')
-    title(titlestr)
+    title(strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm)))
     c = colorbar;
-    c.Label.String = collabel;
+    c.Label.String = '[$] in thousands';
     
     grid on
 
-    savefile = fullfile(selectedfolder,strcat("ObjSpace", optStruct.loc,"LC",string(optStruct.uc.loadcase), "PM",string(opt.pm)));
-    print(savefile,'-dpng',"-r600")
+
+    %savefile = fullfile(selectedfolder,strcat("ObjSpace", optStruct.loc,"LC",string(optStruct.uc.loadcase), "PM",string(opt.pm)));
+    %print(savefile,'-dpng',"-r600")
 end
 
-% figure %cost figure (black)
-% hold on
-% costtr = costgridB.';
-% s = surf(Smaxgrid.',kWgrid.',costtr);
-% colormap(cMap)
-% s.EdgeColor = 'none';
-% s.FaceColor = 'flat';
-% pl(1) = plot3(optStruct.output.min.Smax{1},kWmin,5*max(cost),'co','LineWidth',2,'DisplayName','Optimal Point');
-% 
-% view(0,90)
-% xlabel('Storage Capacity [kWh]')
-% ylabel('Rated Power [kW]')
-% title(strcat("Total Cost: ", optStruct.loc,", LC = ",string(optStruct.uc.loadcase), ", PM = ",string(opt.pm)))
-% c = colorbar;
-% c.Label.String = '[$] in thousands';
-% 
-% grid on
+
 
 
 % figure %surv figure

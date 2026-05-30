@@ -9,7 +9,7 @@
 
 %location
 clear locout
-site_case = 3;
+site_case = 10;
 
 switch site_case
     case 1
@@ -40,6 +40,9 @@ switch site_case
     case 9
         loc = 'altWETS';
         cd altWETS;
+    case 10
+        loc = 'MidAtlSB_E';
+        cd MidAtlSB_E\
 end
 
 if ~exist('locout','var')
@@ -49,7 +52,7 @@ end
 matfiles = dir('*.mat') ; 
 N = length(matfiles) ; 
 for i = 1:N
-    if ~strcmp(matfiles(i).name, strcat(loc,'.mat')) %If I've already run createAllDataHybrid I don't want to load in that file
+    if ~strcmp(matfiles(i).name, strcat(locout,'.mat')) %If I've already run createAllDataHybrid I don't want to load in that file
         load(matfiles(i).name)
     end
 end

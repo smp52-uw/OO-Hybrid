@@ -46,6 +46,8 @@ elseif opt.alllup
     multStruct = doAllLocUsesPMs(prepath,name,batchtype,Aparams);
 elseif opt.fssens
     multStruct = doFailSurvsens(prepath,name,batchtype,Aparams);
+elseif opt.sens1Dcheck
+    multStruct = doAllLocUses1DSensCheck(prepath,name,batchtype,Aparams);
 %  Line 36-53 obselete from individual pm modules
 % elseif opt.senssm
 %     if pm == 1

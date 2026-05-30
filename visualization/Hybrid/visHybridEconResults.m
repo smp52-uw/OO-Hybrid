@@ -1,7 +1,8 @@
 %load in hybrid simulations
 %set the folder with the sensitivity results
-selectedfolder = "C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\AllLUP6D";
-
+%selectedfolder = "C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\AllLUP6D";
+%selectedfolder = "C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\AllLUP6D\LC3_NoBatteryRule"; %Adjusted LC 3 with no battery rule results
+selectedfolder = "C:\Users\smpal\MREL Dropbox\Sarah Palmer\OO-Hybrid\HybridPaper\All_MidAtlSBE_UP\6D"';
 fileList = dir(fullfile(selectedfolder,'*.mat'));
 numfiles = max(size(fileList));
 
@@ -12,12 +13,12 @@ minSys = min2D.minSys;
 clear min2D
 
 %%Set up locations and load cases
-locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
+locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES','MidAtlSB_E'};
 locdisp =  {{'Coastal','Oregon'},{'Mid-Atlantic',' Shelf Break'},{'Bering',' Sea'},{'Coastal','O''ahu'},{'Coastal', 'Washington'}};
 loadoptions = [1 3 5];
 
 %% either load the simplified mat file or load all files
-results = cell(5,3,5);
+results = cell(6,3,5);
 try
     load(fullfile(selectedfolder,'SimplifiedResults.mat'))
     savefile = 0;
@@ -36,17 +37,17 @@ catch
         if ~isempty(tmp)
             nm = split(fileList(j).name,'.');
             nm = nm(1);
-            loc = tmp.(nm{1}).loc;
-            lc = tmp.(nm{1}).uc.loadcase;
+            loc{i} = tmp.(nm{1}).loc;
+            lc(i) = tmp.(nm{1}).uc.loadcase;
 
             %indexing
-            li = find(strcmp(loc,locoptions));
-            ui = find(lc == loadoptions);
+            li = find(strcmp(loc{i},locoptions));
+            ui = find(lc(i) == loadoptions);
             pi = tmp.(nm{1}).opt.pm;
 
             results{li,ui,pi} = tmp.(nm{1});
         
-            clear tmp loc lc pm
+            clear tmp
             savefile = 1;
             i = i + 1;
         end
@@ -67,10 +68,15 @@ c5 = brewermap(9,'PRGn');
 coptpm(5,:) = c5(4,:);
 coptpm(6,:) = c4(4,:);
 
+locloop = unique(loc);
+loadloop = unique(lc);
+
 analysis.loadcases = {'UUV','OO','OO+UUV'};
 auu = [1,3,2];
-for ll = 1:length(locoptions)
-    for uu  = 1:length(loadoptions)
+for xx = 1:length(locloop)
+    ll = strcmp(locloop{xx}, locoptions);
+    ll = find(ll);
+    for uu  = 1:length(loadloop)
         emptyresults = [isempty(results{ll,uu,1}), isempty(results{ll,uu,2}), isempty(results{ll,uu,3}), isempty(results{ll,uu,4}), isempty(results{ll,uu,5})];
         for rr = 1:5
             if ~emptyresults(rr)
@@ -82,20 +88,22 @@ for ll = 1:length(locoptions)
                 allgen(rr,:) = [nan,nan,nan,nan,nan];
                 allsmax(rr) = nan;
             end
+            %visFireflies(results{ll,uu,rr},strcat(locoptions{ll}," LC: ",string(loadoptions(uu))," R: ",string(rr)))
         end
         [cost6D,ind] = min(tmpcost);
+       %close all
         tmpgen = [results{ll,uu,ind}.output.min.kWwi{1},results{ll,uu,ind}.output.min.kWi{1},results{ll,uu,ind}.output.min.kWwa{1},results{ll,uu,ind}.output.min.kWd{1},results{ll,uu,ind}.output.min.kWc{1}];
 
         % Cost Variation in repeat solutions
         analysis.mincostvar(ll,auu(uu)) = std(tmpcost)/mean(tmpcost,'omitnan');
 
         % Hybridization Benefit
-        cost2D = min(minSys{ll,uu}.cost);
-        analysis.hybridbenefit(ll,auu(uu)) = abs(cost6D-cost2D)/(cost2D);
-        tmpgen(tmpgen >1E-3) = 0; %zeroing out any generators smaller than 1 W
-        if sum(tmpgen>0) > 1
-            analysis.hybridbenefit(ll,auu(uu)) = 0;
-        end
+        % cost2D = min(minSys{ll,uu}.cost);
+        % analysis.hybridbenefit(ll,auu(uu)) = abs(cost6D-cost2D)/(cost2D);
+        % tmpgen(tmpgen >1E-3) = 0; %zeroing out any generators smaller than 1 W
+        % if sum(tmpgen>0) > 1
+        %     analysis.hybridbenefit(ll,auu(uu)) = 0;
+        % end
 
         %plot results
         figure

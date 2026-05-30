@@ -149,7 +149,11 @@ end
 
 
 %This is the battery min SoC for non-constant load cases
-hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval); %needs to be able to achieve the hotel load for half the interval
+if uc.loadcase == 1
+    hotelper = min(uc.draw)*hours(uc.loaddata(uc.loadcase).interval); % [Wh] needs to be able to achieve the hotel load for half the interval
+else
+    hotelper = 0;
+end
 meanL = mean(uc.draw); %mean load for this load case
 
 t2 = tic;
@@ -603,23 +607,23 @@ if opt.tar ==3 %economic
     t_os = 2*t_i/24; %assuming recovery is similar to installation (have to recover and re-deploy)
     vesselcost = C_v*(nvi*(2*triptime + t_os)); %vessel cost
     %Maintenance Costs
-    solarrepair = 1/4*0.5*(Strcost_inso + Icost_inso + Ecost_inso)*(nvi); %solar refurb repair
+    solarrepair = 1/4*0.5*(Strcost_inso + Icost_inso + Ecost_inso)*(nvi)*econ.refurb_mult; %solar refurb repair
     if solarrepair < 0, solarrepair = 0; end
     
-    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi); %turbine repair cost
+    turbrepair = 1/2*0.5*(kWcost_wind+Icost_wind)*(nvi)*econ.refurb_mult; %turbine repair cost
     if turbrepair < 0, turbrepair = 0; end
 
-    cturbrepair = 1/2*0.5*(kWcost_curr + Icost_curr)*(nvi); %current turbine refurb cost
+    cturbrepair = 1/2*0.5*(kWcost_curr + Icost_curr)*(nvi)*econ.refurb_mult; %current turbine refurb cost
     if cturbrepair <0, cturbrepair = 0; end
 
-    wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi); %wec repair cost
+    wecrepair = 1/2*(0.5)*(kWcost_wave+Icost_wave)*(nvi)*econ.refurb_mult; %wec repair cost
     if wecrepair < 0, wecrepair = 0; end %if nvi = 0, wec repair must be 0
 
-    genrepair = 1/4*(0.5)*(kWcost_dies+Icost_dies)*(nvi); %generator repair cost
+    genrepair = 1/4*(0.5)*(kWcost_dies+Icost_dies)*(nvi)*econ.refurb_mult; %generator repair cost
     if genrepair < 0, genrepair = 0; end
     battreplace = Scost*newbatt/2; %number of battery replacements
-    batteryrepair = 1/4*0.5*(Scost + Icost_batt)*nvi; %battery repair
-    mooringrepair = 1/4*0.5*Pmooring*nvi; %eventually need a mooring refurb cost
+    batteryrepair = 1/4*0.5*(Scost + Icost_batt)*nvi*econ.refurb_mult; %battery repair
+    mooringrepair = 1/4*0.5*Pmooring*nvi*econ.refurb_mult; %eventually need a mooring refurb cost
     
     %Total Cost Calculations
     CapEx = Pmooring + Pinst + Pmtrl + battencl + Scost + Icost_batt + ...

@@ -16,7 +16,7 @@ else
     Aload = [1 3 5];
 end
 
-locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
+locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES','MidAtlSB_E'};
 
 %initialize outputs
 clear allLUP
