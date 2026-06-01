@@ -27,14 +27,14 @@ opt.ice = 'slow'; %options are 'fast','slow',or 'none'
 opt.monthstart = 7; %July start
 opt.smallwec = 0; %1 if you want the WECs smaller than 1 m to be 1 m, 0 if you want there to be no small WECs allowed
 
-opt.singlepoint = 0; %run a single point for time series comparison
+opt.singlepoint = 1; %run a single point for time series comparison
 if opt.singlepoint == 1
-    opt.wind.kWsg = 0;
-    opt.inso.kWsg = 0.57715;
-    opt.wave.kWsg = 0;
-    opt.dies.kWsg = 0;
-    opt.curr.kWsg = 0;
-    opt.Smaxsg = 10;
+    opt.wind.kWsg = 1;
+    opt.inso.kWsg = 1;
+    opt.wave.kWsg = 1;
+    opt.dies.kWsg = 1;
+    opt.curr.kWsg = 1;
+    opt.Smaxsg = 2;
 end
 %% Debugging inputs
 % % kwtemp = linspace(0,8,500);
@@ -309,7 +309,7 @@ econ.platform.d_i = [500 5000];     %[m] depth for inst cost
 econ.vessel.speccost = 50000*2;       %[$/day] 2020->2024 (PPI)
 %econ.vessel.t_ms = 6;               %[h] time on site  (spec) - obselete
 %econ.vessel.int = 1;                %[vessel int/year] -obselete
-
+econ.refurb_mult = 1;               %baseline no multiplier on repair costs (gets adjusted by sensitivity)
 %battery 
 econ.batt.enclmult = 1;             %multiplier on battery cost for encl - obselete
 econ.batt.volmult = 1.2;            %volume multiplier for batter enclosure (makes room of electrical equipment)
@@ -451,7 +451,7 @@ uc(1).uptime = .99;             %[%] uptime
 %long term instrumentation
 %uc(2).draw = 200;               %[W] - secondary node
 uc(2).lifetime = 6;             %[y]
-uc(2).loadcase = 1;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
+uc(2).loadcase = 3;             %1=HCUUV, 2=HFUUV, 3=OOUUV, 4=HF radar, 5 = 200W
 uc(2).SI = 24;                  %[months] service interval
 uc(2).uptime = .99;             %[%] uptime
 

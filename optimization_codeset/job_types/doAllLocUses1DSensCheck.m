@@ -26,18 +26,18 @@ locoptions = {'PacWave','MidAtlSB','BerSea','altWETS','altPISCES'};
 %sensitivity variables to check
 %'lfp.se','econ.wave.mass_mult','econ.platform.steel','lfp.cost','econ.refurb_mult','econ.dies.fcost','econ.wind.marinization','econ.wave.costmult_con','econ.curr.costmult'
 sensmin = [1/4, 10, 1/10,1/10,1/2,1/5,1/2,1/10,1/3];
-sensmax = [10, 1/10, 10,10,10,10,10,10,10];
+sensmax = [10, 1/10, 10,10,4,10,10,10,10];
 
 
 %initialize outputs
 clear allLUP
 allLUP(1,1) = struct();
 
-loc = locoptions{Aloc(ll)}; %reset the location
+loc = locoptions{Aloc}; %reset the location
 data = load(loc,'data');
 data = data.('data');
 optInputs %load inputs
-uc(c).loadcase = Aload(uu); %reset the load case
+uc(c).loadcase = Aload; %reset the load case
 
 %overwrite array parameters
 opt.ffa.max = opt.ffa.sens{1};
